@@ -1,0 +1,272 @@
+//
+// me-shell.scss
+//
+// Private workspace shell (/me). Deliberately reuses only tokens already
+// defined in _variables.scss so this area stays visually one site with the
+// public pages, not a separate admin-panel design system.
+
+$me-sidebar-width: 260px;
+
+.me-shell {
+    min-height: 100vh;
+    background: $light;
+}
+
+.me-sidebar {
+    width: $me-sidebar-width;
+    background: $white;
+    box-shadow: $shadow;
+    padding: 24px 16px;
+
+    @media (min-width: 992px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 1030;
+    }
+}
+
+.me-sidebar-brand {
+    font-family: $font-family-base;
+    font-weight: 600;
+    color: $dark;
+    padding: 4px 12px 20px;
+}
+
+.me-nav-group-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba($dark, 0.45);
+    font-weight: 600;
+}
+
+.me-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.5rem;
+    color: $dark;
+    text-decoration: none;
+    transition: all 0.2s ease;
+
+    &:hover,
+    &:focus {
+        background: rgba($primary, 0.08);
+        color: $primary;
+    }
+
+    &.active {
+        background: rgba($primary, 0.1);
+        color: $primary;
+        font-weight: 600;
+        box-shadow: inset 3px 0 0 $primary;
+    }
+}
+
+.me-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    background: $white;
+    box-shadow: $shadow;
+    padding: 12px 0;
+}
+
+.me-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba($dark, 0.4);
+    z-index: 1045;
+}
+
+.me-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(80vw, 300px);
+    background: $white;
+    box-shadow: $shadow-lg;
+    z-index: 1050;
+    overflow-y: auto;
+    padding: 24px 16px;
+}
+
+.me-main {
+    padding: 0;
+
+    @media (min-width: 992px) {
+        margin-left: $me-sidebar-width;
+    }
+}
+
+// Centered modal dialog (task/event forms, confirmations) — distinct from
+// .me-drawer above, which is specifically the left-edge navigation panel.
+.me-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba($dark, 0.4);
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.me-dialog-panel {
+    background: $white;
+    border-radius: 0.75rem;
+    box-shadow: $shadow-lg;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.me-toast-stack {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1070;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: min(90vw, 360px);
+}
+
+.me-toast {
+    box-shadow: $shadow-lg;
+    margin-bottom: 0;
+}
+
+.me-board-card {
+    border: 1px solid rgba($dark, 0.18) !important;
+}
+
+// ---- Rich text (Tiptap editor + rendered content) ----
+.rich-content,
+.rich-render {
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+
+    > * + * { margin-top: 1rem; }
+    h2 { font-size: 1.5rem; margin-top: 1.75rem; }
+    h3 { font-size: 1.2rem; margin-top: 1.5rem; }
+    p { margin-bottom: 0; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0; }
+    li + li { margin-top: 0.25rem; }
+    li > p { margin: 0; }
+    blockquote {
+        border-left: 4px solid rgba($primary, 0.4);
+        padding: 0.25rem 1rem;
+        color: $gray-600;
+        margin-left: 0;
+    }
+    code {
+        background: $light;
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.9em;
+    }
+    pre {
+        background: $dark;
+        color: $white;
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+        code { background: transparent; color: inherit; padding: 0; }
+    }
+    hr { margin: 1.75rem 0; opacity: 0.25; }
+    img { max-width: 100%; height: auto; border-radius: 8px; }
+    a { text-decoration: underline; }
+}
+
+.rich-editor {
+    .rich-content {
+        outline: none;
+        min-height: 260px;
+
+        p.is-editor-empty:first-child::before {
+            content: attr(data-placeholder);
+            color: $gray-500;
+            float: left;
+            height: 0;
+            pointer-events: none;
+        }
+    }
+    .ProseMirror-selectednode { outline: 2px solid $primary; }
+}
+
+// Skip-link targets receive focus programmatically; no visible ring on the container itself.
+main:focus { outline: none; }
+
+// One consistent, clearly visible keyboard focus ring everywhere (the template removes outlines in several places).
+// :focus-visible only shows for keyboard use, so mouse users see no change.
+:focus-visible {
+    outline: 2px solid $primary !important;
+    outline-offset: 2px !important;
+}
+main:focus-visible { outline: none !important; }
+
+// ---- WCAG AA text colours ----
+// The template's success/warning/info tones and light greys fall below 4.5:1 on white and on the soft badge
+// backgrounds. These darker tones keep the same hue but pass AA everywhere they are used.
+$a11y-success: #0d7565;
+$a11y-warning: #b23c0e;
+$a11y-info: #0c6b7a;
+$a11y-danger: #b02020;
+$a11y-muted: #5f6b76;
+
+.text-success { color: $a11y-success !important; }
+.text-warning { color: $a11y-warning !important; }
+.text-info { color: $a11y-info !important; }
+.text-danger { color: $a11y-danger !important; }
+.text-muted { color: $a11y-muted !important; }
+
+.btn-success,
+.btn-success:disabled {
+    background-color: $a11y-success;
+    border-color: $a11y-success;
+    color: #fff;
+}
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active { background-color: darken($a11y-success, 6%); border-color: darken($a11y-success, 6%); color: #fff; }
+.btn-outline-success { color: $a11y-success; border-color: $a11y-success; }
+.btn-outline-success:hover,
+.btn-outline-success:focus,
+.btn-outline-success:active,
+.btn-outline-success[aria-pressed="true"] { background-color: $a11y-success; border-color: $a11y-success; color: #fff; }
+
+.btn-warning,
+.btn-warning:disabled {
+    background-color: $a11y-warning;
+    border-color: $a11y-warning;
+    color: #fff;
+}
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active { background-color: darken($a11y-warning, 6%); border-color: darken($a11y-warning, 6%); color: #fff; }
+
+// Anchored headings must not hide under the sticky navbar when reached from the table of contents.
+.rich-render h2,
+.rich-render h3 { scroll-margin-top: 96px; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+// Visitors who ask their system for less motion get no decorative animation (floating hero circles, transitions).
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

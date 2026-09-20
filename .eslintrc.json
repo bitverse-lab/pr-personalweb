@@ -1,0 +1,12 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript", "plugin:jsx-a11y/recommended"],
+  "rules": {
+    // Dialog panels stop click propagation so a click inside a dialog nested in a clickable row does not
+    // trigger the row. Keyboard users have Escape, a Tab focus trap and explicit Cancel buttons instead
+    // (see hooks/useDialogA11y), so these two mouse-only-handler rules do not apply to that pattern.
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    // Dialogs intentionally move focus to their first field when opened.
+    "jsx-a11y/no-autofocus": "off"
+  }
+}
