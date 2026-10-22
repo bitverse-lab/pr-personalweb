@@ -1,15 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { heatSteps as HEAT_STEPS } from "@/lib/chart-theme";
 
 export interface ActivityPoint {
   day: string; // "YYYY-MM-DD"
   count: number;
 }
 
-// Sequential blue ramp (light -> dark), validated default from the dataviz skill's
-// reference palette — used unchanged as documented, not re-derived.
-const HEAT_STEPS = ["#f0efec", "#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"];
 
 function colorForCount(count: number, max: number): string {
   if (count === 0 || max === 0) return HEAT_STEPS[0];
@@ -106,6 +104,7 @@ export default function ProductivityHeatmap({ activity }: { activity: ActivityPo
           {activeDays.length === 0 ? (
             <p className="text-muted small mb-0">No completions in the last 90 days.</p>
           ) : (
+            <div className="table-responsive">
             <table className="table table-sm mb-0">
               <thead>
                 <tr>
@@ -122,6 +121,7 @@ export default function ProductivityHeatmap({ activity }: { activity: ActivityPo
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

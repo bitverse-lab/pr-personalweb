@@ -108,6 +108,10 @@ function SearchButton({ onOpen }: { onOpen?: () => void }) {
 }
 
 function NavLinks({ pathname, onNavigate, unread = 0 }: { pathname: string; onNavigate?: () => void; unread?: number }) {
+  // Highlight the clicked item immediately instead of waiting for the new page to arrive.
+  const [pending, setPending] = useState<string | null>(null);
+  useEffect(() => setPending(null), [pathname]);
+  const current = pending ?? pathname;
   return (
     <>
       {NAV_GROUPS.map((group) => (
@@ -117,9 +121,12 @@ function NavLinks({ pathname, onNavigate, unread = 0 }: { pathname: string; onNa
             <Link
               key={item.href}
               href={item.href}
-              onClick={onNavigate}
-              aria-current={isActive(pathname, item.href) ? "page" : undefined}
-              className={`me-nav-link ${isActive(pathname, item.href) ? "active" : ""}`}
+              onClick={() => {
+                setPending(item.href);
+                onNavigate?.();
+              }}
+              aria-current={isActive(current, item.href) ? "page" : undefined}
+              className={`me-nav-link ${isActive(current, item.href) ? "active" : ""}`}
             >
               <item.icon /> {item.label}
               {item.href === "/me/inbox" && unread > 0 && (

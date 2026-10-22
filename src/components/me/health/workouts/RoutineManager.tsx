@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { FiArrowDown, FiArrowUp, FiEdit2, FiList, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { deleteRoutine, saveRoutine } from "@/features/health/workout-actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import ExercisePicker from "./ExercisePicker";
 import StartWorkoutButton from "./StartWorkoutButton";
 import type { ExerciseDto, RoutineDto } from "@/server/services/workout-service";
+import DialogShell from "@/components/shared/DialogShell";
 
 interface Row {
   exerciseId: string;
@@ -19,7 +19,6 @@ interface Row {
 }
 
 function RoutineDialog({ routine, exercises, onClose }: { routine?: RoutineDto; exercises: ExerciseDto[]; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [name, setName] = useState(routine?.name ?? "");
   const [notes, setNotes] = useState(routine?.notes ?? "");
   const [rows, setRows] = useState<Row[]>(
@@ -56,53 +55,50 @@ function RoutineDialog({ routine, exercises, onClose }: { routine?: RoutineDto; 
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="routine-title" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
-        <h6 id="routine-title" className="mb-3">{routine ? "Edit routine" : "New routine"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="mb-2">
-            <label className="form-label small mb-1" htmlFor="r-name">Name</label>
-            <input id="r-name" className="form-control" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Push day" required />
+    <DialogShell title={routine ? "Edit routine" : "New routine"} onClose={onClose} maxWidth={560}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-2">
+          <label className="form-label small mb-1" htmlFor="r-name">Name</label>
+          <input id="r-name" className="form-control" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Push day" required />
+        </div>
+        <div className="mb-3">
+          <label className="form-label small mb-1" htmlFor="r-notes">Notes (opt.)</label>
+          <input id="r-notes" className="form-control" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="small text-muted mb-1">Exercises</div>
+        {rows.length === 0 && <p className="text-muted small">No exercises yet.</p>}
+        {rows.map((r, i) => (
+          <div key={r.exerciseId} className="d-flex align-items-center gap-2 py-1 border-top">
+            <div className="flex-grow-1 text-truncate">{r.name}</div>
+            <input type="number" min="1" max="20" className="form-control form-control-sm text-center" style={{ width: 58 }} aria-label={`Sets for ${r.name}`} value={r.targetSets} onChange={(e) => setRows((c) => c.map((x, k) => (k === i ? { ...x, targetSets: e.target.value } : x)))} />
+            <span className="text-muted small">×</span>
+            <input type="number" min="1" max="200" className="form-control form-control-sm text-center" style={{ width: 58 }} aria-label={`Reps for ${r.name}`} value={r.targetReps} onChange={(e) => setRows((c) => c.map((x, k) => (k === i ? { ...x, targetReps: e.target.value } : x)))} />
+            <button type="button" className="btn btn-sm border-0 p-1" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}><FiArrowUp /></button>
+            <button type="button" className="btn btn-sm border-0 p-1" aria-label="Move down" disabled={i === rows.length - 1} onClick={() => move(i, 1)}><FiArrowDown /></button>
+            <button type="button" className="btn btn-sm border-0 p-1 text-danger" aria-label={`Remove ${r.name}`} onClick={() => setRows((c) => c.filter((_, k) => k !== i))}><FiX /></button>
           </div>
-          <div className="mb-3">
-            <label className="form-label small mb-1" htmlFor="r-notes">Notes (opt.)</label>
-            <input id="r-notes" className="form-control" maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
-          <div className="small text-muted mb-1">Exercises</div>
-          {rows.length === 0 && <p className="text-muted small">No exercises yet.</p>}
-          {rows.map((r, i) => (
-            <div key={r.exerciseId} className="d-flex align-items-center gap-2 py-1 border-top">
-              <div className="flex-grow-1 text-truncate">{r.name}</div>
-              <input type="number" min="1" max="20" className="form-control form-control-sm text-center" style={{ width: 58 }} aria-label={`Sets for ${r.name}`} value={r.targetSets} onChange={(e) => setRows((c) => c.map((x, k) => (k === i ? { ...x, targetSets: e.target.value } : x)))} />
-              <span className="text-muted small">×</span>
-              <input type="number" min="1" max="200" className="form-control form-control-sm text-center" style={{ width: 58 }} aria-label={`Reps for ${r.name}`} value={r.targetReps} onChange={(e) => setRows((c) => c.map((x, k) => (k === i ? { ...x, targetReps: e.target.value } : x)))} />
-              <button type="button" className="btn btn-sm border-0 p-1" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}><FiArrowUp /></button>
-              <button type="button" className="btn btn-sm border-0 p-1" aria-label="Move down" disabled={i === rows.length - 1} onClick={() => move(i, 1)}><FiArrowDown /></button>
-              <button type="button" className="btn btn-sm border-0 p-1 text-danger" aria-label={`Remove ${r.name}`} onClick={() => setRows((c) => c.filter((_, k) => k !== i))}><FiX /></button>
-            </div>
-          ))}
-          <button type="button" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 mt-2" onClick={() => setPicking(true)}>
-            <FiPlus /> Add exercise
-          </button>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim() || rows.length === 0}>Save</button>
-          </div>
-        </form>
-        {picking && (
-          <ExercisePicker
-            exercises={exercises}
-            excludeIds={rows.map((r) => r.exerciseId)}
-            onClose={() => setPicking(false)}
-            onPick={(ex) => {
-              setRows((c) => [...c, { exerciseId: ex.id, name: ex.name, targetSets: "3", targetReps: ex.kind === "cardio" ? "1" : "10" }]);
-              setPicking(false);
-            }}
-          />
-        )}
-      </div>
-    </div>
+        ))}
+        <button type="button" className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 mt-2" onClick={() => setPicking(true)}>
+          <FiPlus /> Add exercise
+        </button>
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim() || rows.length === 0}>Save</button>
+        </div>
+      </form>
+      {picking && (
+        <ExercisePicker
+          exercises={exercises}
+          excludeIds={rows.map((r) => r.exerciseId)}
+          onClose={() => setPicking(false)}
+          onPick={(ex) => {
+            setRows((c) => [...c, { exerciseId: ex.id, name: ex.name, targetSets: "3", targetReps: ex.kind === "cardio" ? "1" : "10" }]);
+            setPicking(false);
+          }}
+        />
+      )}
+    </DialogShell>
   );
 }
 

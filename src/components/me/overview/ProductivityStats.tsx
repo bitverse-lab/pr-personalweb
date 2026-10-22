@@ -33,7 +33,7 @@ function computeStats(activity: ActivityPoint[]) {
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="col">
-      <div className="rounded p-3 h-100" style={{ background: "#f8f9fc" }}>
+      <div className="rounded p-3 h-100" style={{ background: "var(--app-surface)" }}>
         <div className="text-muted small mb-1">{label}</div>
         {children}
       </div>

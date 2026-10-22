@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+import { SITE_REVALIDATE_SECONDS, SITE_TAG, publicRead } from "@/lib/data/site-cache";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { articleService, type ArticleDetail, type ArticleListItem } from "@/server/services/article-service";
 import { readingMinutes } from "@/features/content/richtext";
@@ -47,10 +49,22 @@ function toArticle(item: ArticleListItem): Article {
   };
 }
 
+// Cached (and dropped when an article changes) so /articles, tags and previous/next links do not hit the database on every visit.
+const loadArticles = unstable_cache(
+  async (): Promise<Article[]> => (await articleService.published()).map(toArticle),
+  ["published-articles"],
+  { tags: [SITE_TAG], revalidate: SITE_REVALIDATE_SECONDS }
+);
+
 export async function getArticles(): Promise<Article[]> {
-  return (await articleService.published()).map(toArticle);
+  return publicRead("the article list", loadArticles, []);
 }
 
+/**
+ * Deliberately *not* wrapped in `publicRead`: null here means "no such article", which the page
+ * turns into a 404. If the database is unreachable we must let that surface as a server error
+ * instead, or an outage would tell search engines that every real article had been deleted.
+ */
 export async function getArticleBySlug(slug: string): Promise<ArticlePage | null> {
   const [detail, owner] = await Promise.all([articleService.publishedBySlug(slug), articleRepository.owner()]);
   if (!detail) return null;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { FiCornerUpLeft, FiInbox, FiMail, FiTrash2 } from "react-icons/fi";
+import { useMemo, useState, useTransition } from "react";
+import { FiCornerUpLeft, FiInbox, FiMail, FiSearch, FiTrash2 } from "react-icons/fi";
 import { deleteMessage, restoreMessage, setMessageRead, type InboxMessage } from "@/features/contact/actions";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
@@ -12,8 +12,20 @@ const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "sho
 export default function InboxList({ messages }: { messages: InboxMessage[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [target, setTarget] = useState<InboxMessage | null>(null);
+  const [query, setQuery] = useState("");
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
+
+  // Filtering here rather than on the server: the inbox is one person's messages, already loaded,
+  // and typing should narrow the list without a round trip.
+  const needle = query.trim().toLowerCase();
+  const shown = useMemo(
+    () =>
+      !needle
+        ? messages
+        : messages.filter((m) => [m.name, m.email, m.subject, m.message].some((field) => field?.toLowerCase().includes(needle))),
+    [messages, needle]
+  );
 
   const toggleRead = (m: InboxMessage, read: boolean) =>
     startTransition(async () => {
@@ -46,14 +58,40 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
 
   return (
     <>
+      <div className="position-relative mb-2" style={{ maxWidth: 360 }}>
+        <FiSearch className="position-absolute top-50 translate-middle-y ms-3 text-muted" aria-hidden />
+        <input
+          type="search"
+          className="form-control form-control-sm ps-5"
+          placeholder="Search name, email or message"
+          aria-label="Search messages"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+      {needle && (
+        <p className="text-muted small mb-0" role="status">
+          {shown.length} of {messages.length} {messages.length === 1 ? "message" : "messages"} match “{query.trim()}”
+        </p>
+      )}
+
+      {shown.length === 0 ? (
+        <EmptyState
+          icon={FiSearch}
+          title="No messages match your search"
+          description="Try a shorter search, or a different word from the sender's name or message."
+          actionLabel="Clear search"
+          onAction={() => setQuery("")}
+        />
+      ) : (
       <ul className="list-unstyled mb-0">
-        {messages.map((m) => {
+        {shown.map((m) => {
           const unread = !m.readAt;
           const isOpen = openId === m.id;
           return (
             <li key={m.id} className="border-top">
               <button type="button" className="btn w-100 text-start px-0 py-3 d-flex align-items-start gap-3 border-0" aria-expanded={isOpen} onClick={() => open(m)}>
-                <span className="mt-1 rounded-circle flex-shrink-0" style={{ width: 10, height: 10, background: unread ? "#2a52c3" : "transparent", border: unread ? "none" : "1px solid #ced4da" }} aria-hidden />
+                <span className="mt-1 rounded-circle flex-shrink-0" style={{ width: 10, height: 10, background: unread ? "var(--app-primary)" : "transparent", border: unread ? "none" : "1px solid var(--bs-border-color)" }} aria-hidden />
                 <span className="flex-grow-1 min-w-0">
                   <span className="d-flex flex-wrap gap-2 align-items-baseline">
                     <strong className={unread ? "" : "fw-normal"}>{m.name}</strong>
@@ -88,6 +126,7 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
           );
         })}
       </ul>
+      )}
       {target && <ConfirmDialog title="Delete message?" message={`The message from ${target.name} will be deleted. You can undo right after.`} isPending={isPending} onConfirm={confirmDelete} onCancel={() => setTarget(null)} />}
     </>
   );

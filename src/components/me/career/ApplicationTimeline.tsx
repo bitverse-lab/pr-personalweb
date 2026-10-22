@@ -40,7 +40,7 @@ export default function ApplicationTimeline({ events }: { events: TimelineEventD
             {index !== events.length - 1 && (
               <span
                 aria-hidden
-                style={{ position: "absolute", left: 13, top: 28, bottom: 0, width: 2, background: "#e1e0d9" }}
+                style={{ position: "absolute", left: 13, top: 28, bottom: 0, width: 2, background: "var(--app-border)" }}
               />
             )}
             <span

@@ -17,14 +17,13 @@ import {
   FiRotateCcw,
   FiRotateCw,
 } from "react-icons/fi";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import UploadDropzone from "@/components/me/media/UploadDropzone";
 import type { RichDoc } from "@/db/schema/content";
+import DialogShell from "@/components/shared/DialogShell";
 
 type DialogKind = "link" | "image" | null;
 
 function UrlDialog({ kind, initial, onSubmit, onClose }: { kind: "link" | "image"; initial: string; onSubmit: (url: string) => void; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [url, setUrl] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"upload" | "url">("upload");
@@ -40,35 +39,32 @@ function UrlDialog({ kind, initial, onSubmit, onClose }: { kind: "link" | "image
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="url-dialog-title" onClick={(e) => e.stopPropagation()}>
-        <h6 id="url-dialog-title" className="mb-3">{kind === "link" ? "Insert link" : "Insert image"}</h6>
-        {kind === "image" && (
-          <div className="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Image source">
-            <button type="button" className={`btn ${tab === "upload" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setTab("upload")}>Upload</button>
-            <button type="button" className={`btn ${tab === "url" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setTab("url")}>From URL</button>
+    <DialogShell title={kind === "link" ? "Insert link" : "Insert image"} onClose={onClose}>
+      {kind === "image" && (
+        <div className="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Image source">
+          <button type="button" className={`btn ${tab === "upload" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setTab("upload")}>Upload</button>
+          <button type="button" className={`btn ${tab === "url" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setTab("url")}>From URL</button>
+        </div>
+      )}
+      {showUpload ? (
+        <>
+          <UploadDropzone purpose="editor" accept="image" onUploaded={(m) => m.url && onSubmit(m.url)} />
+          <div className="d-flex justify-content-end mt-3">
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose}>Cancel</button>
           </div>
-        )}
-        {showUpload ? (
-          <>
-            <UploadDropzone purpose="editor" accept="image" onUploaded={(m) => m.url && onSubmit(m.url)} />
-            <div className="d-flex justify-content-end mt-3">
-              <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose}>Cancel</button>
-            </div>
-          </>
-        ) : (
-          <form onSubmit={submit}>
-            {error && <div className="alert alert-danger py-2 small">{error}</div>}
-            <label className="form-label small mb-1" htmlFor="url-input">{kind === "link" ? "URL (leave empty to remove the link)" : "Image URL"}</label>
-            <input id="url-input" className="form-control mb-3" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" autoFocus />
-            <div className="d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose}>Cancel</button>
-              <button type="submit" className="btn btn-primary btn-sm">Apply</button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
+        </>
+      ) : (
+        <form onSubmit={submit}>
+          {error && <div className="alert alert-danger py-2 small">{error}</div>}
+          <label className="form-label small mb-1" htmlFor="url-input">{kind === "link" ? "URL (leave empty to remove the link)" : "Image URL"}</label>
+          <input id="url-input" className="form-control mb-3" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" autoFocus />
+          <div className="d-flex justify-content-end gap-2">
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-sm">Apply</button>
+          </div>
+        </form>
+      )}
+    </DialogShell>
   );
 }
 

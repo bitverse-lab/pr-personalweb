@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateSiteData } from "@/lib/data/site-cache";
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/server/auth";
 import { projectRepository } from "@/server/repositories/project-repository";
@@ -18,6 +19,7 @@ import type { ActionResult } from "@/types/action-result";
 const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const, error: e.issues[0]?.message ?? "Invalid input" });
 
 function revalidateProjects(slug?: string) {
+  revalidateSiteData();
   for (const path of ["/me/projects", "/projects", "/", "/cv", "/cv/download", "/sitemap.xml"]) revalidatePath(path);
   if (slug) revalidatePath(`/projects/${slug}`);
 }

@@ -21,7 +21,7 @@ export default function TaskBoardColumn({
     <div
       ref={setNodeRef}
       className="rounded p-2"
-      style={{ background: isOver ? "rgba(42,82,195,0.1)" : "#f8f9fc", minHeight: 200 }}
+      style={{ background: isOver ? "var(--app-primary-soft)" : "var(--app-surface)", minHeight: 200 }}
     >
       <div className="d-flex align-items-center justify-content-between mb-2 px-1">
         <h6 className="mb-0">{title}</h6>

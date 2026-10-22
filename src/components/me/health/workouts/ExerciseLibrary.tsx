@@ -4,14 +4,13 @@ import { useMemo, useState, useTransition } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import { createExercise, deleteExercise, updateExercise } from "@/features/health/workout-actions";
 import { EQUIPMENT_LABEL, KIND_LABEL, MUSCLE_GROUPS, MUSCLE_LABEL } from "@/features/health/workout-meta";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { useToast } from "@/components/shared/ToastProvider";
 import type { ExerciseDto } from "@/server/services/workout-service";
 import type { Equipment, ExerciseKind, MuscleGroup } from "@/db/schema/health";
+import DialogShell from "@/components/shared/DialogShell";
 
 function ExerciseFormDialog({ exercise, onClose }: { exercise?: ExerciseDto; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [name, setName] = useState(exercise?.name ?? "");
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>(exercise?.muscleGroup ?? "chest");
   const [equipment, setEquipment] = useState<Equipment>(exercise?.equipment ?? "barbell");
@@ -33,42 +32,39 @@ function ExerciseFormDialog({ exercise, onClose }: { exercise?: ExerciseDto; onC
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="exercise-form-title" onClick={(e) => e.stopPropagation()}>
-        <h6 id="exercise-form-title" className="mb-3">{exercise ? "Edit exercise" : "New exercise"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="mb-2">
-            <label className="form-label small mb-1" htmlFor="ex-name">Name</label>
-            <input id="ex-name" className="form-control" maxLength={120} value={name} onChange={(e) => setName(e.target.value)} required />
-          </div>
-          <div className="row g-2 mb-2">
-            <div className="col-6">
-              <label className="form-label small mb-1" htmlFor="ex-muscle">Muscle group</label>
-              <select id="ex-muscle" className="form-select" value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}>
-                {MUSCLE_GROUPS.map((g) => (<option key={g} value={g}>{MUSCLE_LABEL[g]}</option>))}
-              </select>
-            </div>
-            <div className="col-6">
-              <label className="form-label small mb-1" htmlFor="ex-equipment">Equipment</label>
-              <select id="ex-equipment" className="form-select" value={equipment} onChange={(e) => setEquipment(e.target.value as Equipment)}>
-                {(Object.keys(EQUIPMENT_LABEL) as Equipment[]).map((g) => (<option key={g} value={g}>{EQUIPMENT_LABEL[g]}</option>))}
-              </select>
-            </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label small mb-1" htmlFor="ex-kind">How it is logged</label>
-            <select id="ex-kind" className="form-select" value={kind} onChange={(e) => setKind(e.target.value as ExerciseKind)}>
-              {(Object.keys(KIND_LABEL) as ExerciseKind[]).map((k) => (<option key={k} value={k}>{KIND_LABEL[k]}</option>))}
+    <DialogShell title={exercise ? "Edit exercise" : "New exercise"} onClose={onClose}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-2">
+          <label className="form-label small mb-1" htmlFor="ex-name">Name</label>
+          <input id="ex-name" className="form-control" maxLength={120} value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div className="row g-2 mb-2">
+          <div className="col-6">
+            <label className="form-label small mb-1" htmlFor="ex-muscle">Muscle group</label>
+            <select id="ex-muscle" className="form-select" value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}>
+              {MUSCLE_GROUPS.map((g) => (<option key={g} value={g}>{MUSCLE_LABEL[g]}</option>))}
             </select>
           </div>
-          <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim()}>Save</button>
+          <div className="col-6">
+            <label className="form-label small mb-1" htmlFor="ex-equipment">Equipment</label>
+            <select id="ex-equipment" className="form-select" value={equipment} onChange={(e) => setEquipment(e.target.value as Equipment)}>
+              {(Object.keys(EQUIPMENT_LABEL) as Equipment[]).map((g) => (<option key={g} value={g}>{EQUIPMENT_LABEL[g]}</option>))}
+            </select>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+        <div className="mb-3">
+          <label className="form-label small mb-1" htmlFor="ex-kind">How it is logged</label>
+          <select id="ex-kind" className="form-select" value={kind} onChange={(e) => setKind(e.target.value as ExerciseKind)}>
+            {(Object.keys(KIND_LABEL) as ExerciseKind[]).map((k) => (<option key={k} value={k}>{KIND_LABEL[k]}</option>))}
+          </select>
+        </div>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim()}>Save</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

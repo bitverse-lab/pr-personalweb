@@ -82,6 +82,7 @@ export default function TaskQuickCapture() {
             />
             <select
               name="priority"
+              aria-label="Priority"
               className="form-select"
               style={{ maxWidth: 140 }}
               value={priority}

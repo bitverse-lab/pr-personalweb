@@ -1,6 +1,6 @@
 "use client";
 
-import { useDialogA11y } from "@/hooks/useDialogA11y";
+import DialogShell from "@/components/shared/DialogShell";
 
 export interface ConfirmDialogProps {
   title: string;
@@ -19,31 +19,25 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onCancel);
-
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div
-        ref={panelRef}
-        className="me-dialog-panel"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h6 id="confirm-dialog-title" className="mb-2">
-          {title}
-        </h6>
-        <p className="text-muted mb-4">{message}</p>
-        <div className="d-flex justify-content-end gap-2">
+    <DialogShell
+      title={title}
+      onClose={onCancel}
+      role="alertdialog"
+      footer={
+        <>
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={onCancel} disabled={isPending}>
             Cancel
           </button>
-          <button type="button" className="btn btn-danger btn-sm" onClick={onConfirm} disabled={isPending}>
-            {confirmLabel}
+          <button type="button" className="btn btn-danger btn-sm d-inline-flex align-items-center gap-2" onClick={onConfirm} disabled={isPending}>
+            {/* Deleting can take a moment; without this the dialog just sits there looking stuck. */}
+            {isPending && <span className="spinner-border spinner-border-sm" aria-hidden="true" />}
+            {isPending ? "Working…" : confirmLabel}
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="text-muted mb-0">{message}</p>
+    </DialogShell>
   );
 }

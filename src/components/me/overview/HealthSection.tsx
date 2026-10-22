@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiArrowRight, FiHeart } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
+import { chart } from "@/lib/chart-theme";
 
 export interface HealthSummary {
   caloriesToday: number;
@@ -60,7 +61,7 @@ export default function HealthSection({ summary }: { summary?: HealthSummary }) 
                   {summary.calorieTarget ? ` / ${summary.calorieTarget}` : ""} kcal
                 </span>
               </div>
-              <Bar value={summary.caloriesToday} target={summary.calorieTarget} color="#2a52c3" />
+              <Bar value={summary.caloriesToday} target={summary.calorieTarget} color="var(--app-primary)" />
             </div>
             <div className="mb-3">
               <div className="d-flex justify-content-between small">
@@ -70,7 +71,7 @@ export default function HealthSection({ summary }: { summary?: HealthSummary }) 
                   {summary.waterTarget ? ` / ${summary.waterTarget}` : ""} ml
                 </span>
               </div>
-              <Bar value={summary.waterMl} target={summary.waterTarget} color="#2a78d6" />
+              <Bar value={summary.waterMl} target={summary.waterTarget} color={chart.series1} />
             </div>
             <ul className="list-unstyled mb-0">
               <li className="d-flex justify-content-between border-top py-2">

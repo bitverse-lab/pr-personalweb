@@ -3,16 +3,15 @@
 import { useState, useTransition } from "react";
 import { FiEdit2, FiLink, FiPlus, FiTrash2 } from "react-icons/fi";
 import { createLink, deleteLink, reorderItems, updateLink, type ProfileData } from "@/features/profile/actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, moveItem } from "./shared";
+import DialogShell from "@/components/shared/DialogShell";
 
 type LinkItem = ProfileData["links"][number];
 
 function LinkDialog({ item, onClose }: { item?: LinkItem; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [label, setLabel] = useState(item?.label ?? "");
   const [url, setUrl] = useState(item?.url ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -32,20 +31,17 @@ function LinkDialog({ item, onClose }: { item?: LinkItem; onClose: () => void })
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="link-title" onClick={(e) => e.stopPropagation()}>
-        <h6 id="link-title" className="mb-3">{item ? "Edit link" : "Add link"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="mb-2"><label className="form-label small mb-1" htmlFor="l-label">Label</label><input id="l-label" className="form-control" maxLength={40} placeholder="e.g. LinkedIn" value={label} onChange={(e) => setLabel(e.target.value)} required autoFocus /></div>
-          <div className="mb-3"><label className="form-label small mb-1" htmlFor="l-url">URL</label><input id="l-url" className="form-control" maxLength={500} placeholder="https://" value={url} onChange={(e) => setUrl(e.target.value)} required /></div>
-          <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !label.trim() || !url.trim()}>Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <DialogShell title={item ? "Edit link" : "Add link"} onClose={onClose}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-2"><label className="form-label small mb-1" htmlFor="l-label">Label</label><input id="l-label" className="form-control" maxLength={40} placeholder="e.g. LinkedIn" value={label} onChange={(e) => setLabel(e.target.value)} required autoFocus /></div>
+        <div className="mb-3"><label className="form-label small mb-1" htmlFor="l-url">URL</label><input id="l-url" className="form-control" maxLength={500} placeholder="https://" value={url} onChange={(e) => setUrl(e.target.value)} required /></div>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !label.trim() || !url.trim()}>Save</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

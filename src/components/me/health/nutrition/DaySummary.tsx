@@ -1,4 +1,5 @@
 import type { DayView } from "@/server/services/nutrition-service";
+import { chart } from "@/lib/chart-theme";
 
 function Bar({ label, value, target, unit, color }: { label: string; value: number; target: number | null; unit: string; color: string }) {
   const pct = target ? Math.min(100, Math.round((value / target) * 100)) : 0;
@@ -38,10 +39,10 @@ export default function DaySummary({ day }: { day: DayView }) {
             {targets.calories === null && <div className="small mt-1 text-muted">Set a calorie goal in the Goals tab.</div>}
           </div>
           <div className="col-md-8">
-            <Bar label="Calories" value={totals.calories} target={targets.calories} unit="kcal" color="#2a52c3" />
-            <Bar label="Protein" value={totals.protein} target={targets.protein} unit="g" color="#2a78d6" />
-            <Bar label="Carbs" value={totals.carbs} target={targets.carbs} unit="g" color="#eab308" />
-            <Bar label="Fat" value={totals.fat} target={targets.fat} unit="g" color="#e87ba4" />
+            <Bar label="Calories" value={totals.calories} target={targets.calories} unit="kcal" color="var(--app-primary)" />
+            <Bar label="Protein" value={totals.protein} target={targets.protein} unit="g" color={chart.series1} />
+            <Bar label="Carbs" value={totals.carbs} target={targets.carbs} unit="g" color={chart.series3} />
+            <Bar label="Fat" value={totals.fat} target={targets.fat} unit="g" color={chart.series4} />
           </div>
         </div>
       </div>

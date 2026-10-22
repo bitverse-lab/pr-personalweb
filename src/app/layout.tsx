@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@/styles/legacy/scss/style.scss";
 import "@/styles/legacy/css/materialdesignicons.min.css";
 import ScrollTop from "@/components/layout/ScrollTop";
+import NavigationProgress from "@/components/layout/NavigationProgress";
 import Analytics from "@/components/shared/Analytics";
 import { getProfile } from "@/lib/data/profile";
 import { getSiteInfo } from "@/lib/data/site";
@@ -42,6 +43,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+        <NavigationProgress />
         <SiteProvider value={site}>
           {children}
           <ScrollTop />

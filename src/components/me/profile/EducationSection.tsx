@@ -3,16 +3,15 @@
 import { useState, useTransition } from "react";
 import { FiBookOpen, FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import { createEducation, deleteEducation, reorderItems, updateEducation, type ProfileData } from "@/features/profile/actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, fmtMonth, monthToDate, monthValue, moveItem } from "./shared";
+import DialogShell from "@/components/shared/DialogShell";
 
 type Education = ProfileData["educations"][number];
 
 function EducationDialog({ item, onClose }: { item?: Education; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [f, setF] = useState({
     school: item?.school ?? "",
     degree: item?.degree ?? "",
@@ -39,26 +38,23 @@ function EducationDialog({ item, onClose }: { item?: Education; onClose: () => v
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="edu-title" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
-        <h6 id="edu-title" className="mb-3">{item ? "Edit education" : "Add education"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="row g-2">
-            <div className="col-12"><label className="form-label small mb-1" htmlFor="e-school">School</label><input id="e-school" className="form-control" maxLength={120} value={f.school} onChange={set("school")} required /></div>
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-degree">Degree</label><input id="e-degree" className="form-control" maxLength={100} value={f.degree} onChange={set("degree")} /></div>
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-field">Field of study</label><input id="e-field" className="form-control" maxLength={100} value={f.field} onChange={set("field")} /></div>
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-start">Start</label><input id="e-start" type="month" className="form-control" value={f.start} onChange={set("start")} /></div>
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-end">End (or expected)</label><input id="e-end" type="month" className="form-control" value={f.end} onChange={set("end")} /></div>
-            <div className="col-12"><label className="form-label small mb-1" htmlFor="e-desc">Notes</label><textarea id="e-desc" className="form-control" rows={3} maxLength={600} value={f.description} onChange={set("description")} /></div>
-          </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <DialogShell title={item ? "Edit education" : "Add education"} onClose={onClose} maxWidth={520}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="row g-2">
+          <div className="col-12"><label className="form-label small mb-1" htmlFor="e-school">School</label><input id="e-school" className="form-control" maxLength={120} value={f.school} onChange={set("school")} required /></div>
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-degree">Degree</label><input id="e-degree" className="form-control" maxLength={100} value={f.degree} onChange={set("degree")} /></div>
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-field">Field of study</label><input id="e-field" className="form-control" maxLength={100} value={f.field} onChange={set("field")} /></div>
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-start">Start</label><input id="e-start" type="month" className="form-control" value={f.start} onChange={set("start")} /></div>
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-end">End (or expected)</label><input id="e-end" type="month" className="form-control" value={f.end} onChange={set("end")} /></div>
+          <div className="col-12"><label className="form-label small mb-1" htmlFor="e-desc">Notes</label><textarea id="e-desc" className="form-control" rows={3} maxLength={600} value={f.description} onChange={set("description")} /></div>
+        </div>
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

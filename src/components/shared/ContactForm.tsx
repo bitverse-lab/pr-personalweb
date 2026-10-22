@@ -23,9 +23,14 @@ export default function ContactForm() {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const result = await sendContactMessage({ ...f, startedAt: startedAt.current });
-      if (!result.ok) return setError(result.error);
-      setSent(true);
+      try {
+        const result = await sendContactMessage({ ...f, startedAt: startedAt.current });
+        if (!result.ok) return setError(result.error);
+        setSent(true);
+      } catch {
+        // Offline, or the server could not be reached: say so instead of letting the click look ignored.
+        setError("Your message could not be sent. Please check your connection and try again.");
+      }
     });
   };
 

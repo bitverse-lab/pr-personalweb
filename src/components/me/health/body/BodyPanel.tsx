@@ -8,6 +8,7 @@ import { fmtDate } from "@/features/health/format";
 import { round1 } from "@/features/health/calc";
 import { useToast } from "@/components/shared/ToastProvider";
 import EmptyState from "@/components/shared/EmptyState";
+import { chart } from "@/lib/chart-theme";
 
 export interface MeasurementRow {
   id: string;
@@ -30,9 +31,6 @@ const METRICS: { key: Metric; label: string }[] = [
   { key: "neckCm", label: "Neck" },
 ];
 
-const LINE = "#2a78d6";
-const MUTED = "#5f6368";
-const GRID = "#e1e0d9";
 
 export default function BodyPanel({ rows, today }: { rows: MeasurementRow[]; today: string }) {
   const [date, setDate] = useState(today);
@@ -123,11 +121,11 @@ export default function BodyPanel({ rows, today }: { rows: MeasurementRow[]; tod
                 <div style={{ width: "100%", height: 260 }} role="img" aria-label={`${metric} over time`}>
                   <ResponsiveContainer>
                     <LineChart data={series} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
-                      <CartesianGrid stroke={GRID} vertical={false} />
-                      <XAxis dataKey="date" tickFormatter={(d) => fmtDate(String(d))} tick={{ fontSize: 11, fill: MUTED }} axisLine={{ stroke: GRID }} tickLine={false} minTickGap={28} />
-                      <YAxis domain={[(min: number) => Math.floor(min - 1), (max: number) => Math.ceil(max + 1)]} tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} width={44} unit=" cm" />
+                      <CartesianGrid stroke={chart.grid} vertical={false} />
+                      <XAxis dataKey="date" tickFormatter={(d) => fmtDate(String(d))} tick={{ fontSize: 11, fill: chart.muted }} axisLine={{ stroke: chart.grid }} tickLine={false} minTickGap={28} />
+                      <YAxis domain={[(min: number) => Math.floor(min - 1), (max: number) => Math.ceil(max + 1)]} tick={{ fontSize: 11, fill: chart.muted }} axisLine={false} tickLine={false} width={44} unit=" cm" />
                       <Tooltip labelFormatter={(d) => fmtDate(String(d), { month: "short", day: "numeric", year: "numeric" })} formatter={(v) => [`${v} cm`]} />
-                      <Line dataKey="value" stroke={LINE} strokeWidth={2.5} dot={{ r: 3, fill: LINE }} isAnimationActive={false} />
+                      <Line dataKey="value" stroke={chart.series1} strokeWidth={2.5} dot={{ r: 3, fill: chart.series1 }} isAnimationActive={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>

@@ -59,14 +59,14 @@ export default function JournalCalendar({
             const isToday = date === today;
             const future = date > today;
             const base = { width: "100%", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, fontSize: 13 } as const;
-            const ring = isToday ? { outline: "2px solid #2a52c3", outlineOffset: 1 } : {};
+            const ring = isToday ? { outline: "2px solid var(--app-primary)", outlineOffset: 1 } : {};
 
             if (entry) {
-              const bg = entry.mood ? MOOD_COLOR[entry.mood] : "#2a52c3";
+              const bg = entry.mood ? MOOD_COLOR[entry.mood] : "var(--app-primary)";
               const dark = !entry.mood || entry.mood >= 3;
               const label = `${date}: entry, ${entry.wordCount} words${entry.mood ? `, mood ${moodLabel(entry.mood)}` : ""}`;
               return (
-                <Link key={date} href={`/me/journal/${entry.id}`} aria-label={label} title={label} className="text-decoration-none fw-semibold" style={{ ...base, ...ring, background: bg, color: dark ? "#fff" : "#1c3d6e" }}>
+                <Link key={date} href={`/me/journal/${entry.id}`} aria-label={label} title={label} className="text-decoration-none fw-semibold" style={{ ...base, ...ring, background: bg, color: dark ? "#fff" : "var(--app-on-primary-soft)" }}>
                   {day}
                 </Link>
               );
@@ -81,7 +81,7 @@ export default function JournalCalendar({
             return (
               <form key={date} action={openJournalDay}>
                 <input type="hidden" name="date" value={date} />
-                <button type="submit" className="btn p-0 border-0 text-muted" aria-label={`Write an entry for ${date}`} title="Write an entry for this day" style={{ ...base, ...ring, background: "#f8f9fc" }}>
+                <button type="submit" className="btn p-0 border-0 text-muted" aria-label={`Write an entry for ${date}`} title="Write an entry for this day" style={{ ...base, ...ring, background: "var(--app-surface)" }}>
                   {day}
                 </button>
               </form>

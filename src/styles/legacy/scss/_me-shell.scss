@@ -7,6 +7,17 @@
 
 $me-sidebar-width: 260px;
 
+// Design tokens exposed to React. A handful of components need a colour in an inline style
+// (a progress fill, a drop target, a calendar dot). Publishing the SCSS values here keeps the
+// stylesheet the single source of truth instead of scattering copies of "#2a52c3" through TSX.
+:root {
+    --app-primary: #{$primary};
+    --app-primary-soft: #{rgba($primary, 0.1)};
+    --app-surface: #f8f9fc;
+    --app-border: #e1e0d9;
+    --app-on-primary-soft: #1c3d6e;
+}
+
 .me-shell {
     min-height: 100vh;
     background: $light;
@@ -269,4 +280,64 @@ html { scroll-behavior: smooth; }
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Motion: instant feedback on every click, gentle page changes. All of it is switched off by the
+// reduced-motion rule above for people who ask their system for less movement.
+// ---------------------------------------------------------------------------------------------
+
+// Top progress bar (see NavigationProgress)
+.nav-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: $primary;
+    box-shadow: 0 0 8px rgba($primary, 0.6);
+    z-index: 3000;
+    pointer-events: none;
+    opacity: 0;
+}
+.nav-progress-loading {
+    opacity: 1;
+    width: 85%;
+    transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 0.1s;
+}
+.nav-progress-done {
+    opacity: 0;
+    width: 100%;
+    transition: width 0.2s ease-out, opacity 0.3s ease 0.15s;
+}
+html.is-navigating,
+html.is-navigating a { cursor: progress; }
+
+// Page fade-in (opacity only: a transform here would break position: fixed inside the page)
+@keyframes page-enter { from { opacity: 0; } to { opacity: 1; } }
+.page-enter { animation: page-enter 0.22s ease-out both; }
+
+// Pressable things react instantly
+.btn,
+.me-nav-link,
+.badge.rounded-pill { transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+.btn:not(:disabled):not(.disabled):active,
+.me-nav-link:active { transform: scale(0.97); }
+.btn:disabled,
+.btn.disabled { opacity: 0.6; cursor: not-allowed; }
+
+// Clickable cards lift slightly
+a.card,
+.card-hover { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+a.card:hover,
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.1) !important; }
+
+// Skeleton placeholders shown while a workspace page loads
+@keyframes skeleton-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.skeleton {
+    display: block;
+    border-radius: 0.4rem;
+    background: linear-gradient(90deg, #e9ecef 25%, #f6f7f9 50%, #e9ecef 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s linear infinite;
 }

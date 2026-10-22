@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/shared/ToastProvider";
 import ToastStack from "@/components/shared/ToastStack";
 import TimezoneCookie from "@/components/shared/TimezoneCookie";
 import CommandPalette from "@/components/me/CommandPalette";
+import ActionErrorWatcher from "@/components/me/ActionErrorWatcher";
 import { getUnreadMessageCount } from "@/features/contact/actions";
 
 export default async function MeLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default async function MeLayout({ children }: { children: React.ReactNode
         </main>
       </div>
       <ToastStack />
+      <ActionErrorWatcher />
       <TimezoneCookie />
       <CommandPalette />
     </ToastProvider>

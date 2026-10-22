@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { FiLinkedin, FiMail, FiPhone, FiTrash2, FiUserPlus } from "react-icons/fi";
 import { addContact, deleteContact } from "@/features/career/actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { useToast } from "@/components/shared/ToastProvider";
+import DialogShell from "@/components/shared/DialogShell";
 
 export interface ContactDto {
   id: string;
@@ -16,7 +16,6 @@ export interface ContactDto {
 }
 
 function ContactDialog({ applicationId, onClose }: { applicationId: string; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const toast = useToast();
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -41,53 +40,41 @@ function ContactDialog({ applicationId, onClose }: { applicationId: string; onCl
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div
-        ref={panelRef}
-        className="me-dialog-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="contact-dialog-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h6 id="contact-dialog-title" className="mb-3">
-          Add contact
-        </h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="mb-3">
-            <label className="form-label" htmlFor="ct-name">Name</label>
-            <input id="ct-name" name="name" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+    <DialogShell title="Add contact" onClose={onClose}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-3">
+          <label className="form-label" htmlFor="ct-name">Name</label>
+          <input id="ct-name" name="name" className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div className="mb-3">
+          <label className="form-label" htmlFor="ct-role">Role</label>
+          <input id="ct-role" name="role" className="form-control" value={role} onChange={(e) => setRole(e.target.value)} />
+        </div>
+        <div className="row">
+          <div className="col-md-6 mb-3">
+            <label className="form-label" htmlFor="ct-email">Email</label>
+            <input id="ct-email" name="email" type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="ct-role">Role</label>
-            <input id="ct-role" name="role" className="form-control" value={role} onChange={(e) => setRole(e.target.value)} />
+          <div className="col-md-6 mb-3">
+            <label className="form-label" htmlFor="ct-phone">Phone</label>
+            <input id="ct-phone" name="phone" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="ct-email">Email</label>
-              <input id="ct-email" name="email" type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="ct-phone">Phone</label>
-              <input id="ct-phone" name="phone" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="ct-linkedin">LinkedIn</label>
-            <input id="ct-linkedin" name="linkedin" className="form-control" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
-          </div>
-          <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim()}>
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+        <div className="mb-3">
+          <label className="form-label" htmlFor="ct-linkedin">LinkedIn</label>
+          <input id="ct-linkedin" name="linkedin" className="form-control" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
+        </div>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !name.trim()}>
+            Save
+          </button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

@@ -22,7 +22,7 @@ export default function PipelineColumn({
       ref={setNodeRef}
       className="rounded p-2"
       style={{
-        background: isOver ? "rgba(42,82,195,0.1)" : "#f8f9fc",
+        background: isOver ? "var(--app-primary-soft)" : "var(--app-surface)",
         borderTop: `3px solid ${STATUS_ACCENT[status]}`,
         minHeight: 180,
         minWidth: 230,

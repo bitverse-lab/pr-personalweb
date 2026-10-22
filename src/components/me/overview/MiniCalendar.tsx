@@ -39,7 +39,7 @@ function MiniCalendarDay({ date, hasActivity, isToday }: { date: string; hasActi
       <span className="small">{dayNumber}</span>
       {hasActivity && (
         <span
-          style={{ width: 4, height: 4, borderRadius: "50%", background: "#2a52c3" }}
+          style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--app-primary)" }}
           aria-label="Has activity"
         />
       )}

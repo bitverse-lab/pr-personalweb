@@ -26,7 +26,7 @@ export default function ReadingProgress({ targetId }: { targetId: string }) {
 
   return (
     <div className="position-fixed top-0 start-0 w-100" style={{ height: 3, zIndex: 1999, pointerEvents: "none" }} role="progressbar" aria-label="Reading progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-      <div style={{ width: `${pct}%`, height: "100%", background: "#2a52c3", transition: "width 80ms linear" }} />
+      <div style={{ width: `${pct}%`, height: "100%", background: "var(--app-primary)", transition: "width 80ms linear" }} />
     </div>
   );
 }

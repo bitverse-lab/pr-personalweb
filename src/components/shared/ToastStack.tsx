@@ -13,7 +13,8 @@ export default function ToastStack() {
         <div
           key={toast.id}
           className={`alert ${toast.kind === "success" ? "alert-success" : "alert-danger"} shadow-sm me-toast d-flex align-items-center justify-content-between`}
-          role="alert"
+          // A confirmation can wait for a pause in speech; a failure should interrupt.
+          role={toast.kind === "success" ? "status" : "alert"}
         >
           <span>{toast.message}</span>
           <span className="d-flex align-items-center">

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateSiteData } from "@/lib/data/site-cache";
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/server/auth";
 import { articleRepository } from "@/server/repositories/article-repository";
@@ -10,6 +11,7 @@ import type { ActionResult } from "@/types/action-result";
 const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const, error: e.issues[0]?.message ?? "Invalid input" });
 
 function revalidateArticles(slug?: string) {
+  revalidateSiteData();
   revalidatePath("/me/articles");
   revalidatePath("/me");
   revalidatePath("/articles");

@@ -9,11 +9,11 @@ import {
   updateInterview,
 } from "@/features/career/actions";
 import { INTERVIEW_KIND_LABEL } from "@/features/career/status";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { useToast } from "@/components/shared/ToastProvider";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import type { InterviewKind, InterviewStatus } from "@/db/schema/career";
 import type { ContactDto } from "./ContactsCard";
+import DialogShell from "@/components/shared/DialogShell";
 
 export interface InterviewDto {
   id: string;
@@ -42,7 +42,6 @@ function InterviewDialog({
   contacts: ContactDto[];
   onClose: () => void;
 }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const toast = useToast();
   const defaultStart = new Date();
   defaultStart.setDate(defaultStart.getDate() + 1);
@@ -81,72 +80,60 @@ function InterviewDialog({
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div
-        ref={panelRef}
-        className="me-dialog-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="interview-dialog-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h6 id="interview-dialog-title" className="mb-3">
-          {interview ? "Edit interview" : "Schedule interview"}
-        </h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
+    <DialogShell title={interview ? "Edit interview" : "Schedule interview"} onClose={onClose}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-3">
+          <label className="form-label" htmlFor="iv-kind">Type</label>
+          <select id="iv-kind" name="kind" className="form-select" value={kind} onChange={(e) => setKind(e.target.value as InterviewKind)}>
+            {(Object.keys(INTERVIEW_KIND_LABEL) as InterviewKind[]).map((value) => (
+              <option key={value} value={value}>
+                {INTERVIEW_KIND_LABEL[value]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="row">
+          <div className="col-6 mb-3">
+            <label className="form-label" htmlFor="iv-start">Start</label>
+            <input id="iv-start" name="start" type="datetime-local" className="form-control" value={start} onChange={(e) => setStart(e.target.value)} required />
+          </div>
+          <div className="col-6 mb-3">
+            <label className="form-label" htmlFor="iv-end">End</label>
+            <input id="iv-end" name="end" type="datetime-local" className="form-control" value={end} onChange={(e) => setEnd(e.target.value)} required />
+          </div>
+        </div>
+        <div className="mb-3">
+          <label className="form-label" htmlFor="iv-locationOrLink">Location or meeting link</label>
+          <input id="iv-locationOrLink" name="locationOrLink" className="form-control" value={locationOrLink} onChange={(e) => setLocationOrLink(e.target.value)} />
+        </div>
+        {contacts.length > 0 && (
           <div className="mb-3">
-            <label className="form-label" htmlFor="iv-kind">Type</label>
-            <select id="iv-kind" name="kind" className="form-select" value={kind} onChange={(e) => setKind(e.target.value as InterviewKind)}>
-              {(Object.keys(INTERVIEW_KIND_LABEL) as InterviewKind[]).map((value) => (
-                <option key={value} value={value}>
-                  {INTERVIEW_KIND_LABEL[value]}
+            <label className="form-label" htmlFor="iv-contactId">Interviewer</label>
+            <select id="iv-contactId" name="contactId" className="form-select" value={contactId} onChange={(e) => setContactId(e.target.value)}>
+              <option value="">Not set</option>
+              {contacts.map((contact) => (
+                <option key={contact.id} value={contact.id}>
+                  {contact.name}
                 </option>
               ))}
             </select>
           </div>
-          <div className="row">
-            <div className="col-6 mb-3">
-              <label className="form-label" htmlFor="iv-start">Start</label>
-              <input id="iv-start" name="start" type="datetime-local" className="form-control" value={start} onChange={(e) => setStart(e.target.value)} required />
-            </div>
-            <div className="col-6 mb-3">
-              <label className="form-label" htmlFor="iv-end">End</label>
-              <input id="iv-end" name="end" type="datetime-local" className="form-control" value={end} onChange={(e) => setEnd(e.target.value)} required />
-            </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="iv-locationOrLink">Location or meeting link</label>
-            <input id="iv-locationOrLink" name="locationOrLink" className="form-control" value={locationOrLink} onChange={(e) => setLocationOrLink(e.target.value)} />
-          </div>
-          {contacts.length > 0 && (
-            <div className="mb-3">
-              <label className="form-label" htmlFor="iv-contactId">Interviewer</label>
-              <select id="iv-contactId" name="contactId" className="form-select" value={contactId} onChange={(e) => setContactId(e.target.value)}>
-                <option value="">Not set</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div className="mb-3">
-            <label className="form-label" htmlFor="iv-notes">Notes</label>
-            <textarea id="iv-notes" name="notes" className="form-control" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
-          <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        )}
+        <div className="mb-3">
+          <label className="form-label" htmlFor="iv-notes">Notes</label>
+          <textarea id="iv-notes" name="notes" className="form-control" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>
+            Save
+          </button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

@@ -3,16 +3,15 @@
 import { useState, useTransition } from "react";
 import { FiBriefcase, FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import { createExperience, deleteExperience, reorderItems, updateExperience, type ProfileData } from "@/features/profile/actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, fmtMonth, monthToDate, monthValue, moveItem } from "./shared";
+import DialogShell from "@/components/shared/DialogShell";
 
 type Experience = ProfileData["experiences"][number];
 
 function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [f, setF] = useState({
     company: item?.company ?? "",
     role: item?.role ?? "",
@@ -49,33 +48,30 @@ function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () =>
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="exp-title" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
-        <h6 id="exp-title" className="mb-3">{item ? "Edit experience" : "Add experience"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="row g-2">
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-company">Company</label><input id="x-company" className="form-control" maxLength={100} value={f.company} onChange={set("company")} required /></div>
-            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-role">Role</label><input id="x-role" className="form-control" maxLength={100} value={f.role} onChange={set("role")} required /></div>
-            <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-loc">Location</label><input id="x-loc" className="form-control" maxLength={80} value={f.location} onChange={set("location")} /></div>
-            <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-start">Start</label><input id="x-start" type="month" className="form-control" value={f.start} onChange={set("start")} required /></div>
-            <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-end">End</label><input id="x-end" type="month" className="form-control" value={f.end} onChange={set("end")} disabled={f.current} required={!f.current} /></div>
-            <div className="col-12">
-              <div className="form-check">
-                <input id="x-current" type="checkbox" className="form-check-input" checked={f.current} onChange={(e) => setF((c) => ({ ...c, current: e.target.checked }))} />
-                <label className="form-check-label small" htmlFor="x-current">I currently work here</label>
-              </div>
+    <DialogShell title={item ? "Edit experience" : "Add experience"} onClose={onClose} maxWidth={560}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="row g-2">
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-company">Company</label><input id="x-company" className="form-control" maxLength={100} value={f.company} onChange={set("company")} required /></div>
+          <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-role">Role</label><input id="x-role" className="form-control" maxLength={100} value={f.role} onChange={set("role")} required /></div>
+          <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-loc">Location</label><input id="x-loc" className="form-control" maxLength={80} value={f.location} onChange={set("location")} /></div>
+          <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-start">Start</label><input id="x-start" type="month" className="form-control" value={f.start} onChange={set("start")} required /></div>
+          <div className="col-md-4"><label className="form-label small mb-1" htmlFor="x-end">End</label><input id="x-end" type="month" className="form-control" value={f.end} onChange={set("end")} disabled={f.current} required={!f.current} /></div>
+          <div className="col-12">
+            <div className="form-check">
+              <input id="x-current" type="checkbox" className="form-check-input" checked={f.current} onChange={(e) => setF((c) => ({ ...c, current: e.target.checked }))} />
+              <label className="form-check-label small" htmlFor="x-current">I currently work here</label>
             </div>
-            <div className="col-12"><label className="form-label small mb-1" htmlFor="x-desc">Description</label><textarea id="x-desc" className="form-control" rows={3} maxLength={1000} value={f.description} onChange={set("description")} /></div>
-            <div className="col-12"><label className="form-label small mb-1" htmlFor="x-ach">Achievements (one per line)</label><textarea id="x-ach" className="form-control" rows={4} value={f.achievements} onChange={set("achievements")} placeholder={"Reduced page load time by 40%\nLed a team of 4 engineers"} /></div>
           </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <div className="col-12"><label className="form-label small mb-1" htmlFor="x-desc">Description</label><textarea id="x-desc" className="form-control" rows={3} maxLength={1000} value={f.description} onChange={set("description")} /></div>
+          <div className="col-12"><label className="form-label small mb-1" htmlFor="x-ach">Achievements (one per line)</label><textarea id="x-ach" className="form-control" rows={4} value={f.achievements} onChange={set("achievements")} placeholder={"Reduced page load time by 40%\nLed a team of 4 engineers"} /></div>
+        </div>
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 

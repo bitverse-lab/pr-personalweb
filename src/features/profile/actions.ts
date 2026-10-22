@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateSiteData } from "@/lib/data/site-cache";
 import { requireUserId } from "@/server/auth";
 import { profileRepository } from "@/server/repositories/profile-repository";
 import { mediaRepository } from "@/server/repositories/media-repository";
@@ -12,7 +12,7 @@ const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const,
 
 function revalidateProfile() {
   // the name/photo appear in the navbar, footer, metadata and CV on every public page
-  revalidatePath("/", "layout");
+  revalidateSiteData();
 }
 
 export interface ProfileData {

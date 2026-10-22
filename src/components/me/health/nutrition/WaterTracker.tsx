@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { FiDroplet, FiRotateCcw } from "react-icons/fi";
 import { addWater, deleteWater } from "@/features/health/nutrition-actions";
 import { useToast } from "@/components/shared/ToastProvider";
+import { chart } from "@/lib/chart-theme";
 
 const AMOUNTS = [200, 250, 500];
 
@@ -49,7 +50,7 @@ export default function WaterTracker({
           </span>
         </div>
         <div className="progress mb-3" style={{ height: 8 }} role="progressbar" aria-label="Water" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className="progress-bar" style={{ width: `${pct}%`, background: "#2a78d6" }} />
+          <div className="progress-bar" style={{ width: `${pct}%`, background: chart.series1 }} />
         </div>
         <div className="d-flex flex-wrap gap-2">
           {AMOUNTS.map((a) => (

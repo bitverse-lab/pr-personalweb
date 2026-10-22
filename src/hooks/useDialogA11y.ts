@@ -20,6 +20,11 @@ export function useDialogA11y<T extends HTMLElement>(onClose: () => void) {
     const panel = panelRef.current;
     panel?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
+    // Stop the page behind the dialog from scrolling once the panel reaches its end,
+    // which on a phone otherwise carries the reader away from the dialog they are filling in.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (openDialogs[openDialogs.length - 1] !== id) return;
       if (event.key === "Escape") {
@@ -45,6 +50,8 @@ export function useDialogA11y<T extends HTMLElement>(onClose: () => void) {
       document.removeEventListener("keydown", handleKeyDown);
       const index = openDialogs.indexOf(id);
       if (index >= 0) openDialogs.splice(index, 1);
+      // Only the last dialog to close hands scrolling back to the page (a confirm can sit above a form).
+      if (openDialogs.length === 0) document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus?.();
     };
   }, []);

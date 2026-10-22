@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { SITE_REVALIDATE_SECONDS, SITE_TAG } from "@/lib/data/site-cache";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { profileRepository } from "@/server/repositories/profile-repository";
 import { publicObjectUrl } from "@/server/storage/client";
@@ -107,8 +109,8 @@ const rangeLabel = (start: string | null, end: string | null, openEnded: boolean
 };
 
 /** Public profile: the owner's real data once a name is saved, otherwise the neutral placeholder. */
-export const getProfile = cache(async function getProfile(): Promise<Profile> {
-  try {
+const loadProfile = unstable_cache(async (): Promise<Profile> => {
+  {
     const owner = await articleRepository.owner();
     if (!owner) return placeholder;
     const [full, published] = await Promise.all([profileRepository.findFull(owner.id), projectService.published()]);
@@ -158,6 +160,13 @@ export const getProfile = cache(async function getProfile(): Promise<Profile> {
       })),
       ...ART,
     };
+  }
+}, ["public-profile"], { tags: [SITE_TAG], revalidate: SITE_REVALIDATE_SECONDS });
+
+// Read from the shared data cache (a few queries otherwise run on every request, including inside /me).
+export const getProfile = cache(async function getProfile(): Promise<Profile> {
+  try {
+    return await loadProfile();
   } catch {
     return placeholder; // never take the public site down because the profile could not be read
   }

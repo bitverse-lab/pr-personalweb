@@ -11,13 +11,12 @@ import {
   updateTestimonial,
   type TestimonialDto,
 } from "@/features/testimonials/actions";
-import { useDialogA11y } from "@/hooks/useDialogA11y";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
+import DialogShell from "@/components/shared/DialogShell";
 
 function TestimonialDialog({ item, onClose }: { item?: TestimonialDto; onClose: () => void }) {
-  const panelRef = useDialogA11y<HTMLDivElement>(onClose);
   const [f, setF] = useState({
     quote: item?.quote ?? "",
     authorName: item?.authorName ?? "",
@@ -42,41 +41,38 @@ function TestimonialDialog({ item, onClose }: { item?: TestimonialDto; onClose: 
   };
 
   return (
-    <div role="presentation" className="me-dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className="me-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="t-title" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
-        <h6 id="t-title" className="mb-3">{item ? "Edit testimonial" : "Add testimonial"}</h6>
-        <form onSubmit={submit}>
-          {error && <div className="alert alert-danger py-2 small">{error}</div>}
-          <div className="mb-2">
-            <label className="form-label small mb-1" htmlFor="t-quote">What they said</label>
-            <textarea id="t-quote" className="form-control" rows={4} maxLength={700} value={f.quote} onChange={set("quote")} required />
-            <div className="form-text">{f.quote.length}/700 — only quote what they actually said, with their permission.</div>
+    <DialogShell title={item ? "Edit testimonial" : "Add testimonial"} onClose={onClose} maxWidth={520}>
+      <form onSubmit={submit}>
+        {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <div className="mb-2">
+          <label className="form-label small mb-1" htmlFor="t-quote">What they said</label>
+          <textarea id="t-quote" className="form-control" rows={4} maxLength={700} value={f.quote} onChange={set("quote")} required />
+          <div className="form-text">{f.quote.length}/700 — only quote what they actually said, with their permission.</div>
+        </div>
+        <div className="row g-2">
+          <div className="col-md-6">
+            <label className="form-label small mb-1" htmlFor="t-name">Name</label>
+            <input id="t-name" className="form-control" maxLength={80} value={f.authorName} onChange={set("authorName")} required />
           </div>
-          <div className="row g-2">
-            <div className="col-md-6">
-              <label className="form-label small mb-1" htmlFor="t-name">Name</label>
-              <input id="t-name" className="form-control" maxLength={80} value={f.authorName} onChange={set("authorName")} required />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small mb-1" htmlFor="t-role">Role (opt.)</label>
-              <input id="t-role" className="form-control" maxLength={80} value={f.authorRole} onChange={set("authorRole")} />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small mb-1" htmlFor="t-company">Company (opt.)</label>
-              <input id="t-company" className="form-control" maxLength={80} value={f.company} onChange={set("company")} />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small mb-1" htmlFor="t-source">Source link (opt.)</label>
-              <input id="t-source" className="form-control" maxLength={500} placeholder="https://linkedin.com/…" value={f.sourceUrl} onChange={set("sourceUrl")} />
-            </div>
+          <div className="col-md-6">
+            <label className="form-label small mb-1" htmlFor="t-role">Role (opt.)</label>
+            <input id="t-role" className="form-control" maxLength={80} value={f.authorRole} onChange={set("authorRole")} />
           </div>
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !f.quote.trim() || !f.authorName.trim()}>Save</button>
+          <div className="col-md-6">
+            <label className="form-label small mb-1" htmlFor="t-company">Company (opt.)</label>
+            <input id="t-company" className="form-control" maxLength={80} value={f.company} onChange={set("company")} />
           </div>
-        </form>
-      </div>
-    </div>
+          <div className="col-md-6">
+            <label className="form-label small mb-1" htmlFor="t-source">Source link (opt.)</label>
+            <input id="t-source" className="form-control" maxLength={500} placeholder="https://linkedin.com/…" value={f.sourceUrl} onChange={set("sourceUrl")} />
+          </div>
+        </div>
+        <div className="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={isPending || !f.quote.trim() || !f.authorName.trim()}>Save</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 
