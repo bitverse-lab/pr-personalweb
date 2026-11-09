@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateSiteData } from "@/lib/data/site-cache";
 import { requireUserId } from "@/server/auth";
 import { testimonialRepository } from "@/server/repositories/testimonial-repository";
 import { publishTestimonialSchema, reorderTestimonialsSchema, restoreTestimonialSchema, testimonialIdSchema, testimonialSchema, updateTestimonialSchema } from "./schema";
@@ -20,8 +21,8 @@ const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const,
 const toDto = (t: TestimonialDto): TestimonialDto => ({ id: t.id, quote: t.quote, authorName: t.authorName, authorRole: t.authorRole, company: t.company, sourceUrl: t.sourceUrl, published: t.published });
 
 function revalidateTestimonials() {
+  revalidateSiteData();
   revalidatePath("/me/testimonials");
-  revalidatePath("/");
 }
 
 export async function getMyTestimonials(): Promise<TestimonialDto[]> {
