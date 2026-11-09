@@ -13,13 +13,6 @@ export interface ProjectPage extends Project {
   gallery: { url: string; caption: string | null }[];
 }
 
-// Template images used when a project has no image of its own (stable per slug).
-function fallbackImage(slug: string) {
-  let hash = 0;
-  for (const ch of slug) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return `/images/portfolio/${(hash % 16) + 1}.jpg`;
-}
-
 function toProject(d: ProjectDetail): Project {
   return {
     id: d.id,
@@ -27,7 +20,8 @@ function toProject(d: ProjectDetail): Project {
     name: d.title,
     label: d.category ?? "",
     category: d.category,
-    image: d.coverUrl || fallbackImage(d.slug),
+    // no cover → null; the UI sets the title in type (CoverBlock), never a stock photo
+    image: d.coverUrl || null,
     summary: d.summary ?? "",
     outcome: d.outcome,
     technologies: d.technologies,

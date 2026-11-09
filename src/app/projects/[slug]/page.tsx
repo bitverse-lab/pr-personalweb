@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
 import Link from "next/link";
+import CoverBlock from "@/components/shared/CoverBlock";
 import { AiOutlineCalendar, AiOutlineUser } from "react-icons/ai";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
@@ -103,8 +104,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   </figure>
                 ))
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={project.image} className="img-fluid rounded shadow" alt={project.name} />
+                <CoverBlock src={project.image} title={project.name} className="shadow" />
               )}
 
               {hasStory && (

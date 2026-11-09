@@ -7,7 +7,6 @@ import SmallFooter from "@/components/layout/SmallFooter";
 import ArticleCard from "@/components/shared/ArticleCard";
 import ArticleListSkeleton from "@/components/shared/ArticleListSkeleton";
 import ArticleSidebar from "@/components/shared/ArticleSidebar";
-import ParallaxBackground from "@/components/shared/ParallaxBackground";
 import { getArticles } from "@/lib/data/articles";
 
 export const metadata: Metadata = {
@@ -45,7 +44,6 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
     <>
       <main id="main-content" tabIndex={-1}>
       <section className="d-table w-100 position-relative overflow-hidden">
-        <ParallaxBackground image="/images/blog/blog.jpg" alt="articles background" />
         <div className="bg-overlay bg-gradient-overlay-2"></div>
         <div className="bg-half-170">
           <div className="container">
@@ -127,7 +125,6 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
           <div className="row">
             <div className="col-12">
               <div className="rounded shadow bg position-relative overflow-hidden">
-                <ParallaxBackground image="/images/blog/bg1.jpg" alt="promo background" />
                 <div className="bg-overlay"></div>
 
                 <div className="row align-items-center p-4 py-lg-5">

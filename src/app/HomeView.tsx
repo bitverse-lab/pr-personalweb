@@ -13,6 +13,7 @@ import SmallFooter from "@/components/layout/SmallFooter";
 import ArticleCard from "@/components/shared/ArticleCard";
 import ContactSection from "@/components/shared/ContactSection";
 import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
+import CoverBlock from "@/components/shared/CoverBlock";
 import FallbackImage, { initialsOf, PortraitInitials } from "@/components/shared/FallbackImage";
 import JsonLd from "@/components/shared/JsonLd";
 import TestimonialsSection from "@/components/shared/TestimonialsSection";
@@ -34,7 +35,7 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
   const initials = initialsOf(profile.fullName);
   const reducedMotion = usePrefersReducedMotion();
   const categories: { value: string | null; label: string }[] = [{ value: null, label: "All" }, ...projectCategories(projects).map((c) => ({ value: c, label: c }))];
-  const galleryImages = projects.map((project) => project.image);
+  const galleryImages = projects.map((project) => project.image).filter((src): src is string => !!src);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -326,19 +327,20 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
 
               <div id="grid" className="row g-3 row-cols-lg-4 row-cols-md-3 row-cols-sm-2 row-cols-1">
                 {filteredProjects.map((project) => {
-                  const galleryIndex = galleryImages.indexOf(project.image);
+                  const galleryIndex = project.image ? galleryImages.indexOf(project.image) : -1;
                   return (
                     <div className="col picture-item" key={project.id}>
                       <div className="position-relative portfolio portfolio-primary portfolio-modern rounded-md">
                         <div className="position-relative port-image">
                           <div className="rounded-md p-0 overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img loading="lazy" decoding="async" src={project.image} className="img-fluid shadow" alt={project.name} />
-                            <div className="icons text-center">
-                              <button type="button" onClick={() => handleImageClick(galleryIndex)} className="btn btn-icon btn-pills btn-lg lightbox" aria-label={`View ${project.name} larger`}>
-                                <FiCamera aria-hidden />
-                              </button>
-                            </div>
+                            <CoverBlock src={project.image} title={project.name} compact />
+                            {galleryIndex >= 0 && (
+                              <div className="icons text-center">
+                                <button type="button" onClick={() => handleImageClick(galleryIndex)} className="btn btn-icon btn-pills btn-lg lightbox" aria-label={`View ${project.name} larger`}>
+                                  <FiCamera aria-hidden />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="bg rounded-md"></div>

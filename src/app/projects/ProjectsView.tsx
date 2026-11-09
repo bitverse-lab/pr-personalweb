@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import CoverBlock from "@/components/shared/CoverBlock";
 import Lightbox from "react-18-image-lightbox";
 import "react-18-image-lightbox/style.css";
 
@@ -12,7 +13,7 @@ import ScrollRevealObserver from "@/components/shared/ScrollRevealObserver";
 import type { Project } from "@/features/projects/format";
 
 export default function ProjectsView({ projects, categories, heading, subheading }: { projects: Project[]; categories: string[]; heading: string; subheading: string }) {
-  const galleryImages = projects.map((project) => project.image);
+  const galleryImages = projects.map((project) => project.image).filter((src): src is string => !!src);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
@@ -150,19 +151,23 @@ export default function ProjectsView({ projects, categories, heading, subheading
           <div id="grid">
             <ResponsiveProjectGrid>
               {filteredProjects.map((project) => {
-                const galleryIndex = galleryImages.indexOf(project.image);
+                const galleryIndex = project.image ? galleryImages.indexOf(project.image) : -1;
                 return (
                   <div className="picture-item p-2" key={project.id}>
                     <div className="card border-0 portfolio portfolio-primary portfolio-grid position-relative d-block overflow-hidden rounded">
                       <div className="card-body p-0">
-                        <button
-                          type="button"
-                          onClick={() => handleImageClick(galleryIndex)}
-                          className="lightbox p-0 border-0 bg-transparent d-block w-100"
-                          aria-label={`View ${project.name} larger`}
-                        >
-                          <img loading="lazy" decoding="async" src={project.image} className="img-fluid" alt={project.name} />
-                        </button>
+                        {galleryIndex >= 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => handleImageClick(galleryIndex)}
+                            className="lightbox p-0 border-0 bg-transparent d-block w-100"
+                            aria-label={`View ${project.name} larger`}
+                          >
+                            <CoverBlock src={project.image} title={project.name} compact />
+                          </button>
+                        ) : (
+                          <CoverBlock src={null} title={project.name} compact />
+                        )}
                         <div className="grid-content bg-white p-3 rounded shadow">
                           <h6 className="mb-1">
                             <Link href={`/projects/${project.slug}`} className="text-dark title">

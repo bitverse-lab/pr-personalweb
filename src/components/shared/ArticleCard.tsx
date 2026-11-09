@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CoverBlock from "@/components/shared/CoverBlock";
 import { AiOutlineCalendar, AiOutlineClockCircle } from "react-icons/ai";
 import { MdArrowForward } from "react-icons/md";
 import type { Article } from "@/lib/data/articles";
@@ -8,8 +9,7 @@ export default function ArticleCard({ article }: { article: Article }) {
     <div className="card blog blog-primary shadow rounded overflow-hidden border-0">
       <div className="card-img image position-relative overflow-hidden">
         <div className="position-relative overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img loading="lazy" decoding="async" src={article.image} className="img-fluid" alt="" />
+          <CoverBlock src={article.image} title={article.title} ratio="16/9" compact />
           <div className="card-overlay"></div>
         </div>
 

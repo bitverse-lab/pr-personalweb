@@ -14,20 +14,13 @@ export interface Article {
   tag: string;
   tags: string[];
   date: string;
-  image: string;
+  image: string | null;
   readMinutes: number;
 }
 
 export interface ArticlePage extends Article {
   detail: ArticleDetail;
   author: string;
-}
-
-// Template images used when an article has no cover of its own (stable per slug).
-function fallbackImage(slug: string) {
-  let hash = 0;
-  for (const ch of slug) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return `/images/blog/${(hash % 9) + 1}.jpg`;
 }
 
 function formatDate(iso: string | null) {
@@ -44,7 +37,8 @@ function toArticle(item: ArticleListItem): Article {
     tag: item.tags[0] ?? "Article",
     tags: item.tags,
     date: formatDate(item.publishedAt),
-    image: item.coverUrl || fallbackImage(item.slug),
+    // no cover → null; the UI sets the title in type (CoverBlock), never a stock photo
+    image: item.coverUrl || null,
     readMinutes: readingMinutes(item.wordCount),
   };
 }

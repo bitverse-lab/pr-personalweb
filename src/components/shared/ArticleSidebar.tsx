@@ -34,8 +34,10 @@ export default function ArticleSidebar({ articles, query = "" }: { articles: Art
             <div className="mt-4">
               {recent.map((article) => (
                 <div className="d-flex align-items-center mt-3" key={article.id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img loading="lazy" decoding="async" src={article.image} className="avatar avatar-small rounded" style={{ width: "auto" }} alt="" />
+                  {article.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img loading="lazy" decoding="async" src={article.image} className="avatar avatar-small rounded" style={{ width: "auto" }} alt="" />
+                  )}
                   <div className="flex-1 ms-3">
                     <Link href={`/articles/${article.slug}`} className="d-block widget-post-title text-dark">
                       {article.title}

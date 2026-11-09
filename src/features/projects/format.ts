@@ -18,7 +18,7 @@ export interface Project {
   label: string;
   /** Category used by the filter buttons; null when the project has none. */
   category: string | null;
-  image: string;
+  image: string | null;
   summary: string;
   /** One line of measurable result, or null. */
   outcome: string | null;

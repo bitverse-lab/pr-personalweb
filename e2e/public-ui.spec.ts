@@ -76,6 +76,14 @@ test("a portrait that fails to load shows initials, not a broken image", async (
   await expect(page.getByRole("img", { name: /^Portrait of / }).first()).toBeVisible();
 });
 
+test("no page requests the template's stock photos as covers", async ({ page }) => {
+  // the seed has an archived/draft project and a draft article without covers, and published ones with covers
+  const stock: string[] = [];
+  page.on("request", (r) => { if (/\/images\/(blog|portfolio)\//.test(r.url())) stock.push(r.url()); });
+  for (const path of ["/", "/projects", "/articles"]) await page.goto(path, { waitUntil: "load" });
+  expect(stock).toEqual([]);
+});
+
 test("the projects hero does not use the template's stock photo", async ({ page }) => {
   await page.goto("/projects");
   const bg = await page.locator("section#hero").evaluate((el) => getComputedStyle(el).backgroundImage);
