@@ -807,3 +807,139 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     font-weight: 600;
     color: $primary;
 }
+
+// ============================================================ writing: list (option B) + archive
+.writing-search {
+    display: flex;
+    gap: 8px;
+    max-width: 460px;
+    margin-top: 24px;
+    .form-control {
+        border-color: $gray-200;
+    }
+}
+.writing-earlier-head {
+    font-weight: 400;
+}
+.log-row {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid $gray-200;
+    @media (max-width: 767px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+        .log-time {
+            display: none;
+        }
+    }
+}
+.log-title {
+    font-weight: 600;
+    font-size: 17px;
+    color: $dark;
+    &:hover {
+        color: $primary;
+    }
+}
+.log-excerpt {
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: $text-meta;
+    line-height: 1.5;
+    margin: 4px 0 0;
+    max-width: 68ch;
+}
+a.layer-chip {
+    text-decoration: none;
+    &:hover {
+        background: mix($surface-soft, $primary, 85%);
+    }
+}
+a.layer-chip.layer-chip--active:hover {
+    background: $primary;
+}
+
+// ============================================================ article detail
+.article-title {
+    max-width: 24ch;
+}
+.article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 56px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.article-aside {
+    position: sticky;
+    top: 100px;
+    @media (max-width: 991px) {
+        display: none;
+    }
+}
+.toc-link {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 1px solid $gray-200;
+    font-size: 14px;
+    color: $text-meta;
+    transition: color 0.2s, border-color 0.2s;
+    &:hover {
+        color: $primary;
+    }
+    &[aria-current="true"] {
+        color: $primary;
+        font-weight: 600;
+        border-left-color: $primary;
+    }
+}
+.toc-sub .toc-link {
+    padding-left: 24px;
+}
+// Code reads like the hero console.
+.reading-col pre {
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+}
+.reading-col :not(pre) > code {
+    font-family: $font-mono;
+    font-size: 0.9em;
+    background: $surface-soft;
+    color: $primary;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.reading-col blockquote {
+    margin: 1.6em 0;
+    padding-left: 18px;
+    border-left: 1px solid $primary;
+    font-size: 19px;
+    color: $dark;
+}
+
+// Headings used as list labels keep the meta size (template h2/h3 sizes would otherwise win).
+h2.mono-meta,
+h3.mono-meta {
+    font-size: 12px !important; // _bootstrap-custom sizes every heading with !important
+    font-weight: 400 !important; // the template forces 600 on every heading
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+// The template indents every list item after the first; these lists are aligned columns.
+.writing-earlier-item,
+.log-row,
+.xp-item,
+.toc li {
+    margin-inline-start: 0;
+}

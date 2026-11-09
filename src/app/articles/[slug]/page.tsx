@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { FiHome } from "react-icons/fi";
-import { MdArrowForward, MdOutlineArrowBack } from "react-icons/md";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
-import ArticleCard from "@/components/shared/ArticleCard";
-import ArticleSidebar from "@/components/shared/ArticleSidebar";
-import ParallaxBackground from "@/components/shared/ParallaxBackground";
 import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import JsonLd from "@/components/shared/JsonLd";
-import ArticleToc from "@/components/shared/ArticleToc";
+import TableOfContents from "@/components/shared/TableOfContents";
 import PrevNext from "@/components/shared/PrevNext";
 import ReadingProgress from "@/components/shared/ReadingProgress";
 import ShareButtons from "@/components/shared/ShareButtons";
@@ -49,131 +44,84 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
       <PersonalNavbar />
       <ReadingProgress targetId="article-body" />
       <main id="main-content" tabIndex={-1}>
-      <JsonLd
-        data={{
-          "@type": "Article",
-          headline: article.title,
-          description: article.excerpt || undefined,
-          datePublished: article.detail.publishedAt ?? undefined,
-          dateModified: article.detail.updatedAt,
-          image: article.detail.coverUrl ? [article.detail.coverUrl] : undefined,
-          keywords: article.tags.join(", ") || undefined,
-          author: { "@type": "Person", name: article.author },
-          mainEntityOfPage: `${siteUrl()}/articles/${article.slug}`,
-        }}
-      />
+        <JsonLd
+          data={{
+            "@type": "Article",
+            headline: article.title,
+            description: article.excerpt || undefined,
+            datePublished: article.detail.publishedAt ?? undefined,
+            dateModified: article.detail.updatedAt,
+            image: article.detail.coverUrl ? [article.detail.coverUrl] : undefined,
+            keywords: article.tags.join(", ") || undefined,
+            author: { "@type": "Person", name: article.author },
+            mainEntityOfPage: `${siteUrl()}/articles/${article.slug}`,
+          }}
+        />
 
-      <section className="position-relative overflow-hidden w-100">
-        <ParallaxBackground image="/images/bg/01.jpg" alt="article background" />
-        <div className="bg-overlay bg-gradient-overlay-2"></div>
-        <div className="bg-half-170 w-100">
+        <section className="page-head">
           <div className="container">
-            <div className="row mt-5 justify-content-center">
-              <div className="col-12">
-                <div className="title-heading text-center">
-                  <span className="badge bg-primary">{article.tag}</span>
-                  <h1 className="h5 heading fw-semibold mb-0 sub-heading text-white title-dark mt-4">{article.title}</h1>
-
-                  <ul className="list-inline text-center mb-0">
-                    <li className="list-inline-item mx-4 mt-4">
-                      <span className="text-white-50 d-block">Author</span>
-                      <Link href="/about" className="text-white title-dark">
-                        {article.author}
-                      </Link>
-                    </li>
-
-                    <li className="list-inline-item mx-4 mt-4">
-                      <span className="text-white-50 d-block">Date</span>
-                      <span className="text-white title-dark">{article.date}</span>
-                    </li>
-
-                    <li className="list-inline-item mx-4 mt-4">
-                      <span className="text-white-50 d-block">Read Time</span>
-                      <span className="text-white title-dark">{article.readMinutes} min read</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <p className="mono-meta mb-3">
+              <Link href="/articles" className="path-label">← ~/writing</Link> · {article.date} · {article.readMinutes} min read
+            </p>
+            <h1 className="page-head-title article-title">{article.title}</h1>
+            {article.excerpt && <p className="page-head-lede">{article.excerpt}</p>}
           </div>
-        </div>
-      </section>
-      <section className="section">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-8 col-md-7">
-              <div className="card border-0 shadow rounded overflow-hidden">
+        </section>
+
+        <section className="section pt-4">
+          <div className="container">
+            <div className="article-layout">
+              <article id="article-body" className="article-main">
                 {article.detail.coverUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={article.detail.coverUrl} className="img-fluid" alt="" />
+                  <img src={article.detail.coverUrl} className="img-fluid rounded mb-5" alt="" />
+                )}
+                <div className="reading-col">
+                  <RichTextRenderer doc={article.detail.content} />
+                </div>
+
+                {article.tags.length > 0 && (
+                  <div className="case-layers mt-5" aria-label="Tags">
+                    {article.tags.map((t) => (
+                      <Link href={`/articles?tag=${encodeURIComponent(t)}`} className="layer-chip" key={t}>
+                        {t.toLowerCase()}
+                      </Link>
+                    ))}
+                  </div>
                 )}
 
-                <div className="card-body" id="article-body">
-                  <ArticleToc headings={headings} />
-                  <RichTextRenderer doc={article.detail.content} className="mt-2" />
-
-                  <hr className="my-4" />
+                <div className="mt-4">
                   <ShareButtons url={`${siteUrl()}/articles/${article.slug}`} title={article.title} />
-
-                  {article.tags.length > 0 && (
-                    <div className="mt-4">
-                      {article.tags.map((t) => (
-                        <Link href={`/articles?tag=${encodeURIComponent(t)}`} className="badge badge-link bg-primary ms-1" key={t}>
-                          {t}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </div>
 
-              <PrevNext
-                prev={older ? { href: `/articles/${older.slug}`, title: older.title } : null}
-                next={newer ? { href: `/articles/${newer.slug}`, title: newer.title } : null}
-                prevLabel="Older article"
-                nextLabel="Newer article"
-              />
+                <PrevNext
+                  prev={older ? { href: `/articles/${older.slug}`, title: older.title } : null}
+                  next={newer ? { href: `/articles/${newer.slug}`, title: newer.title } : null}
+                  prevLabel="Older article"
+                  nextLabel="Newer article"
+                />
 
-              {related.length > 0 && (
-                <div className="card shadow rounded mt-4">
-                  <div className="card-body">
-                    <h5 className="card-title mb-0">Keep reading :</h5>
-
-                    <div className="row mt-2">
+                {related.length > 0 && (
+                  <div className="mt-5">
+                    <h2 className="mono-meta mb-2">Keep reading</h2>
+                    <ul className="list-unstyled mb-0">
                       {related.map((item) => (
-                        <div className="col-lg-6 mt-4 pt-2" key={item.id}>
-                          <ArticleCard article={item} />
-                        </div>
+                        <li key={item.id} className="writing-earlier-item">
+                          <Link href={`/articles/${item.slug}`} className="writing-earlier-link">{item.title}</Link>
+                          <p className="mono-meta mb-0 mt-1">{item.date}</p>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
-                </div>
-              )}
+                )}
+              </article>
 
-              <div className="d-flex align-items-center justify-content-between mt-5">
-                <Link href="/articles" className="text-dark align-items-center">
-                  <span className="pro-icons">
-                    <MdOutlineArrowBack className="align-middle me-1" />
-                  </span>
-                  <span className="text-muted d-none d-lg-inline-block">All Articles</span>
-                </Link>
-
-                <Link href="/" className="btn btn-lg btn-pills btn-icon btn-soft-primary">
-                  <FiHome className="icon" />
-                </Link>
-
-                <Link href="/articles" className="text-dark align-items-center">
-                  <span className="text-muted d-none d-lg-inline-block">More Articles</span>
-                  <span className="pro-icons">
-                    <MdArrowForward className="align-middle ms-1" />
-                  </span>
-                </Link>
-              </div>
+              <aside className="article-aside">
+                <TableOfContents headings={headings} />
+              </aside>
             </div>
-            <ArticleSidebar articles={all} />
           </div>
-        </div>
-      </section>
+        </section>
       </main>
       <SmallFooter />
     </>
