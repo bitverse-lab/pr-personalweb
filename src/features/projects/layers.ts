@@ -27,3 +27,13 @@ export function currentRole(experience: { role: string; company: string; current
   const now = experience.find((e) => e.current);
   return now ? { role: now.role, company: now.company } : null;
 }
+
+/** Skill names grouped by layer, in the owner's order. Uncategorised skills still show, under "other". */
+export function skillsByLayer(skills: LayerSkill[]): [string, string[]][] {
+  const groups = new Map<string, string[]>();
+  for (const s of skills) {
+    const layer = s.category?.trim().toLowerCase() || "other";
+    groups.set(layer, [...(groups.get(layer) ?? []), s.name]);
+  }
+  return Array.from(groups);
+}

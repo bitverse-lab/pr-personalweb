@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { currentRole, layerSet, layersOf } from "./layers";
+import { currentRole, layerSet, layersOf, skillsByLayer } from "./layers";
 
 const skills = [
   { name: "postgresql", category: "Data" },
@@ -33,4 +33,18 @@ test("the current role is the experience with no end date", () => {
   ];
   expect(currentRole(exp)).toEqual({ role: "Full Stack Engineer", company: "Nusantara Data Labs" });
   expect(currentRole([exp[0]])).toBeNull();
+});
+
+test("skills group by layer in the owner's order, uncategorised ones under 'other'", () => {
+  const list = [
+    { name: "Laravel", category: "API" },
+    { name: "Figma", category: null },
+    { name: "PostgreSQL", category: "data" },
+    { name: "FastAPI", category: " api " },
+  ];
+  expect(skillsByLayer(list)).toEqual([
+    ["api", ["Laravel", "FastAPI"]],
+    ["other", ["Figma"]],
+    ["data", ["PostgreSQL"]],
+  ]);
 });

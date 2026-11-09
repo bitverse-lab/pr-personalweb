@@ -120,7 +120,7 @@ export default function ExperienceSection({ items }: { items: Experience[] }) {
           <button type="button" className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" onClick={() => setEditing("new")}><FiPlus /> Add</button>
         </div>
         {list.length === 0 ? (
-          <EmptyState icon={FiBriefcase} title="No experience yet" description="Add your roles — newest first. They appear on your CV and About page." />
+          <EmptyState icon={FiBriefcase} title="No experience yet" description="Add your roles — newest first. They appear on your CV, About and home page." />
         ) : (
           <ul className="list-unstyled mb-0">
             {list.map((e, i) => (

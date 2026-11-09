@@ -664,7 +664,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     color: $ml-ink;
 }
 .xp-role {
-    font-size: 18px;
+    font-size: 18px !important; // the template sizes every h3 with !important
     font-weight: 700;
     color: $dark;
     margin-bottom: 2px;
@@ -940,6 +940,301 @@ h3.mono-meta {
 .writing-earlier-item,
 .log-row,
 .xp-item,
-.toc li {
+.toc li,
+.cv-item,
+.cv-proof li {
     margin-inline-start: 0;
+}
+
+// ============================================================ about
+.about-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 56px;
+    align-items: end;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+}
+.about-now {
+    max-width: 520px;
+    .facts-row {
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 12px;
+        align-items: baseline;
+    }
+}
+.about-portrait {
+    max-width: 280px;
+    img {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+}
+.about-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 40px;
+    }
+}
+.about-layer {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+    dd {
+        margin: 0;
+    }
+}
+
+// ============================================================ cv: one sheet, screen and print
+.cv-page {
+    padding: 120px 0 72px;
+    background: $light;
+    @media (max-width: 991px) {
+        padding: 96px 0 48px;
+    }
+}
+.cv-actions {
+    max-width: 880px;
+    margin: 0 auto 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.cv-sheet {
+    max-width: 880px;
+    margin: 0 auto;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    padding: 48px 56px;
+    @media (max-width: 767px) {
+        padding: 28px 20px;
+    }
+}
+.cv-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid $gray-200;
+}
+.cv-name {
+    font-size: 32px !important; // the template sizes every h1 with !important
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: $dark;
+    margin: 0;
+}
+.cv-headline {
+    font-family: $font-family-secondary;
+    color: $text-meta;
+    margin: 8px 0 0;
+}
+.cv-contact {
+    margin: 0;
+    font-family: $font-mono;
+    font-size: 13px;
+    line-height: 1.9;
+    div {
+        display: flex;
+        gap: 12px;
+    }
+    dt {
+        width: 72px;
+        flex: none;
+        font-size: 13px;
+    }
+    dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    a {
+        color: $primary;
+    }
+}
+.cv-summary {
+    font-family: $font-family-secondary;
+    color: $dark;
+    line-height: 1.7;
+    margin: 24px 0 0;
+    white-space: pre-line;
+}
+.cv-section {
+    margin-top: 36px;
+}
+.cv-label {
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid $gray-200;
+}
+.cv-proof {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 20px;
+    li {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+.cv-proof-value {
+    font-family: $font-mono;
+    font-size: 22px;
+    color: $primary;
+    font-variant-numeric: tabular-nums;
+}
+.cv-proof-note {
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: $text-meta;
+    line-height: 1.45;
+}
+.cv-item {
+    padding: 12px 0;
+    border-top: 1px solid $gray-200;
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+}
+.cv-item-title {
+    font-weight: 600;
+    color: $dark;
+    margin: 0;
+    a {
+        color: $dark;
+    }
+}
+.cv-item-meta {
+    font-weight: 400;
+    color: $text-meta;
+}
+.cv-item-text {
+    font-family: $font-family-secondary;
+    font-size: 15px;
+    color: $text-meta;
+    line-height: 1.6;
+    margin: 4px 0 6px;
+}
+
+@media print {
+    #topnav,
+    .footer-bar,
+    .back-to-top,
+    .cv-actions,
+    .skip-link {
+        display: none !important;
+    }
+    body {
+        background: $white;
+    }
+    .cv-page {
+        padding: 0;
+        background: $white;
+    }
+    .cv-sheet {
+        border: 0;
+        padding: 0;
+        max-width: none;
+    }
+    .cv-section,
+    .xp-item,
+    .cv-item {
+        break-inside: avoid;
+    }
+    a {
+        text-decoration: none;
+    }
+}
+
+// ============================================================ contact
+.contact-page .section {
+    padding-top: 150px;
+    @media (max-width: 991px) {
+        padding-top: 110px;
+    }
+}
+.contact-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 64px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 36px;
+    }
+}
+.contact-title {
+    font-size: clamp(28px, 3.4vw, 42px) !important; // beats the template's !important heading sizes
+    font-weight: 800 !important;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: $dark;
+    max-width: 18ch;
+    margin: 0;
+    text-wrap: balance;
+}
+.contact-lede {
+    font-family: $font-family-secondary;
+    font-size: 17px;
+    color: $text-meta;
+    margin: 16px 0 0;
+}
+.contact-rows {
+    margin: 28px 0 0;
+    font-family: $font-mono;
+    font-size: 14px;
+    line-height: 2;
+    div {
+        display: flex;
+        gap: 16px;
+    }
+    dt {
+        width: 84px;
+        flex: none;
+        font-weight: 400;
+        color: $text-meta;
+    }
+    dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    a {
+        color: $primary;
+    }
+}
+.contact-open {
+    color: $ml-ink;
+}
+.contact-form-card {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    padding: 28px;
+    @media (max-width: 767px) {
+        padding: 20px;
+    }
+}
+
+// ============================================================ privacy, 404
+.privacy-h {
+    font-size: 20px !important;
+    margin: 32px 0 8px;
+    color: $dark;
+}
+.page-head--tall {
+    padding-bottom: 120px;
 }

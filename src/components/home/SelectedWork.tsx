@@ -22,7 +22,7 @@ export default function SelectedWork({ projects, skills, title = "Selected work"
           {projects.map((p, i) => {
             const layers = layersOf(p.technologies, skills);
             return (
-              <article key={p.id} id={`case-${p.slug}`} data-case data-layers={layers.join(" ")} className={`case ${i === 0 ? "case--featured" : ""}`}>
+              <article key={p.id} id={`case-${p.slug}`} data-case data-featured={p.featured ? "" : undefined} data-layers={layers.join(" ")} className={`case ${i === 0 ? "case--featured" : ""}`}>
                 <CoverBlock src={p.image} title={p.name} ratio={i === 0 ? "16/10" : "16/9"} compact={i !== 0} />
                 <div className="case-body">
                   {layers.length > 0 && (

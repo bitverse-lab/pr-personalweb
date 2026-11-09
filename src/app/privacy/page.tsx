@@ -26,14 +26,19 @@ export default async function PrivacyPage() {
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
-        <section className="section mt-5">
+        <section className="page-head">
           <div className="container">
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <h1 className="h3 mb-3">Privacy</h1>
-                <p className="text-muted">This is a personal website run by {owner}. It is deliberately simple, and this page explains in plain language what it stores and why.</p>
+            <p className="path-label mb-3">~/privacy</p>
+            <h1 className="page-head-title">Privacy</h1>
+            <p className="page-head-lede">This is a personal website run by {owner}. It is deliberately simple, and this page explains in plain language what it stores and why.</p>
+          </div>
+        </section>
+        <section className="section pt-5">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-8 reading-col">
 
-                <h2 className="h5 mt-4">What I collect</h2>
+                <h2 className="privacy-h">What I collect</h2>
                 <ul className="text-muted">
                   <li>
                     <strong>Messages you send through the contact form:</strong> your name, email address, the subject and your message. I store them so I can read and reply to you.
@@ -52,19 +57,19 @@ export default async function PrivacyPage() {
                   )}
                 </ul>
 
-                <h2 className="h5 mt-4">Cookies</h2>
+                <h2 className="privacy-h">Cookies</h2>
                 <p className="text-muted">Visitors do not receive any cookies. A cookie is only used when the site owner signs in to the private workspace.</p>
 
-                <h2 className="h5 mt-4">Who can see it</h2>
+                <h2 className="privacy-h">Who can see it</h2>
                 <p className="text-muted">
                   Only {owner}. Messages are never sold, shared or used for marketing.
                   {emailDelivery ? " When you send a message, it is also forwarded to my inbox through an email delivery service (Resend), which processes it only to deliver that email." : ""} The site is hosted on infrastructure providers (web hosting and a database), which store the data on my behalf.
                 </p>
 
-                <h2 className="h5 mt-4">How long I keep it</h2>
+                <h2 className="privacy-h">How long I keep it</h2>
                 <p className="text-muted">Messages are kept until I delete them. I aim to remove ones that are no longer needed.</p>
 
-                <h2 className="h5 mt-4">Your choices</h2>
+                <h2 className="privacy-h">Your choices</h2>
                 <p className="text-muted">
                   You can ask me to show, correct or delete anything you have sent me.{" "}
                   {email ? (
@@ -78,7 +83,7 @@ export default async function PrivacyPage() {
                   )}
                 </p>
 
-                <h2 className="h5 mt-4">Links and sharing</h2>
+                <h2 className="privacy-h">Links and sharing</h2>
                 <p className="text-muted">Share buttons are ordinary links: nothing is loaded from LinkedIn, X or WhatsApp unless you click one, and then their own policies apply.</p>
 
                 <p className="text-muted small mt-5 mb-0">This notice describes how the site works; it is not legal advice.</p>

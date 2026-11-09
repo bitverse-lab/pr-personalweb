@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FiDownload, FiMapPin } from "react-icons/fi";
 
 import FallbackImage, { PortraitInitials } from "@/components/shared/FallbackImage";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
+import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
 import JsonLd from "@/components/shared/JsonLd";
 import SocialIcon from "@/components/shared/SocialIcon";
+import { currentRole, skillsByLayer } from "@/features/projects/layers";
 import { getProfile } from "@/lib/data/profile";
 
 export const revalidate = 300;
@@ -20,6 +21,12 @@ export default async function AboutPage() {
   const profile = await getProfile();
   const real = !profile.isPlaceholder;
   const links = profile.links.filter((l) => /^https?:\/\//i.test(l.url));
+  const now = currentRole(profile.experience);
+  const facts = [
+    now && { label: "now", value: `${now.role} · ${now.company}` },
+    profile.location && { label: "based in", value: profile.location },
+    { label: "status", value: profile.availableForWork ? `open${profile.availabilityNote ? ` · ${profile.availabilityNote}` : ""}` : "not looking right now" },
+  ].filter((f): f is { label: string; value: string } => !!f);
 
   return (
     <>
@@ -41,92 +48,96 @@ export default async function AboutPage() {
           />
         )}
 
-        <section className="section">
-          <div className="container">
-            {!real ? (
-              <div className="text-center py-5">
-                <h1 className="h4 mb-2">About</h1>
-                <p className="text-muted mb-0">This page will be available soon.</p>
-              </div>
-            ) : (
-              <div className="row align-items-center">
-                {profile.aboutPhotoUrl && (
-                  <div className="col-lg-5 col-md-6">
-                    <div className="position-relative">
+        {!real ? (
+          <section className="page-head">
+            <div className="container">
+              <h1 className="page-head-title">About</h1>
+              <p className="page-head-lede">This page will be available soon.</p>
+            </div>
+          </section>
+        ) : (
+          <>
+            <section className="page-head">
+              <div className="container">
+                <div className="about-head">
+                  <div>
+                    <p className="path-label mb-3">~/about</p>
+                    <h1 className="page-head-title">{profile.fullName}</h1>
+                    {profile.headline && <p className="page-head-lede">{profile.headline}</p>}
+                    <dl className="facts about-now mt-4" data-now>
+                      {facts.map((f) => (
+                        <div key={f.label} className="facts-row">
+                          <dt className="mono-meta">{f.label}</dt>
+                          <dd>{f.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                  {profile.aboutPhotoUrl && (
+                    <div className="about-portrait">
                       <FallbackImage
                         src={profile.aboutPhotoUrl}
-                        className="rounded-pill shadow img-fluid"
+                        className="img-fluid"
                         alt={`Portrait of ${profile.fullName}`}
                         fallback={<PortraitInitials name={profile.fullName} />}
                       />
-                      <div className="position-absolute top-0 start-0 z-index-m-1">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={profile.dotsImage} className="avatar avatar-xl-large" alt="" />
-                      </div>
                     </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="section">
+              <div className="container">
+                <div className="about-body">
+                  <div className="reading-col">
+                    {profile.summary && <p style={{ whiteSpace: "pre-line" }}>{profile.summary}</p>}
+                    <p className="page-cta mt-4">
+                      <a href="/cv/download">Download the CV</a> or <Link href="/contact">get in touch →</Link>
+                    </p>
+                  </div>
+
+                  {profile.skills.length > 0 && (
+                    <div>
+                      <h2 className="selected-work-title">What I work with</h2>
+                      <dl className="facts">
+                        {skillsByLayer(profile.skills.map((s) => ({ name: s.label, category: s.category }))).map(([layer, names]) => (
+                          <div key={layer} className="facts-row about-layer">
+                            <dt className="mono-meta">{layer}</dt>
+                            <dd className="case-layers">
+                              {names.map((n) => (
+                                <span key={n} className="layer-chip">{n}</span>
+                              ))}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+
+                {profile.experience.length > 0 && (
+                  <div className="mt-5 pt-3">
+                    <h2 className="selected-work-title">Experience</h2>
+                    <ExperienceTimeline entries={profile.experience} />
                   </div>
                 )}
 
-                <div className={profile.aboutPhotoUrl ? "col-lg-7 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0" : "col-lg-9 mx-auto"}>
-                  <div className={profile.aboutPhotoUrl ? "ms-lg-5" : ""}>
-                    <div className="section-title">
-                      <span className="badge rounded-pill bg-soft-primary">About Me</span>
-                      <h1 className="h4 title mt-2 mb-2">{profile.fullName}</h1>
-                      {profile.headline && <p className="h6 text-primary mb-3">{profile.headline}</p>}
-                      {profile.location && (
-                        <p className="text-muted small mb-3 d-flex align-items-center gap-1">
-                          <FiMapPin aria-hidden /> {profile.location}
-                        </p>
-                      )}
-                      {profile.availableForWork && (
-                        <p className="mb-3">
-                          <span className="badge rounded-pill bg-soft-success text-success">Available for work{profile.availabilityNote ? ` · ${profile.availabilityNote}` : ""}</span>
-                        </p>
-                      )}
-                      {profile.summary && (
-                        <p className="para-desc text-muted pb-0" style={{ whiteSpace: "pre-line" }}>
-                          {profile.summary}
-                        </p>
-                      )}
-                    </div>
-
-                    {profile.skills.map((skill) => (
-                      <div className="progress-box mt-4" key={skill.label}>
-                        <h2 className="h6 title fw-normal text-muted">{skill.label}</h2>
-                        <div className="progress" role="progressbar" aria-label={`${skill.label} proficiency`} aria-valuenow={skill.percent} aria-valuemin={0} aria-valuemax={100}>
-                          <div className="progress-bar position-relative bg-primary" style={{ width: `${skill.percent}%` }}>
-                            <div className="progress-value d-block text-muted h6">{skill.percent}%</div>
-                          </div>
-                        </div>
-                      </div>
+                {links.length > 0 && (
+                  <ul className="list-inline mt-5 mb-0">
+                    {links.map((l) => (
+                      <li className="list-inline-item me-3" key={l.url}>
+                        <a href={l.url} target="_blank" rel="noopener noreferrer" className="d-inline-flex align-items-center gap-1 text-muted text-decoration-none">
+                          <SocialIcon url={l.url} /> {l.label}
+                        </a>
+                      </li>
                     ))}
-
-                    <div className="mt-4 d-flex flex-wrap gap-2">
-                      <a href="/cv/download" className="btn btn-primary d-inline-flex align-items-center gap-2">
-                        <FiDownload aria-hidden /> Download CV
-                      </a>
-                      <Link href="/contact" className="btn btn-outline-primary">
-                        Contact me
-                      </Link>
-                    </div>
-
-                    {links.length > 0 && (
-                      <ul className="list-inline mt-4 mb-0">
-                        {links.map((l) => (
-                          <li className="list-inline-item me-3" key={l.url}>
-                            <a href={l.url} target="_blank" rel="noopener noreferrer" className="d-inline-flex align-items-center gap-1 text-muted text-decoration-none">
-                              <SocialIcon url={l.url} /> {l.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
+                  </ul>
+                )}
               </div>
-            )}
-          </div>
-        </section>
+            </section>
+          </>
+        )}
       </main>
       <SmallFooter />
     </>
