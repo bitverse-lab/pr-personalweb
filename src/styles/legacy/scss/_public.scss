@@ -942,7 +942,8 @@ h3.mono-meta {
 .xp-item,
 .toc li,
 .cv-item,
-.cv-proof li {
+.cv-proof li,
+.project-facts li {
     margin-inline-start: 0;
 }
 
@@ -1237,4 +1238,15 @@ h3.mono-meta {
 }
 .page-head--tall {
     padding-bottom: 120px;
+}
+
+// The template's .btn-sm is 10px; public controls stay at a readable 12px (the workspace keeps its own).
+#topnav .btn-sm,
+[aria-label="Share this page"] .btn-sm,
+[aria-label="Share this page"] > span {
+    font-size: 12px;
+}
+.cv-summary,
+.cv-item-text {
+    max-width: 62ch; // ch is the width of "0"; prose averages narrower, so this lands near 75 characters
 }
