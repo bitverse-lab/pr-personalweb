@@ -1,0 +1,96 @@
+<h2>About, CV dan Contact</h2>
+<p class="subtitle">Bahasa yang sama: meta mono, lapisan data/api/ui/model, tanpa progress bar template dan tanpa kartu seragam. Klik yang sudah pas; tulis di terminal kalau ada yang mau diubah.</p>
+
+<style>
+  .pg{font-family:Poppins,system-ui,sans-serif;color:#3c4858;background:#f8f9fc;border-radius:8px;overflow:hidden;text-align:left}
+  .pg .nav{display:flex;justify-content:space-between;padding:12px 18px;font-size:11px;color:#4f5f80}
+  .pg .nav b{color:#3c4858}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+  .muted{color:#4f5f80;font-family:Roboto,sans-serif}
+  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;background:#eef2fb;color:#2a52c3;margin:0 4px 4px 0}
+  .chip.ml{background:#e3f6f2;color:#0d7565}
+  .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:#2a52c3;letter-spacing:.06em;margin-bottom:6px}
+  .btn{display:inline-block;font-size:11px;padding:7px 12px;border-radius:6px;background:#2a52c3;color:#fff}
+  .in{border:1px solid #d5dbea;border-radius:6px;background:#fff;height:26px;margin-bottom:8px}
+</style>
+
+<div class="cards">
+
+  <div class="card" data-choice="about" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg">
+        <div class="nav"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:4px 22px 18px;display:grid;grid-template-columns:150px 1fr;gap:20px">
+          <div>
+            <div style="aspect-ratio:4/5;border-radius:10px;background:linear-gradient(160deg,#dfe5f5,#c9d3ee)"></div>
+            <div class="mono" style="font-size:10px;margin-top:10px;line-height:1.7">
+              <div><span style="color:#4f5f80">now</span> · Nusantara Data Labs</div>
+              <div><span style="color:#4f5f80">based</span> · Trenggalek</div>
+              <div><span style="color:#0d7565">● open</span> · full-time roles</div>
+            </div>
+          </div>
+          <div>
+            <div class="lbl">ABOUT</div>
+            <div style="font-weight:700;font-size:19px;line-height:1.25;letter-spacing:-.02em">I like the whole path: from the schema to the model that ships.</div>
+            <div class="muted" style="font-size:12px;line-height:1.7;margin-top:8px">Short paragraphs, your own words, split into a few headed parts instead of one wall of text.</div>
+            <div class="lbl" style="margin-top:12px">WHAT I WORK WITH</div>
+            <div class="mono" style="font-size:10px;line-height:2">
+              <div><span style="color:#4f5f80;display:inline-block;width:46px">data</span><span class="chip">PostgreSQL</span><span class="chip">MySQL</span><span class="chip">Pandas</span></div>
+              <div><span style="color:#4f5f80;display:inline-block;width:46px">api</span><span class="chip">Laravel</span><span class="chip">FastAPI</span><span class="chip">Node</span></div>
+              <div><span style="color:#4f5f80;display:inline-block;width:46px">model</span><span class="chip ml">PyTorch</span><span class="chip ml">LangChain</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>About · cerita + "now"</h3><p>Foto dengan blok "now" (kerja sekarang, lokasi, status), cerita dipecah per bagian, skill dikelompokkan per lapisan (tanpa progress bar persen yang tidak berarti).</p></div>
+  </div>
+
+  <div class="card" data-choice="cv" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg" style="background:#eef1f7;padding:14px">
+        <div style="background:#fff;border-radius:6px;box-shadow:0 10px 30px -18px rgba(20,28,48,.4);padding:16px 18px;display:grid;grid-template-columns:1fr 120px;gap:16px">
+          <div>
+            <div style="font-weight:700;font-size:17px">Verindra Hernanda Putra</div>
+            <div class="muted" style="font-size:11px">Full Stack Engineer · Data & ML</div>
+            <div class="lbl" style="margin-top:12px">EXPERIENCE</div>
+            <div style="border-left:2px solid #2a52c3;padding-left:9px;margin-bottom:8px"><div style="font-weight:600;font-size:12px">Full Stack Engineer · Nusantara Data Labs</div><div class="mono" style="font-size:9px;color:#4f5f80">2025-03 → now</div><div class="muted" style="font-size:10px;margin-top:2px">Weekly report 6 h → 12 min</div></div>
+            <div style="border-left:2px solid #e2e6f0;padding-left:9px"><div style="font-weight:600;font-size:12px">Head of IT Support & Research · Telkom University</div><div class="mono" style="font-size:9px;color:#4f5f80">2023-03 → 2025-01</div></div>
+          </div>
+          <div style="font-size:10px">
+            <div class="btn" style="font-size:10px;padding:5px 9px;margin-bottom:10px">↓ PDF</div>
+            <div class="lbl">EDUCATION</div><div class="muted" style="margin-bottom:8px">Telkom University<br>3.92 · Summa Cum Laude</div>
+            <div class="lbl">PROOF</div><div class="muted">6 HKI · 3 IEEE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>CV · dokumen di halaman</h3><p>Tampil seperti lembar CV sungguhan (cocok dengan PDF yang diunduh): pengalaman di kiri dengan hasil terukur, pendidikan/bukti di kanan, tombol PDF selalu terlihat. Rapi saat dicetak.</p></div>
+  </div>
+
+  <div class="card" data-choice="contact" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg">
+        <div class="nav"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:4px 22px 18px;display:grid;grid-template-columns:1fr 1.1fr;gap:20px">
+          <div>
+            <div class="lbl">CONTACT</div>
+            <div style="font-weight:700;font-size:19px;line-height:1.25;letter-spacing:-.02em">Hiring, a project, or a question about a post?</div>
+            <div class="muted" style="font-size:12px;margin-top:8px;line-height:1.6">I usually reply within two working days.</div>
+            <div class="mono" style="font-size:10px;margin-top:12px;line-height:2">
+              <div><span style="color:#4f5f80;display:inline-block;width:56px">email</span><span style="color:#2a52c3">verindra9142@gmail.com</span></div>
+              <div><span style="color:#4f5f80;display:inline-block;width:56px">linkedin</span><span style="color:#2a52c3">/in/verindra</span></div>
+              <div><span style="color:#4f5f80;display:inline-block;width:56px">status</span><span style="color:#0d7565">● open to full-time</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:12px">
+            <div class="in"></div><div class="in"></div><div class="in" style="height:60px"></div>
+            <div class="btn">Send message</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>Contact · langsung ke inti</h3><p>Ajakan yang spesifik, perkiraan waktu balas, kontak langsung + status ketersediaan dari database, form di samping. Tanpa peta atau ikon dekoratif.</p></div>
+  </div>
+
+</div>
