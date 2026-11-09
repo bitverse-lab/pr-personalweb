@@ -87,7 +87,9 @@ export function toTables(pub: PublicSeed, priv: PrivateSeed, sizes: Map<string, 
 /** Rows still to insert, in FK-safe order. Rows whose id already exists are dropped, so a re-run is a no-op. */
 export function planInserts(all: SeedTables, existingIds: Set<string>): { table: SeedTable; rows: object[] }[] {
   return INSERT_ORDER.flatMap((table) => {
-    const rows = (all[table] ?? []).filter((r) => !("id" in r) || !existingIds.has((r as { id: string }).id));
+    const rows = (all[table] ?? []).filter((r) =>
+      "id" in r ? !existingIds.has((r as { id: string }).id) : !existingIds.has((r as { articleId?: string }).articleId ?? ""),
+    );
     return rows.length ? [{ table, rows }] : [];
   });
 }

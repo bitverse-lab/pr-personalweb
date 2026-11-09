@@ -18,14 +18,18 @@ export async function findOwner(sql: postgres.Sql): Promise<{ id: string; email:
   return row;
 }
 
-/** Deletes every owner row an E2E test may have left behind (title/slug/company prefixed). */
+/**
+ * Deletes every owner row an E2E test may have left behind. Matches only the "E2E · " title
+ * prefix the tests write (their slugs derive from it): a slug pattern like 'e2e-%' would also
+ * catch a real article such as "E2E testing with Playwright".
+ */
 export async function sweepE2ERows(): Promise<Record<string, number>> {
   const sql = openSql();
   try {
     const { id } = await findOwner(sql);
     const counts: Record<string, number> = {};
-    counts.project = (await sql`delete from "project" where user_id = ${id} and (title like 'E2E · %' or slug like 'e2e-%')`).count;
-    counts.article = (await sql`delete from "article" where user_id = ${id} and (title like 'E2E · %' or slug like 'e2e-%')`).count;
+    counts.project = (await sql`delete from "project" where user_id = ${id} and title like 'E2E · %'`).count;
+    counts.article = (await sql`delete from "article" where user_id = ${id} and title like 'E2E · %'`).count;
     counts.testimonial = (await sql`delete from "testimonial" where user_id = ${id} and author_name like 'E2E · %'`).count;
     counts.experience = (await sql`delete from "experience" where user_id = ${id} and company like 'E2E · %'`).count;
     return counts;

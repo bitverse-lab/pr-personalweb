@@ -43,12 +43,11 @@ async function main() {
       return;
     }
 
+    // Counted with the exact WHERE the delete uses, so rows the owner edited (kept) are not listed.
     const plan: { table: string; n: number }[] = [];
-    for (const table of INSERT_ORDER) {
-      const hasId = "id" in getTableColumns(TABLES[table]);
-      const where = hasId ? `"id"::text LIKE '${DEMO_PREFIX}%' AND "user_id" = '${userId}'` : `"article_id"::text LIKE '${DEMO_PREFIX}%' OR "tag_id"::text LIKE '${DEMO_PREFIX}%'`;
-      const n = await count(db, `SELECT count(*)::int AS n FROM "${table}" WHERE ${where}`);
-      if (n) plan.push({ table, n });
+    for (const s of [...statements].reverse()) {
+      const n = await count(db, `SELECT count(*)::int AS n FROM "${s.table}" WHERE ${s.where}`);
+      if (n) plan.push({ table: s.table, n });
     }
     const keys = isStorageConfigured() ? await listDemoKeys() : new Set<string>();
     if (!plan.length && !keys.size) {

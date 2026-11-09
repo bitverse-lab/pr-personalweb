@@ -8,7 +8,8 @@ test.skip(!!process.env.CI, "touches the live database; run locally with pnpm te
 test.describe.configure({ mode: "serial" });
 
 const tag = () => Date.now().toString(36);
-const confirmDelete = (page: Page, title: RegExp) => page.getByRole("dialog", { name: title }).getByRole("button", { name: "Delete" }).click();
+// ConfirmDialog renders role="alertdialog"; Playwright matches roles exactly.
+const confirmDelete = (page: Page, title: RegExp) => page.getByRole("alertdialog", { name: title }).getByRole("button", { name: "Delete" }).click();
 
 async function newProject(page: Page, title: string) {
   await page.goto("/me/projects");
@@ -141,9 +142,13 @@ test("a published testimonial shows on the home page until hidden", async ({ own
 test("an added experience appears on the CV and About pages, and goes when deleted", async ({ ownerPage: page }) => {
   const company = `E2E · Acme ${tag()}`;
   const role = `E2E Engineer ${tag()}`;
-  await page.goto("/me/settings/profile");
-  const section = page.locator("section, .card").filter({ has: page.getByText("No experience yet").or(page.getByRole("heading", { name: /^Experience/ })) }).first();
-  await section.getByRole("button", { name: "Add" }).click();
+  // Experience lives in a tab panel that stays hidden until its tab ("Experience (n)") is selected.
+  const openExperienceTab = async () => {
+    await page.goto("/me/settings/profile");
+    await page.getByRole("tab", { name: /^Experience/ }).click();
+    return page.getByRole("tabpanel").filter({ hasText: "Work experience" });
+  };
+  await (await openExperienceTab()).getByRole("button", { name: "Add", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Add experience" });
   await dialog.locator("#x-company").fill(company);
   await dialog.locator("#x-role").fill(role);
@@ -157,8 +162,7 @@ test("an added experience appears on the CV and About pages, and goes when delet
       await expect(page.getByText(company).first()).toBeVisible();
     }
   } finally {
-    await page.goto("/me/settings/profile");
-    await page.getByRole("button", { name: `Delete ${role}` }).click();
+    await (await openExperienceTab()).getByRole("button", { name: `Delete ${role}` }).click();
     await confirmDelete(page, /Delete experience\?/);
   }
   await page.goto("/cv");

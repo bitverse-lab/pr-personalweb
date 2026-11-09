@@ -76,9 +76,13 @@ test("meal items snapshot their food's nutrition times servings", () => {
   }
 });
 
-test("health and journal dates are Jakarta dates ending today", () => {
+test("per-day health and journal rows stop at yesterday, so today's logs are the owner's own rows", () => {
   const s = buildPrivate(OWNER, TODAY, emptyPrivateContext());
-  expect(s.weightEntries.map((w) => w.date).sort().at(-1)).toBe(jakartaDate(TODAY, 0));
+  const today = jakartaDate(TODAY, 0);
+  for (const rows of [s.weightEntries, s.bodyMeasurements, s.journalEntries]) {
+    expect(rows.map((r) => r.date).sort().at(-1)! < today).toBe(true);
+  }
+  expect(s.weightEntries.map((w) => w.date).sort().at(-1)).toBe(jakartaDate(TODAY, -1));
   expect(new Set(s.weightEntries.map((w) => w.date)).size).toBe(60);
   for (const j of s.journalEntries) expect(validateDoc(j.content)).toBeNull();
 });

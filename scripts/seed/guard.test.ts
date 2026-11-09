@@ -26,6 +26,23 @@ test("for a join table without ids, a link is real when its other side is real",
   expect(q).toContain(`"article_tag"."article_id"::text NOT LIKE 'de5eed00-%'`);
 });
 
+test("a demo article linked to one of the owner's tags does not block clean", () => {
+  // the seed reuses existing tags, so these links are expected; deleting them loses nothing real
+  const articleSide = foreignKeyEdges().filter((e) => e.child === "article_tag" && e.column === "article_id");
+  expect(articleSide).toEqual([]);
+  const tagSide = guardQueries(foreignKeyEdges().filter((e) => e.child === "article_tag" && e.column === "tag_id"));
+  expect(tagSide).toHaveLength(1);
+  expect(tagSide[0].sql).toContain(`"article_tag"."article_id"::text NOT LIKE 'de5eed00-%'`);
+});
+
+test("rows the owner has edited since seeding are kept, not deleted", () => {
+  // the app upserts health goals and journal days into the existing (demo) row
+  for (const table of ["health_profile", "journal_entry"] as const) {
+    const where = deleteStatements("owner-1").find((s) => s.table === table)!.where;
+    expect(where).toContain(`"updated_at" <= "created_at"`);
+  }
+});
+
 test("deletes run children first and only touch demo rows of the owner", () => {
   const stmts = deleteStatements("owner-1");
   const order = stmts.map((s) => s.table);

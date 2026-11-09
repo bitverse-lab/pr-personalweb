@@ -13,9 +13,8 @@ const priv = () => buildPrivate(O, D, emptyPrivateContext());
 test("rows already present are skipped, so a re-run inserts nothing", () => {
   const all = toTables(pub(), priv());
   const everyId = new Set(Object.values(all).flatMap((rows) => rows.map((r) => (r as { id?: string }).id).filter((x): x is string => !!x)));
-  const rows = planInserts(all, everyId).flatMap((t) => t.rows);
-  // only id-less join rows remain; they are inserted with ON CONFLICT DO NOTHING on their primary key
-  expect(rows.every((r) => !("id" in (r as object)))).toBe(true);
+  // join rows of articles that already exist count as present too, so a re-run reports nothing to do
+  expect(planInserts(all, everyId)).toEqual([]);
 });
 
 test("parents come before children", () => {

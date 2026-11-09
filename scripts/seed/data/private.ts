@@ -285,7 +285,9 @@ export function buildPrivate(ownerId: string, today: Date, ctx: PrivateContext):
   });
 
   // Journal: 30 of the last 35 days, a few gaps like a real habit.
-  for (let d = 0, n = 0; d < 35 && n < 30; d++) {
+  // Per-day rows stop at yesterday: the app upserts by (user, date), so a demo row for today would
+  // swallow the owner's first real log of the day and clean would then delete it.
+  for (let d = 1, n = 0; d < 36 && n < 30; d++) {
     if (d % 7 === 5) continue;
     const date = jakartaDate(today, -d);
     n++;
@@ -298,13 +300,13 @@ export function buildPrivate(ownerId: string, today: Date, ctx: PrivateContext):
   if (!ctx.healthProfile) {
     s.healthProfiles.push({ id: demoId("health_profile", 1), userId, heightCm: 172, sex: "male", birthDate: "2001-05-14", activityLevel: "moderate", goalType: "lose", targetWeightKg: 68, weeklyRateKg: 0.25, dailyCalories: 2100, proteinG: 140, carbsG: 220, fatG: 70, waterMl: 2500, weeklyWorkoutTarget: 4 });
   }
-  for (let d = 0; d < 60; d++) {
+  for (let d = 1; d <= 60; d++) {
     const date = jakartaDate(today, -d);
     if (ctx.weightDates.has(date)) continue;
     s.weightEntries.push({ id: demoId("weight_entry", d + 1), userId, date, weightKg: r1(69.4 + d * 0.045 + wobble(d) * 0.6), bodyFatPct: d % 7 === 0 ? r1(19 + d * 0.03) : null, note: null });
   }
   for (let k = 0; k < 6; k++) {
-    const date = jakartaDate(today, -k * 10);
+    const date = jakartaDate(today, -(k * 10 + 1));
     if (ctx.measurementDates.has(date)) continue;
     s.bodyMeasurements.push({ id: demoId("body_measurement", k + 1), userId, date, waistCm: r1(84 + k * 0.4), chestCm: r1(98 - k * 0.1), hipsCm: r1(96 + k * 0.2), armCm: r1(33.5 - k * 0.1), thighCm: r1(56 + k * 0.1), neckCm: 38 });
   }
