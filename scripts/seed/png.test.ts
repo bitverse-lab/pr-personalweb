@@ -26,7 +26,7 @@ test("dimensions are written to IHDR and the pixel data is complete", () => {
 
   // IDAT starts after signature (8) + IHDR chunk (25); decompressed size = rows * (filter byte + 3 * width)
   const idatLen = v.getUint32(33);
-  expect(String.fromCharCode(...png.slice(37, 41))).toBe("IDAT");
+  expect(String.fromCharCode(...Array.from(png.slice(37, 41)))).toBe("IDAT");
   expect(inflateSync(png.slice(41, 41 + idatLen)).length).toBe(90 * (1 + 3 * 160));
 });
 
@@ -37,7 +37,7 @@ test("every chunk CRC matches zlib's crc32 and the file ends with IEND", () => {
   for (let at = 8; at < png.length; ) {
     const len = v.getUint32(at);
     const typeAndData = png.slice(at + 4, at + 8 + len);
-    types.push(String.fromCharCode(...typeAndData.slice(0, 4)));
+    types.push(String.fromCharCode(...Array.from(typeAndData.slice(0, 4))));
     expect(v.getUint32(at + 8 + len)).toBe(crc32(typeAndData));
     at += 12 + len;
   }
