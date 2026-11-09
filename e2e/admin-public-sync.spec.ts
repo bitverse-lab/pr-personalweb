@@ -5,7 +5,11 @@ import { expect, test } from "./support/owner";
 // so every record is prefixed "E2E · " / "e2e-", published only for the assertion and deleted
 // afterwards; global-teardown sweeps anything a crashed test left behind.
 test.skip(!!process.env.CI, "touches the live database; run locally with pnpm test:e2e");
-test.describe.configure({ mode: "serial" });
+test.describe.configure({ mode: "serial", timeout: 120_000 });
+
+// Assert on the editor's resulting state, not on toasts: toasts vanish, and in `next dev` the
+// first call of a server action compiles it, which can take well over Playwright's 5 s default.
+const SLOW = { timeout: 30_000 };
 
 const tag = () => Date.now().toString(36);
 // ConfirmDialog renders role="alertdialog"; Playwright matches roles exactly.
@@ -22,13 +26,19 @@ async function newProject(page: Page, title: string) {
 
 async function publish(page: Page) {
   await page.getByRole("button", { name: /^Publish$/ }).click();
-  await expect(page.getByText("Published — it is now live on your site")).toBeVisible();
+  await expect(page.getByRole("link", { name: "View on site" })).toBeVisible(SLOW);
+}
+
+async function unpublish(page: Page) {
+  await page.getByRole("button", { name: "Unpublish (back to draft)" }).click();
+  await expect(page.getByRole("button", { name: /^Publish$/ })).toBeVisible(SLOW);
 }
 
 async function deleteFromEditor(page: Page, editorUrl: string, dialog: RegExp) {
   await page.goto(editorUrl);
   await page.getByRole("button", { name: /^Delete$/ }).click();
   await confirmDelete(page, dialog);
+  await page.waitForURL(/\/me\/(projects|articles)$/, SLOW);
 }
 
 test("signed-in owner fixture reaches the workspace", async ({ ownerPage }) => {
@@ -51,8 +61,7 @@ test("a published project appears on the public site, and leaves it when unpubli
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
 
     await page.goto(editor);
-    await page.getByRole("button", { name: "Unpublish (back to draft)" }).click();
-    await expect(page.getByText("Moved back to drafts")).toBeVisible();
+    await unpublish(page);
     await page.goto("/projects");
     await expect(page.getByText(title)).toHaveCount(0);
     expect((await page.goto(`/projects/${slug}`))?.status()).toBe(404);
@@ -67,13 +76,13 @@ test("a featured project shows on the home page until unfeatured", async ({ owne
   try {
     await publish(page);
     await page.getByRole("button", { name: "☆ Feature on home page" }).click();
-    await expect(page.getByText("Featured on your home page")).toBeVisible();
+    await expect(page.getByRole("button", { name: "★ Featured on home page" })).toBeVisible(SLOW);
     await page.goto("/");
     await expect(page.getByText(title)).toBeVisible();
 
     await page.goto(editor);
     await page.getByRole("button", { name: "★ Featured on home page" }).click();
-    await expect(page.getByText("Removed from featured")).toBeVisible();
+    await expect(page.getByRole("button", { name: "☆ Feature on home page" })).toBeVisible(SLOW);
     await page.goto("/");
     await expect(page.getByText(title)).toHaveCount(0);
   } finally {
@@ -94,14 +103,14 @@ test("a published article reaches the list, its page, the feed and the sitemap",
   try {
     await publish(page);
     await page.goto("/articles");
-    await expect(page.getByText(title)).toBeVisible();
+    // listed in the main grid and in the "Latest Posts" sidebar
+    await expect(page.getByText(title).first()).toBeVisible();
     expect((await page.goto(`/articles/${slug}`))?.status()).toBe(200);
     expect(await (await request.get("/feed.xml")).text()).toContain(slug);
     expect(await (await request.get("/sitemap.xml")).text()).toContain(slug);
 
     await page.goto(editor);
-    await page.getByRole("button", { name: "Unpublish (back to draft)" }).click();
-    await expect(page.getByText("Moved back to drafts")).toBeVisible();
+    await unpublish(page);
     await page.goto("/articles");
     await expect(page.getByText(title)).toHaveCount(0);
     expect((await page.goto(`/articles/${slug}`))?.status()).toBe(404);
@@ -121,25 +130,27 @@ test("a published testimonial shows on the home page until hidden", async ({ own
   await page.locator("#t-name").fill(name);
   await page.getByRole("dialog", { name: "Add testimonial" }).getByRole("button", { name: "Save" }).click();
   const row = page.getByRole("listitem").filter({ hasText: name });
+  await expect(row).toBeVisible(SLOW);
   try {
     await row.getByRole("button", { name: "Show on home page" }).click();
-    await expect(page.getByText("Now shown on your home page")).toBeVisible();
+    await expect(row.getByRole("button", { name: "Hide from home page" })).toBeVisible(SLOW);
     await page.goto("/");
     await expect(page.getByText(quote)).toBeVisible();
 
     await page.goto("/me/testimonials");
     await row.getByRole("button", { name: "Hide from home page" }).click();
-    await expect(page.getByText("Hidden from your home page")).toBeVisible();
+    await expect(row.getByRole("button", { name: "Show on home page" })).toBeVisible(SLOW);
     await page.goto("/");
     await expect(page.getByText(quote)).toHaveCount(0);
   } finally {
     await page.goto("/me/testimonials");
     await page.getByRole("button", { name: `Delete testimonial from ${name}` }).click();
     await confirmDelete(page, /Delete testimonial\?/);
+    await expect(page.getByText(name)).toHaveCount(0, SLOW);
   }
 });
 
-test("an added experience appears on the CV and About pages, and goes when deleted", async ({ ownerPage: page }) => {
+test("an added experience appears on the CV and home pages, and goes when deleted", async ({ ownerPage: page }) => {
   const company = `E2E · Acme ${tag()}`;
   const role = `E2E Engineer ${tag()}`;
   // Experience lives in a tab panel that stays hidden until its tab ("Experience (n)") is selected.
@@ -155,15 +166,17 @@ test("an added experience appears on the CV and About pages, and goes when delet
   await dialog.locator("#x-start").fill("2024-01");
   await dialog.locator("#x-current").check();
   await dialog.getByRole("button", { name: "Save" }).click();
-  await expect(dialog).toHaveCount(0);
+  await expect(dialog).toHaveCount(0, SLOW);
   try {
-    for (const path of ["/cv", "/about"]) {
+    // the experience timeline renders on /cv and the home page (not /about)
+    for (const path of ["/cv", "/"]) {
       await page.goto(path);
       await expect(page.getByText(company).first()).toBeVisible();
     }
   } finally {
     await (await openExperienceTab()).getByRole("button", { name: `Delete ${role}` }).click();
     await confirmDelete(page, /Delete experience\?/);
+    await expect(page.getByText(role)).toHaveCount(0, SLOW);
   }
   await page.goto("/cv");
   await expect(page.getByText(company)).toHaveCount(0);
