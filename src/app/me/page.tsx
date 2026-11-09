@@ -11,7 +11,7 @@ import Link from "next/link";
 import { getUnreadMessageCount } from "@/features/contact/actions";
 import QuickCapture from "@/components/me/overview/QuickCapture";
 import SetupChecklist from "@/components/me/overview/SetupChecklist";
-import { getSetupChecklist } from "@/features/setup/actions";
+import { getDemoStatus, getSetupChecklist } from "@/features/setup/actions";
 import ProductivitySection from "@/components/me/overview/ProductivitySection";
 import MiniCalendar from "@/components/me/overview/MiniCalendar";
 import OverviewDndProvider from "@/components/me/overview/OverviewDndProvider";
@@ -31,7 +31,7 @@ export default async function MeOverviewPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-  const [tasks, events, activity, monthEvents, overdue, statusCounts, interviewRows, health, journal, articleInfo, checklist, unreadMessages] = await Promise.all([
+  const [tasks, events, activity, monthEvents, overdue, statusCounts, interviewRows, health, journal, articleInfo, checklist, unreadMessages, demoLoaded] = await Promise.all([
     getTasks({ status: "open", orderBy: "dueDate", limit: 5 }),
     getCalendarEvents({ start: now.toISOString(), end: sevenDaysOut.toISOString(), limit: 5 }),
     getTaskCompletionActivity(),
@@ -44,6 +44,7 @@ export default async function MeOverviewPage() {
     getMyArticles(),
     getSetupChecklist(),
     getUnreadMessageCount(),
+    getDemoStatus(),
   ]);
 
   const journalSummary: JournalSummaryData = {
@@ -97,6 +98,11 @@ export default async function MeOverviewPage() {
           <p className="text-muted mb-0">Here&apos;s what&apos;s going on today.</p>
         </div>
 
+        {demoLoaded && (
+          <div className="alert alert-warning py-2" role="status">
+            Demo data is loaded. Remove it before sharing your site: <code>pnpm db:seed:clean</code>
+          </div>
+        )}
         {unreadMessages > 0 && (
           <div className="alert alert-primary d-flex flex-wrap justify-content-between align-items-center gap-2 py-2" role="status">
             <span>

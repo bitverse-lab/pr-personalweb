@@ -11,6 +11,10 @@ export const SITE_REVALIDATE_SECONDS = 300;
 export function revalidateSiteData() {
   revalidateTag(SITE_TAG);
   revalidatePath("/", "layout");
+  // These route handlers keep their own `revalidate` and are not tagged; the layout
+  // revalidation above is not documented to reach them.
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/feed.xml");
 }
 
 /**
