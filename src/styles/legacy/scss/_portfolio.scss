@@ -14,7 +14,8 @@
         cursor: pointer;
         line-height: 34px;
         transition: all 0.5s ease;
-        color: $muted !important;
+        // $muted (#8492a6) is 3.16:1 on white; $secondary keeps the same calm tone at ~5.4:1 (WCAG AA)
+        color: $secondary !important;
         &.active,
         &:hover {
             color: $dark !important;

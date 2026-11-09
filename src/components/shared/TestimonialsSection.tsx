@@ -18,7 +18,7 @@ export default function TestimonialsSection({ items }: { items: PublicTestimonia
                   <p className="text-muted mb-0" style={{ whiteSpace: "pre-line" }}>“{t.quote}”</p>
                   <footer className="d-flex align-items-start justify-content-between gap-3 mt-4">
                     <span>
-                      <span className="fw-semibold d-block">{t.authorName}</span>
+                      <span className="fw-semibold d-block text-dark">{t.authorName}</span>
                       {(t.authorRole || t.company) && <span className="text-muted small d-block">{[t.authorRole, t.company].filter(Boolean).join(" · ")}</span>}
                     </span>
                     {t.sourceUrl && (
