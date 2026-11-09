@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { needsSeed } from "./support/seed";
 
 // Articles option B + reading layout. Needs the demo dataset: pnpm db:seed --yes
 // Newest published demo article: "Serving a PyTorch model behind Next.js without a GPU".
 
 test("the newest article leads, large, with an 'Earlier' list beside it", async ({ page }) => {
+  needsSeed();
   await page.goto("/articles");
   const latest = page.locator("[data-latest]");
   await expect(latest).toHaveCount(1);
@@ -13,6 +15,7 @@ test("the newest article leads, large, with an 'Earlier' list beside it", async 
 });
 
 test("a cover that cannot be shown becomes the title set in type, never a stock photo", async ({ page }) => {
+  needsSeed();
   // every published demo article has a cover, so make the cover fail to load
   await page.route(/\/storage\/v1\/object\/public\//, (route) => route.abort());
   await page.goto("/articles", { waitUntil: "load" });
@@ -21,6 +24,7 @@ test("a cover that cannot be shown becomes the title set in type, never a stock 
 });
 
 test("the article contents follow the reader", async ({ page }) => {
+  needsSeed();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/articles/laravel-queue-dropping-jobs");
   const toc = page.getByRole("navigation", { name: "On this page" });

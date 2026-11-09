@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { needsSeed } from "./support/seed";
 
 // Projects as case studies by layer. Needs the demo dataset: pnpm db:seed --yes
 
 test("the featured case study is larger than the others", async ({ page }) => {
+  needsSeed();
   await page.goto("/projects");
   const featured = await page.locator("[data-case].case--featured").boundingBox();
   const other = await page.locator("[data-case]:not(.case--featured)").first().boundingBox();
@@ -10,6 +12,7 @@ test("the featured case study is larger than the others", async ({ page }) => {
 });
 
 test("layer chips filter the work, and 'all' brings every project back", async ({ page }) => {
+  needsSeed();
   await page.goto("/projects");
   const cases = page.locator("[data-case]");
   const total = await cases.count();
@@ -31,6 +34,7 @@ test("the header states real counts under the title", async ({ page }) => {
 });
 
 test("a project page leads with its outcome and layers", async ({ page }) => {
+  needsSeed();
   await page.goto("/projects/rice-yield-forecasting");
   await expect(page.getByTestId("project-outcome")).toHaveText("7% median error · 40 cooperatives");
   await expect(page.getByTestId("project-layers").getByText("ml", { exact: true })).toBeVisible();

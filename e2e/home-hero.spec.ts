@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 
 // Hero C v3 (docs/superpowers/specs/assets/2026-11-09-public-redesign/hero-c-v3-prototype.html).
 // Needs the demo dataset: pnpm db:seed --yes
+import { SEED_ONLY } from "./support/seed";
+
+test.skip(!!process.env.CI, SEED_ONLY);
 const SLOW = { timeout: 15_000 };
 
 test.describe("home hero console", () => {

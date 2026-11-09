@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { needsSeed } from "./support/seed";
 
 // Regressions found by inspecting the public site at phone width (390 px) and on desktop.
 
@@ -26,6 +27,7 @@ test.describe("on a phone", () => {
   }
 
   test("the CV download is still reachable from the menu", async ({ page }) => {
+    needsSeed();
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
     await expect(page.locator("#navigation").getByRole("link", { name: /download cv/i })).toBeVisible();
@@ -44,6 +46,7 @@ test.describe("on a phone", () => {
 });
 
 test("navigation uses Work and Writing labels", async ({ page }) => {
+  needsSeed();
   // needs published projects and articles (pnpm db:seed) so both items are shown
   await page.goto("/");
   const nav = page.locator("#navigation");
@@ -54,6 +57,7 @@ test("navigation uses Work and Writing labels", async ({ page }) => {
 });
 
 test("page titles name the site once", async ({ page }) => {
+  needsSeed();
   for (const path of ["/about", "/cv", "/projects", "/contact", "/login", "/this-page-does-not-exist"]) {
     await page.goto(path);
     const title = await page.title();
@@ -68,6 +72,7 @@ test("page titles name the site once", async ({ page }) => {
 });
 
 test("a portrait that fails to load shows initials, not a broken image", async ({ page }) => {
+  needsSeed();
   await page.route(/\/storage\/v1\/object\/public\//, (route) => route.abort());
   await page.goto("/about", { waitUntil: "load" }); // hero C has no portrait; About carries the photo
   await page.waitForTimeout(500);
