@@ -1,0 +1,166 @@
+import type { Page } from "@playwright/test";
+import { expect, test } from "./support/owner";
+
+// Proves that a change made in /me reaches the public site. Runs against the one live database,
+// so every record is prefixed "E2E · " / "e2e-", published only for the assertion and deleted
+// afterwards; global-teardown sweeps anything a crashed test left behind.
+test.skip(!!process.env.CI, "touches the live database; run locally with pnpm test:e2e");
+test.describe.configure({ mode: "serial" });
+
+const tag = () => Date.now().toString(36);
+const confirmDelete = (page: Page, title: RegExp) => page.getByRole("dialog", { name: title }).getByRole("button", { name: "Delete" }).click();
+
+async function newProject(page: Page, title: string) {
+  await page.goto("/me/projects");
+  await page.getByRole("button", { name: /new project/i }).click();
+  await page.waitForURL(/\/me\/projects\/[0-9a-f-]{36}$/);
+  await page.getByLabel("Project title").fill(title);
+  await page.getByRole("textbox", { name: "Editor" }).fill("A short case study written by the end-to-end test.");
+  return page.url();
+}
+
+async function publish(page: Page) {
+  await page.getByRole("button", { name: /^Publish$/ }).click();
+  await expect(page.getByText("Published — it is now live on your site")).toBeVisible();
+}
+
+async function deleteFromEditor(page: Page, editorUrl: string, dialog: RegExp) {
+  await page.goto(editorUrl);
+  await page.getByRole("button", { name: /^Delete$/ }).click();
+  await confirmDelete(page, dialog);
+}
+
+test("signed-in owner fixture reaches the workspace", async ({ ownerPage }) => {
+  await ownerPage.goto("/me");
+  await expect(ownerPage).toHaveURL(/\/me$/);
+});
+
+test("a published project appears on the public site, and leaves it when unpublished", async ({ ownerPage: page }) => {
+  const title = `E2E · Sync project ${tag()}`;
+  const editor = await newProject(page, title);
+  const slug = await page.locator("#p-slug").inputValue();
+  expect(slug).toMatch(/^e2e-/);
+  try {
+    await publish(page);
+    await page.goto("/projects");
+    await expect(page.getByText(title)).toBeVisible();
+    await expect(page.getByRole("navigation").getByRole("link", { name: "Projects" }).first()).toBeVisible();
+    const detail = await page.goto(`/projects/${slug}`);
+    expect(detail?.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+
+    await page.goto(editor);
+    await page.getByRole("button", { name: "Unpublish (back to draft)" }).click();
+    await expect(page.getByText("Moved back to drafts")).toBeVisible();
+    await page.goto("/projects");
+    await expect(page.getByText(title)).toHaveCount(0);
+    expect((await page.goto(`/projects/${slug}`))?.status()).toBe(404);
+  } finally {
+    await deleteFromEditor(page, editor, /Delete project\?/);
+  }
+});
+
+test("a featured project shows on the home page until unfeatured", async ({ ownerPage: page }) => {
+  const title = `E2E · Featured ${tag()}`;
+  const editor = await newProject(page, title);
+  try {
+    await publish(page);
+    await page.getByRole("button", { name: "☆ Feature on home page" }).click();
+    await expect(page.getByText("Featured on your home page")).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByText(title)).toBeVisible();
+
+    await page.goto(editor);
+    await page.getByRole("button", { name: "★ Featured on home page" }).click();
+    await expect(page.getByText("Removed from featured")).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByText(title)).toHaveCount(0);
+  } finally {
+    await deleteFromEditor(page, editor, /Delete project\?/);
+  }
+});
+
+test("a published article reaches the list, its page, the feed and the sitemap", async ({ ownerPage: page, request }) => {
+  const title = `E2E · Sync article ${tag()}`;
+  await page.goto("/me/articles");
+  await page.getByRole("button", { name: /new article/i }).click();
+  await page.waitForURL(/\/me\/articles\/[0-9a-f-]{36}$/);
+  const editor = page.url();
+  await page.getByLabel("Article title").fill(title);
+  await page.getByRole("textbox", { name: "Editor" }).fill("An article body written by the end-to-end test.");
+  const slug = await page.locator("#article-slug").inputValue();
+  expect(slug).toMatch(/^e2e-/);
+  try {
+    await publish(page);
+    await page.goto("/articles");
+    await expect(page.getByText(title)).toBeVisible();
+    expect((await page.goto(`/articles/${slug}`))?.status()).toBe(200);
+    expect(await (await request.get("/feed.xml")).text()).toContain(slug);
+    expect(await (await request.get("/sitemap.xml")).text()).toContain(slug);
+
+    await page.goto(editor);
+    await page.getByRole("button", { name: "Unpublish (back to draft)" }).click();
+    await expect(page.getByText("Moved back to drafts")).toBeVisible();
+    await page.goto("/articles");
+    await expect(page.getByText(title)).toHaveCount(0);
+    expect((await page.goto(`/articles/${slug}`))?.status()).toBe(404);
+    expect(await (await request.get("/feed.xml")).text()).not.toContain(slug);
+    expect(await (await request.get("/sitemap.xml")).text()).not.toContain(slug);
+  } finally {
+    await deleteFromEditor(page, editor, /Delete article\?/);
+  }
+});
+
+test("a published testimonial shows on the home page until hidden", async ({ ownerPage: page }) => {
+  const name = `E2E · Reviewer ${tag()}`;
+  const quote = `End-to-end testimonial ${tag()}`;
+  await page.goto("/me/testimonials");
+  await page.getByRole("button", { name: "Add" }).click();
+  await page.locator("#t-quote").fill(quote);
+  await page.locator("#t-name").fill(name);
+  await page.getByRole("dialog", { name: "Add testimonial" }).getByRole("button", { name: "Save" }).click();
+  const row = page.getByRole("listitem").filter({ hasText: name });
+  try {
+    await row.getByRole("button", { name: "Show on home page" }).click();
+    await expect(page.getByText("Now shown on your home page")).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByText(quote)).toBeVisible();
+
+    await page.goto("/me/testimonials");
+    await row.getByRole("button", { name: "Hide from home page" }).click();
+    await expect(page.getByText("Hidden from your home page")).toBeVisible();
+    await page.goto("/");
+    await expect(page.getByText(quote)).toHaveCount(0);
+  } finally {
+    await page.goto("/me/testimonials");
+    await page.getByRole("button", { name: `Delete testimonial from ${name}` }).click();
+    await confirmDelete(page, /Delete testimonial\?/);
+  }
+});
+
+test("an added experience appears on the CV and About pages, and goes when deleted", async ({ ownerPage: page }) => {
+  const company = `E2E · Acme ${tag()}`;
+  const role = `E2E Engineer ${tag()}`;
+  await page.goto("/me/settings/profile");
+  const section = page.locator("section, .card").filter({ has: page.getByText("No experience yet").or(page.getByRole("heading", { name: /^Experience/ })) }).first();
+  await section.getByRole("button", { name: "Add" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add experience" });
+  await dialog.locator("#x-company").fill(company);
+  await dialog.locator("#x-role").fill(role);
+  await dialog.locator("#x-start").fill("2024-01");
+  await dialog.locator("#x-current").check();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toHaveCount(0);
+  try {
+    for (const path of ["/cv", "/about"]) {
+      await page.goto(path);
+      await expect(page.getByText(company).first()).toBeVisible();
+    }
+  } finally {
+    await page.goto("/me/settings/profile");
+    await page.getByRole("button", { name: `Delete ${role}` }).click();
+    await confirmDelete(page, /Delete experience\?/);
+  }
+  await page.goto("/cv");
+  await expect(page.getByText(company)).toHaveCount(0);
+});
