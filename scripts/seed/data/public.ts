@@ -163,6 +163,15 @@ const PROJECTS: ProjectContent[] = [
   },
 ];
 
+// One line of measurable result per project (Projects page cards, hero projects.sql).
+const OUTCOMES: Record<string, string | null> = {
+  yield: "7% median error · 40 cooperatives",
+  assets: "Audits: 5 days → 1 afternoon",
+  sentiment: "F1 0.71 → 0.89 · IEEE paper",
+  village: null,
+  thesis: "8,000 theses searchable by abstract",
+};
+
 interface ArticleContent {
   key: string;
   title: string;
@@ -267,7 +276,7 @@ export function buildPublic(ownerId: string, today: Date, ctx: PublicContext, pu
     const id = demoId("project", i + 1);
     const cover = addImage(i * 10 + 1, `${p.slug}-cover`, 1600, 1000);
     seed.projects.push({
-      id, userId: ownerId, title: p.title, slug: p.slug, summary: p.summary, category: p.category, client: p.client, role: p.role, location: p.location,
+      id, userId: ownerId, title: p.title, slug: p.slug, summary: p.summary, outcome: OUTCOMES[p.key] ?? null, category: p.category, client: p.client, role: p.role, location: p.location,
       startDate: p.start, endDate: p.end, technologies: p.technologies, ...pick(derived(doc(p.body))), coverMediaId: cover.row.id, status: p.status,
       featured: p.featured, position: start(ctx, "project") + i, publishedAt: p.publishedDaysAgo === null ? null : daysAgo(p.publishedDaysAgo),
     });

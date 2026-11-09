@@ -29,6 +29,7 @@ function toProject(d: ProjectDetail): Project {
     category: d.category,
     image: d.coverUrl || fallbackImage(d.slug),
     summary: d.summary ?? "",
+    outcome: d.outcome,
     technologies: d.technologies,
     featured: d.featured,
   };

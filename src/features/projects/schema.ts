@@ -29,6 +29,7 @@ export const saveProjectSchema = z
     title: z.string().trim().max(120, "Title is too long"),
     slug: z.string().trim().max(120),
     summary: optText(300),
+    outcome: optText(140),
     category: optText(40),
     client: optText(100),
     role: optText(100),
@@ -58,6 +59,8 @@ export const restoreProjectSchema = z.object({
   title: z.string().max(120),
   slug: z.string().max(120),
   summary: z.string().nullable(),
+  // snapshots taken before outcome existed have no such key
+  outcome: z.string().nullable().default(null),
   category: z.string().nullable(),
   client: z.string().nullable(),
   role: z.string().nullable(),

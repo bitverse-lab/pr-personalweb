@@ -10,6 +10,7 @@ export interface ProjectValues {
   title: string;
   slug: string;
   summary: string | null;
+  outcome: string | null;
   category: string | null;
   client: string | null;
   role: string | null;

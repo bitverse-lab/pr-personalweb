@@ -18,6 +18,7 @@ export interface ProjectListItem {
   title: string;
   slug: string;
   summary: string | null;
+  outcome: string | null;
   category: string | null;
   technologies: string[];
   status: ProjectStatus;
@@ -43,6 +44,7 @@ export interface ProjectSaveInput {
   title: string;
   slug: string;
   summary?: string | null;
+  outcome?: string | null;
   category?: string | null;
   client?: string | null;
   role?: string | null;
@@ -81,6 +83,7 @@ async function assemble(rows: Row[]): Promise<ProjectDetail[]> {
       title: r.title,
       slug: r.slug,
       summary: r.summary,
+      outcome: r.outcome,
       category: r.category,
       technologies: r.technologies,
       status: r.status,
@@ -108,6 +111,7 @@ function toListItem(d: ProjectDetail): ProjectListItem {
     title: d.title,
     slug: d.slug,
     summary: d.summary,
+    outcome: d.outcome,
     category: d.category,
     technologies: d.technologies,
     status: d.status,
@@ -130,6 +134,7 @@ function toValues(input: ProjectSaveInput, slug: string): ProjectValues {
     title: input.title.trim(),
     slug,
     summary: input.summary?.trim() || null,
+    outcome: input.outcome?.trim() || null,
     category: input.category?.trim() || null,
     client: input.client?.trim() || null,
     role: input.role?.trim() || null,
@@ -164,6 +169,7 @@ export const projectService = {
       title: "",
       slug,
       summary: null,
+      outcome: null,
       category: null,
       client: null,
       role: null,

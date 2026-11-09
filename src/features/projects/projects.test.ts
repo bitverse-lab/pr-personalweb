@@ -48,3 +48,11 @@ describe("saveProjectSchema", () => {
     expect(techListSchema.safeParse(Array.from({ length: 16 }, (_, i) => `t${i}`)).success).toBe(false);
   });
 });
+
+describe("project outcome", () => {
+  it("is one optional line of at most 140 characters", () => {
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "7% median error · 40 cooperatives" }).data?.outcome).toBe("7% median error · 40 cooperatives");
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "" }).data?.outcome).toBeNull();
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "x".repeat(141) }).success).toBe(false);
+  });
+});

@@ -20,6 +20,8 @@ export interface Project {
   category: string | null;
   image: string;
   summary: string;
+  /** One line of measurable result, or null. */
+  outcome: string | null;
   technologies: string[];
   featured: boolean;
 }

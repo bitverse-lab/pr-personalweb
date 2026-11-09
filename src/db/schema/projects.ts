@@ -20,6 +20,8 @@ export const projects = pgTable(
     title: text("title").notNull().default(""),
     slug: text("slug").notNull(),
     summary: text("summary"),
+    // One line of measurable result, e.g. "7% median error · 40 cooperatives".
+    outcome: text("outcome"),
     category: text("category"),
     client: text("client"),
     role: text("role"),

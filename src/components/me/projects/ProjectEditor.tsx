@@ -36,6 +36,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [slug, setSlug] = useState(project.slug);
   const [slugTouched, setSlugTouched] = useState(!project.slug.startsWith("draft-"));
   const [summary, setSummary] = useState(project.summary ?? "");
+  const [outcome, setOutcome] = useState(project.outcome ?? "");
   const [category, setCategory] = useState(project.category ?? "");
   const [client, setClient] = useState(project.client ?? "");
   const [role, setRole] = useState(project.role ?? "");
@@ -60,6 +61,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
       title,
       slug,
       summary,
+      outcome,
       category,
       client,
       role,
@@ -73,7 +75,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
       // half-filled rows are kept on screen but not sent until both fields are filled
       links: links.filter((l) => l.label.trim() && l.url.trim()),
     }),
-    [project.id, title, slug, summary, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
+    [project.id, title, slug, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
   );
   const { status: saveStatus, error, flush } = useAutosave(payload, async (p) => {
     const result = await saveProject(p);
@@ -287,6 +289,11 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   <input id="p-slug" className="form-control" maxLength={120} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} onBlur={() => setSlug(slugify(slug))} />
                 </div>
                 {status === "published" && <div className="form-text">Changing the slug of a published project changes its public link.</div>}
+              </div>
+              <div className="mb-3">
+                <label className="form-label small mb-1" htmlFor="p-outcome">Outcome</label>
+                <input id="p-outcome" className="form-control form-control-sm" maxLength={140} placeholder="e.g. 7% median error · 40 cooperatives" value={outcome} onChange={(e) => setOutcome(e.target.value)} aria-describedby="p-outcome-help" />
+                <div id="p-outcome-help" className="form-text">One line of measurable result. Shown on project cards and on your home page.</div>
               </div>
               <div className="row g-2 mb-3">
                 <div className="col-12">

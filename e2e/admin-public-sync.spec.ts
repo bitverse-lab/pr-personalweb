@@ -55,7 +55,7 @@ test("a published project appears on the public site, and leaves it when unpubli
     await publish(page);
     await page.goto("/projects");
     await expect(page.getByText(title)).toBeVisible();
-    await expect(page.getByRole("navigation").getByRole("link", { name: "Projects" }).first()).toBeVisible();
+    await expect(page.getByRole("navigation").getByRole("link", { name: "Work", exact: true }).first()).toBeVisible();
     const detail = await page.goto(`/projects/${slug}`);
     expect(detail?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
