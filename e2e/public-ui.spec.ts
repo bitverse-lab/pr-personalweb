@@ -43,6 +43,16 @@ test.describe("on a phone", () => {
   });
 });
 
+test("navigation uses Work and Writing labels", async ({ page }) => {
+  // needs published projects and articles (pnpm db:seed) so both items are shown
+  await page.goto("/");
+  const nav = page.locator("#navigation");
+  await expect(nav.getByRole("link", { name: "Work", exact: true })).toHaveAttribute("href", "/projects");
+  await expect(nav.getByRole("link", { name: "Writing", exact: true })).toHaveAttribute("href", "/articles");
+  await expect(nav.getByRole("link", { name: "Projects", exact: true })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Articles", exact: true })).toHaveCount(0);
+});
+
 test("page titles name the site once", async ({ page }) => {
   for (const path of ["/about", "/cv", "/projects", "/contact", "/login", "/this-page-does-not-exist"]) {
     await page.goto(path);

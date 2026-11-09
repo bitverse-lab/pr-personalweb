@@ -1,0 +1,103 @@
+//
+// _public.scss — the public site's shared language (spec: docs/superpowers/specs/2026-11-09-public-redesign-design.md)
+// Fronter tokens only. Mono is reserved for data: query text, dates, durations, layer names.
+//
+
+$font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+$console-bg: #141c30;       // navy console surface (hero console, code blocks)
+$console-line: #2f3d60;
+$console-text: #c7d2ec;
+$console-dim: #8b9bc2;
+$console-key: #7fa0ff;
+$text-meta: #4f5f80;        // ≥ 4.5:1 on white and $light
+$surface-soft: #eef2fb;     // soft primary surface (chips, cover blocks)
+$ml-soft: #e3f6f2;
+$ml-ink: #0d7565;
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+.font-mono {
+    font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
+}
+
+// Meta line: dates, read time, counts.
+.mono-meta {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: $text-meta;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+}
+
+// A path-like locator used as meta under a heading, never as a kicker above it.
+.path-label {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: $primary;
+}
+
+.layer-chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: $font-mono;
+    font-size: 11.5px;
+    line-height: 1;
+    padding: 5px 9px;
+    border-radius: 4px;
+    border: 0;
+    background: $surface-soft;
+    color: $primary;
+    transition: background-color 0.2s $ease-out, color 0.2s $ease-out;
+    &--ml {
+        background: $ml-soft;
+        color: $ml-ink;
+    }
+    &--active,
+    &[aria-pressed="true"] {
+        background: $primary;
+        color: $white;
+    }
+    &:is(button) {
+        cursor: pointer;
+    }
+}
+
+// One comfortable reading measure for case studies and articles.
+.reading-col {
+    max-width: 68ch;
+    font-size: 17px;
+    line-height: 1.75;
+    color: $dark;
+    h2,
+    h3 {
+        margin-top: 2.2em;
+        margin-bottom: 0.6em;
+        letter-spacing: -0.015em;
+    }
+    p {
+        margin-bottom: 1.15em;
+    }
+}
+
+.surface-console {
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+    pre,
+    code {
+        color: inherit;
+        background: transparent;
+    }
+}
+
+// Browser surfaces carry the palette too.
+::selection {
+    background: rgba($primary, 0.18);
+    color: $dark;
+}
+:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+}

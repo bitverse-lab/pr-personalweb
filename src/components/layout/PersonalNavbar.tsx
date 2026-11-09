@@ -33,8 +33,8 @@ export default function PersonalNavbar() {
   const navItems = [
     { label: "Home", href: "/" },
     ...(site.isPlaceholder ? [] : [{ label: "About", href: "/about" }, { label: "CV", href: "/cv" }]),
-    ...(site.hasProjects ? [{ label: "Projects", href: "/projects" }] : []),
-    ...(site.hasArticles ? [{ label: "Articles", href: "/articles" }] : []),
+    ...(site.hasProjects ? [{ label: "Work", href: "/projects" }] : []),
+    ...(site.hasArticles ? [{ label: "Writing", href: "/articles" }] : []),
     { label: "Contact", href: "/contact" },
   ];
   const socials = site.links.filter((l) => /^https?:\/\//i.test(l.url)).slice(0, 3);
