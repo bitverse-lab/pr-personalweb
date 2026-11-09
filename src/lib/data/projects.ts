@@ -1,5 +1,5 @@
 import { projectService, type ProjectDetail } from "@/server/services/project-service";
-import { projectPeriod, projectCategories, type Project } from "@/features/projects/format";
+import { featuredFirst, projectPeriod, projectCategories, type Project } from "@/features/projects/format";
 import { publicRead } from "@/lib/data/site-cache";
 
 export { projectCategories };
@@ -35,9 +35,8 @@ export async function getProjects(): Promise<Project[]> {
 
 /** Featured projects first (up to `limit`); falls back to the latest ones when nothing is featured. */
 export async function getFeaturedProjects(limit = 6): Promise<Project[]> {
-  const all = await getProjects();
-  const featured = all.filter((p) => p.featured);
-  return (featured.length ? featured : all).slice(0, limit);
+  // Featured first, then the rest: the home page always shows up to `limit` pieces of work.
+  return featuredFirst(await getProjects(), limit);
 }
 
 /** Not wrapped in `publicRead` on purpose — see the note on getArticleBySlug: a database outage

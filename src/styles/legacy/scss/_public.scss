@@ -141,3 +141,566 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         -webkit-line-clamp: 3;
     }
 }
+
+// ============================================================ home: hero C v3
+.hero-c {
+    padding: 150px 0 72px;
+    background: $light;
+    @media (max-width: 991px) {
+        padding: 110px 0 56px;
+    }
+}
+.hero-c-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+    gap: 56px;
+    align-items: center;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 36px;
+    }
+}
+.hero-c-title {
+    font-size: clamp(44px, 6.2vw, 84px);
+    line-height: 0.95;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    color: $dark;
+    margin: 0;
+    text-wrap: balance;
+}
+.hero-c-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.04em;
+    > span {
+        display: inline-block;
+        transform: translateY(105%);
+        transition: transform 0.8s $ease-out;
+    }
+}
+.hero-c-title.is-in .hero-c-line > span {
+    transform: none;
+}
+.hero-c-accent {
+    color: $primary;
+}
+.hero-c-role {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    line-height: 1.6;
+    color: $text-meta;
+    max-width: 46ch;
+    margin: 22px 0 0;
+}
+.hero-c-availability {
+    margin: 10px 0 0;
+}
+.hero-c-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    .btn {
+        padding: 12px 22px;
+        font-weight: 600;
+        transition: transform 0.15s $ease-out;
+        &:active {
+            transform: scale(0.97);
+        }
+    }
+}
+.hero-c-plain {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: $text-meta;
+}
+.hero-c-switch {
+    width: 40px;
+    height: 23px;
+    flex: none;
+    border: 0;
+    border-radius: 99px;
+    background: #c9d0e2;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s $ease-out;
+    &::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: $white;
+        transition: transform 0.25s $ease-out;
+    }
+    &[aria-checked="true"] {
+        background: $primary;
+        &::after {
+            transform: translateX(17px);
+        }
+    }
+}
+
+// ---- the console
+.qc-stage {
+    perspective: 1600px;
+    min-width: 0;
+}
+.qc {
+    background: $console-bg;
+    color: $console-text;
+    border-radius: 12px;
+    font-family: $font-mono;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    transform-style: preserve-3d;
+    transform: rotateX(6deg) rotateY(-10deg);
+    transition: transform 0.6s $ease-out;
+    box-shadow: 0 30px 60px -30px rgba($console-bg, 0.55);
+    overflow: hidden;
+    @media (max-width: 920px) {
+        transform: none !important;
+        font-size: 12.5px;
+    }
+}
+.qc-conn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid $console-line;
+    font-size: 11.5px;
+    color: $console-dim;
+    .qc-host {
+        color: $console-text;
+    }
+    .qc-ro {
+        margin-left: auto;
+        border: 1px solid $console-line;
+        border-radius: 4px;
+        padding: 2px 7px;
+    }
+}
+.qc-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 10px 0;
+    border-bottom: 1px solid $console-line;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+.qc-tab {
+    font: inherit;
+    font-size: 12px;
+    padding: 7px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: $console-dim;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.3s $ease-out;
+    &[aria-selected="true"] {
+        color: $white;
+        border-bottom-color: $console-key;
+    }
+}
+.qc-run {
+    margin: 0 0 6px auto;
+    position: sticky;
+    right: 0;
+    font-family: $font-family-base;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border: 0;
+    border-radius: 5px;
+    background: $success;
+    color: #06302a;
+    cursor: pointer;
+    transition: transform 0.12s;
+    &:active {
+        transform: scale(0.94);
+    }
+}
+@media (max-width: 600px) {
+    .qc-run-label {
+        display: none;
+    }
+}
+.qc-query {
+    padding: 16px 18px 8px;
+    min-height: 92px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+.qc-kw {
+    color: $console-key;
+}
+.qc-comment {
+    color: #9fb0d6;
+}
+.qc-caret {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    margin-left: 1px;
+    background: $console-text;
+    vertical-align: -3px;
+    animation: qc-blink 1s steps(1) infinite;
+}
+@keyframes qc-blink {
+    50% {
+        opacity: 0;
+    }
+}
+.qc-progress {
+    height: 2px;
+    overflow: hidden;
+    position: relative;
+    i {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, $console-key, transparent);
+        transform: translateX(-100%);
+    }
+    &.is-on i {
+        animation: qc-scan 0.42s linear 1 forwards;
+    }
+}
+@keyframes qc-scan {
+    to {
+        transform: translateX(100%);
+    }
+}
+.qc-table {
+    width: 100%;
+    border-collapse: collapse;
+    th {
+        font-weight: 400;
+        color: #7d8db3;
+        text-align: left;
+        font-size: 11.5px;
+        padding: 8px 18px;
+        border-bottom: 1px solid $console-line;
+    }
+    td {
+        padding: 11px 18px;
+        border-bottom: 1px solid rgba($console-line, 0.55);
+        vertical-align: top;
+        transition: background-color 0.15s;
+    }
+    td[data-col="key"] {
+        color: $console-dim;
+        white-space: nowrap;
+    }
+    .qc-value {
+        color: $white;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .qc-note {
+        font-family: $font-family-secondary;
+        font-size: 13px;
+        color: #b4c1e0;
+        line-height: 1.45;
+    }
+    .qc-row--interactive:hover td,
+    .qc-row--interactive:focus-within td,
+    .qc-row--interactive:focus td {
+        background: rgba($console-key, 0.09);
+    }
+    .qc-row--interactive:focus {
+        outline: 2px solid $console-key;
+        outline-offset: -2px;
+    }
+}
+@media (max-width: 600px) {
+    .qc-table th,
+    .qc-table td {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .qc-table th[data-col="key"],
+    .qc-table td[data-col="key"] {
+        display: none;
+    }
+}
+.qc-link {
+    font: inherit;
+    color: $console-key;
+    background: none;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba($console-key, 0.4);
+}
+// Motion 3: plain language drops the machine column and keeps the meaning.
+.qc--human th[data-col="key"],
+.qc--human td[data-col="key"] {
+    display: none;
+}
+.qc-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 38px;
+    padding: 10px 18px 14px;
+    font-size: 11.5px;
+    color: #7d8db3;
+    .qc-ok {
+        color: $success;
+    }
+}
+.qc-why {
+    font-family: $font-family-secondary;
+    font-size: 12.5px;
+    color: $text-meta;
+    margin: 12px 0 0;
+    text-align: right;
+    @media (max-width: 920px) {
+        text-align: left;
+    }
+}
+// Motion 5 morph: only the card travels, the page itself does not cross-fade.
+::view-transition-group(case-card) {
+    animation-duration: 0.7s;
+    animation-timing-function: $ease-out;
+}
+::view-transition-old(root) {
+    animation: none;
+    opacity: 0;
+}
+::view-transition-new(root) {
+    animation: none;
+}
+
+// ============================================================ selected work
+.selected-work-title {
+    font-size: clamp(26px, 3.2vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: $dark;
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 14px;
+}
+.selected-work-filter:empty {
+    display: none;
+}
+.cases {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 22px;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.case {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: opacity 0.25s $ease-out, filter 0.25s $ease-out, border-color 0.2s, box-shadow 0.25s $ease-out;
+    &:hover {
+        border-color: rgba($primary, 0.5);
+    }
+    &--featured {
+        grid-row: span 2;
+    }
+    .cover-block-frame {
+        border-radius: 0;
+    }
+    &.dim {
+        opacity: 0.35;
+        filter: grayscale(1);
+    }
+    &.lit {
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba($primary, 0.12);
+    }
+}
+.case-body {
+    padding: 20px 22px 22px;
+}
+.case-layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.case-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    a {
+        color: $dark;
+    }
+}
+.case-summary {
+    font-family: $font-family-secondary;
+    font-size: 14.5px;
+    color: $text-meta;
+    line-height: 1.55;
+    margin-bottom: 0;
+}
+.case-outcome {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed $gray-200;
+    font-family: $font-mono;
+    font-size: 13px;
+    color: $primary;
+    font-variant-numeric: tabular-nums;
+}
+
+// ============================================================ latest writing (articles B, small)
+.writing-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 32px;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.writing-latest-link {
+    display: block;
+    color: inherit;
+    &:hover .writing-latest-title {
+        color: $primary;
+    }
+}
+.writing-latest-title {
+    font-size: clamp(20px, 2.2vw, 26px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: $dark;
+    transition: color 0.2s;
+    text-wrap: balance;
+}
+.writing-excerpt {
+    font-family: $font-family-secondary;
+    color: $text-meta;
+    line-height: 1.6;
+    max-width: 60ch;
+}
+.writing-earlier-item {
+    padding: 14px 0;
+    border-top: 1px solid $gray-200;
+}
+.writing-earlier-link {
+    font-weight: 600;
+    color: $dark;
+    &:hover {
+        color: $primary;
+    }
+}
+.writing-all {
+    display: inline-block;
+    margin-top: 14px;
+    font-weight: 600;
+    color: $primary;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-c-line > span {
+        transform: none !important;
+        transition: none;
+    }
+    .qc {
+        transform: none !important;
+    }
+    .qc-caret,
+    .qc-progress.is-on i {
+        animation: none;
+    }
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+.qc-tablist {
+    display: flex;
+    gap: 2px;
+}
+
+// ============================================================ experience (shared: home, CV)
+.xp-item {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 28px;
+    padding: 22px 0;
+    border-top: 1px solid $gray-200;
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+    @media (max-width: 767px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+}
+.xp-now {
+    color: $ml-ink;
+}
+.xp-role {
+    font-size: 18px;
+    font-weight: 700;
+    color: $dark;
+    margin-bottom: 2px;
+}
+.xp-company {
+    font-family: $font-family-secondary;
+    color: $primary;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+.xp-location {
+    color: $text-meta;
+    font-weight: 400;
+}
+.xp-desc {
+    font-family: $font-family-secondary;
+    color: $text-meta;
+    line-height: 1.65;
+    max-width: 68ch;
+    margin-bottom: 8px;
+}
+.xp-wins {
+    font-family: $font-family-secondary;
+    color: $dark;
+    line-height: 1.6;
+    padding-left: 1.1em;
+    margin-bottom: 0;
+    max-width: 68ch;
+    li + li {
+        margin-top: 4px;
+    }
+}
+
+// The featured case study fills its two rows instead of leaving empty space under the text.
+.case--featured .cover-block-frame {
+    flex: 1 1 auto;
+    min-height: 280px;
+    aspect-ratio: auto !important;
+}

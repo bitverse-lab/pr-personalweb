@@ -1,64 +1,33 @@
-import CompanyAvatar from "@/components/shared/CompanyAvatar";
 import type { ExperienceEntry } from "@/lib/data/profile";
 
-function EventBody({ entry }: { entry: ExperienceEntry }) {
-  return (
-    <>
-      <h3 className="h6 title mb-1 text-capitalize">{entry.role}</h3>
-      {entry.description && (
-        <p className="timeline-subtitle mt-3 mb-0 text-muted" style={{ whiteSpace: "pre-line" }}>
-          {entry.description}
-        </p>
-      )}
-      {entry.achievements && entry.achievements.length > 0 && (
-        <ul className="text-muted small mt-2 mb-0 ps-3">
-          {entry.achievements.map((a) => (
-            <li key={a}>{a}</li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
-}
-
-// The template's alternating two-sided timeline, driven by real experience entries.
+// One column, read top to bottom: when (mono) on the left, what on the right. Replaces the template's
+// alternating two-sided timeline, whose right-aligned bullets were hard to read.
 export default function ExperienceTimeline({ entries }: { entries: ExperienceEntry[] }) {
   return (
-    <div className="timeline-page position-relative">
-      {entries.map((entry, index) => {
-        const isEven = index % 2 === 1;
-        const duration = (
-          <>
-            <CompanyAvatar company={entry.company} />
-            <h4 className="h5 my-2">{entry.company}</h4>
-            <small className="text-muted mb-0">{entry.period}</small>
-          </>
-        );
-        return (
-          <div className={`timeline-item ${index > 0 ? "mt-5 pt-4" : ""}`} key={`${entry.company}-${entry.period}-${index}`}>
-            <div className="row">
-              <div className={`col-lg-6 col-md-6 col-sm-6 mt-4 mt-sm-0 ${isEven ? "order-sm-1 order-2" : ""}`}>
-                {isEven ? (
-                  <div className="event event-description-left float-left text-end">
-                    <EventBody entry={entry} />
-                  </div>
-                ) : (
-                  <div className="duration date-label-left position-relative text-md-end">{duration}</div>
-                )}
-              </div>
-              <div className={`col-lg-6 col-md-6 col-sm-6 ${isEven ? "order-sm-2 order-1" : "mt-4 mt-sm-0"}`}>
-                {isEven ? (
-                  <div className="duration duration-right position-relative">{duration}</div>
-                ) : (
-                  <div className="event event-description-right float-left text-start">
-                    <EventBody entry={entry} />
-                  </div>
-                )}
-              </div>
-            </div>
+    <ol className="xp list-unstyled mb-0">
+      {entries.map((entry, index) => (
+        <li className="xp-item" key={`${entry.company}-${entry.period}-${index}`}>
+          <p className="xp-when mono-meta mb-0">
+            {entry.period}
+            {entry.current && <span className="xp-now"> · now</span>}
+          </p>
+          <div className="xp-what">
+            <h3 className="xp-role">{entry.role}</h3>
+            <p className="xp-company">
+              {entry.company}
+              {entry.location ? <span className="xp-location"> · {entry.location}</span> : null}
+            </p>
+            {entry.description && <p className="xp-desc">{entry.description}</p>}
+            {entry.achievements && entry.achievements.length > 0 && (
+              <ul className="xp-wins">
+                {entry.achievements.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            )}
           </div>
-        );
-      })}
-    </div>
+        </li>
+      ))}
+    </ol>
   );
 }

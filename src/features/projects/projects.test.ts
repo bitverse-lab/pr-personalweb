@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectPeriod } from "./format";
+import { featuredFirst, projectPeriod } from "./format";
 import { saveProjectSchema, techListSchema } from "./schema";
 
 const uuid = "123e4567-e89b-42d3-a456-426614174000";
@@ -54,5 +54,14 @@ describe("project outcome", () => {
     expect(saveProjectSchema.safeParse({ ...base, outcome: "7% median error · 40 cooperatives" }).data?.outcome).toBe("7% median error · 40 cooperatives");
     expect(saveProjectSchema.safeParse({ ...base, outcome: "" }).data?.outcome).toBeNull();
     expect(saveProjectSchema.safeParse({ ...base, outcome: "x".repeat(141) }).success).toBe(false);
+  });
+});
+
+describe("featuredFirst", () => {
+  it("puts featured projects first and fills up to the limit with the rest, keeping order", () => {
+    const p = (id: string, featured: boolean) => ({ id, featured });
+    const list = [p("a", false), p("b", true), p("c", false), p("d", false)];
+    expect(featuredFirst(list, 3).map((x) => x.id)).toEqual(["b", "a", "c"]);
+    expect(featuredFirst([p("a", false)], 3).map((x) => x.id)).toEqual(["a"]);
   });
 });

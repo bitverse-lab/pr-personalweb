@@ -69,7 +69,7 @@ test("page titles name the site once", async ({ page }) => {
 
 test("a portrait that fails to load shows initials, not a broken image", async ({ page }) => {
   await page.route(/\/storage\/v1\/object\/public\//, (route) => route.abort());
-  await page.goto("/", { waitUntil: "load" });
+  await page.goto("/about", { waitUntil: "load" }); // hero C has no portrait; About carries the photo
   await page.waitForTimeout(500);
   const broken = await page.evaluate(() => Array.from(document.images).filter((i) => i.complete && i.naturalWidth === 0 && i.getBoundingClientRect().width > 0 && getComputedStyle(i).display !== "none").map((i) => i.alt));
   expect(broken).toEqual([]);

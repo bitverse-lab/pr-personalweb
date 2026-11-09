@@ -43,15 +43,14 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
   return (
     <>
       <main id="main-content" tabIndex={-1}>
-      <section className="d-table w-100 position-relative overflow-hidden">
-        <div className="bg-overlay bg-gradient-overlay-2"></div>
+      <section className="d-table w-100 position-relative overflow-hidden bg-light">
         <div className="bg-half-170">
           <div className="container">
             <div className="row mt-5 justify-content-center">
               <div className="col-12">
                 <div className="title-heading text-center">
-                  <h1 className="h2 text-white title-dark">Articles</h1>
-                  <p className="text-white-50 mb-0">Writing on things I am building and learning.</p>
+                  <h1 className="h2 text-dark">Articles</h1>
+                  <p className="text-secondary mb-0">Writing on things I am building and learning.</p>
                 </div>
               </div>
             </div>
@@ -124,14 +123,13 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
         <div className="container mt-100 mt-60">
           <div className="row">
             <div className="col-12">
-              <div className="rounded shadow bg position-relative overflow-hidden">
-                <div className="bg-overlay"></div>
+              <div className="rounded shadow bg-primary position-relative overflow-hidden">
 
                 <div className="row align-items-center p-4 py-lg-5">
                   <div className="col-lg-8">
                     <div className="section-title">
                       <h4 className="text-white title-dark">Enough Talk, Let&apos;s Build Something Together</h4>
-                      <p className="text-white-50 mb-0">Get in touch and let&apos;s start a project.</p>
+                      <p className="text-white mb-0">Get in touch and let&apos;s start a project.</p>
                     </div>
                   </div>
 

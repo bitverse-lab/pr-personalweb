@@ -29,3 +29,8 @@ export interface Project {
 export function projectCategories(projects: Project[]): string[] {
   return Array.from(new Set(projects.map((p) => p.category).filter((c): c is string => !!c))).sort((a, b) => a.localeCompare(b));
 }
+
+/** Featured projects first, then the rest in their existing order, up to `limit`. */
+export function featuredFirst<T extends { featured: boolean }>(projects: T[], limit: number): T[] {
+  return [...projects.filter((p) => p.featured), ...projects.filter((p) => !p.featured)].slice(0, limit);
+}
