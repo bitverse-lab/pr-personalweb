@@ -9,6 +9,7 @@ export const TABLES: Record<SeedTable, PgTable> = {
   education: schema.educations,
   skill: schema.skills,
   social_link: schema.socialLinks,
+  profile_highlight: schema.profileHighlights,
   project: schema.projects,
   project_link: schema.projectLinks,
   project_media: schema.projectMedia,

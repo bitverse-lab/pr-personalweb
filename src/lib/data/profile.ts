@@ -10,6 +10,15 @@ import { resolveProfilePhotoUrls } from "@/features/profile/photo";
 export interface SkillBar {
   label: string;
   percent: number;
+  /** The owner's own grouping (e.g. Data, API); lower-cased it is the "layer" used across the public site. */
+  category: string | null;
+}
+
+/** A proof point written by the owner in Profile & CV → Highlights. */
+export interface ProfileHighlight {
+  metric: string;
+  value: string;
+  note: string;
 }
 
 export interface ExperienceEntry {
@@ -19,6 +28,8 @@ export interface ExperienceEntry {
   description: string;
   achievements?: string[];
   location?: string | null;
+  /** No end date: the role the owner holds now. */
+  current: boolean;
 }
 
 export interface EducationEntry {
@@ -63,6 +74,7 @@ export interface Profile {
   availableForWork: boolean;
   availabilityNote: string;
   skills: SkillBar[];
+  highlights: ProfileHighlight[];
   experience: ExperienceEntry[];
   education: EducationEntry[];
   links: ProfileLink[];
@@ -97,6 +109,7 @@ const placeholder: Profile = {
   availableForWork: false,
   availabilityNote: "",
   skills: [],
+  highlights: [],
   experience: [],
   education: [],
   links: [],
@@ -143,7 +156,8 @@ const loadProfile = unstable_cache(async (): Promise<Profile> => {
       aboutPhotoUrl,
       availableForWork: full.profile?.availableForWork ?? false,
       availabilityNote: full.profile?.availabilityNote ?? "",
-      skills: full.skills.map((s) => ({ label: s.name, percent: s.level })),
+      skills: full.skills.map((s) => ({ label: s.name, percent: s.level, category: s.category })),
+      highlights: full.highlights.map((h) => ({ metric: h.metric, value: h.value, note: h.note ?? "" })),
       experience: full.experiences.map((e) => ({
         company: e.company,
         role: e.role,
@@ -151,6 +165,7 @@ const loadProfile = unstable_cache(async (): Promise<Profile> => {
         description: e.description ?? "",
         achievements: e.achievements,
         location: e.location,
+        current: e.endDate === null,
       })),
       education: full.educations.map((e) => ({
         school: e.school,

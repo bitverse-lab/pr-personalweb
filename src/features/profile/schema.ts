@@ -49,6 +49,13 @@ export const skillSchema = z.object({
   level: z.coerce.number().int().min(0).max(100),
 });
 
+// One row of the hero's profile.sql: a snake_case key, the value as displayed, and a plain-language note.
+export const highlightSchema = z.object({
+  metric: z.string().trim().min(1, "Key is required").max(40).regex(/^[a-z0-9_]+$/, "Use lower-case letters, digits and underscores, e.g. gpa or ip_rights"),
+  value: z.string().trim().min(1, "Value is required").max(60),
+  note: optText(140),
+});
+
 export const linkSchema = z.object({
   label: z.string().trim().min(1, "Label is required").max(40),
   url: z.string().trim().max(500).refine((v) => /^(https?:\/\/|mailto:)/i.test(v), "Must start with http://, https:// or mailto:"),
@@ -57,7 +64,7 @@ export const linkSchema = z.object({
 export const idSchema = z.object({ id: z.uuid() });
 export const updateSchema = <T extends z.ZodTypeAny>(data: T) => z.object({ id: z.uuid(), data });
 export const reorderSchema = z.object({
-  kind: z.enum(["experiences", "educations", "skills", "links"]),
+  kind: z.enum(["experiences", "educations", "skills", "links", "highlights"]),
   ids: z.array(z.uuid()).max(100),
 });
 export const photoSchema = z.object({ mediaId: z.uuid().nullable() });

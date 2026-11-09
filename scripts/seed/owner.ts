@@ -25,12 +25,12 @@ const notDemo = (id: { getSQL(): unknown } & object) => sql`${id}::text not like
 /** The owner's own rows that demo data must sit after or avoid colliding with. Demo rows are excluded. */
 export async function readContexts(db: SeedDb, userId: string): Promise<{ pub: PublicContext; priv: PrivateContext }> {
   const s = schema;
-  const maxPos = async (table: typeof s.experiences | typeof s.educations | typeof s.skills | typeof s.socialLinks | typeof s.projects | typeof s.testimonials) => {
+  const maxPos = async (table: typeof s.experiences | typeof s.educations | typeof s.skills | typeof s.socialLinks | typeof s.projects | typeof s.testimonials | typeof s.profileHighlights) => {
     const [row] = await db.select({ m: max(table.position) }).from(table).where(and(eq(table.userId, userId), notDemo(table.id)));
     return row?.m ?? undefined;
   };
   const positionTables: [PositionKey, Parameters<typeof maxPos>[0]][] = [
-    ["experience", s.experiences], ["education", s.educations], ["skill", s.skills], ["socialLink", s.socialLinks], ["project", s.projects], ["testimonial", s.testimonials],
+    ["experience", s.experiences], ["education", s.educations], ["skill", s.skills], ["socialLink", s.socialLinks], ["project", s.projects], ["testimonial", s.testimonials], ["highlight", s.profileHighlights],
   ];
   const positions: PublicContext["positions"] = {};
   for (const [key, table] of positionTables) {

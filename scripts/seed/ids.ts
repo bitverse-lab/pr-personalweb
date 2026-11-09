@@ -38,6 +38,7 @@ const DOMAIN_CODES = {
   routine_exercise: 0x0020,
   workout: 0x0021,
   workout_set: 0x0022,
+  profile_highlight: 0x0023,
 } as const;
 
 export type DemoDomain = keyof typeof DOMAIN_CODES;

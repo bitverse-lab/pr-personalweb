@@ -71,6 +71,16 @@ export const educations = pgTable("education", {
   position: integer("position").notNull().default(0),
 });
 
+// Owner-written proof points shown in the hero console (profile.sql) and on the CV.
+export const profileHighlights = pgTable("profile_highlight", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: userRef(),
+  metric: text("metric").notNull(),
+  value: text("value").notNull(),
+  note: text("note"),
+  position: integer("position").notNull().default(0),
+});
+
 export const skills = pgTable("skill", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: userRef(),

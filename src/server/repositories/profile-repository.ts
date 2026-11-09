@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { educations, experiences, media, profiles, skills, socialLinks } from "@/db/schema";
+import { educations, experiences, media, profileHighlights, profiles, skills, socialLinks } from "@/db/schema";
 
 export interface BasicsValues {
   displayName: string | null;
@@ -39,24 +39,31 @@ export interface SkillValues {
   level: number;
 }
 
+export interface HighlightValues {
+  metric: string;
+  value: string;
+  note: string | null;
+}
+
 export interface LinkValues {
   label: string;
   url: string;
 }
 
-async function nextPosition(table: typeof experiences | typeof educations | typeof skills | typeof socialLinks, userId: string) {
+async function nextPosition(table: typeof experiences | typeof educations | typeof skills | typeof socialLinks | typeof profileHighlights, userId: string) {
   const rows = await db.select({ max: sql<number>`coalesce(max(${table.position}), -1)::int` }).from(table).where(eq(table.userId, userId));
   return (rows[0]?.max ?? -1) + 1;
 }
 
 export const profileRepository = {
   async findFull(userId: string) {
-    const [profile, exp, edu, sk, links] = await Promise.all([
+    const [profile, exp, edu, sk, links, highlights] = await Promise.all([
       db.query.profiles.findFirst({ where: eq(profiles.userId, userId) }),
       db.select().from(experiences).where(eq(experiences.userId, userId)).orderBy(asc(experiences.position)),
       db.select().from(educations).where(eq(educations.userId, userId)).orderBy(asc(educations.position)),
       db.select().from(skills).where(eq(skills.userId, userId)).orderBy(asc(skills.position)),
       db.select().from(socialLinks).where(eq(socialLinks.userId, userId)).orderBy(asc(socialLinks.position)),
+      db.select().from(profileHighlights).where(eq(profileHighlights.userId, userId)).orderBy(asc(profileHighlights.position)),
     ]);
     const [photo, aboutPhoto] = await Promise.all([
       profile?.photoMediaId
@@ -66,7 +73,7 @@ export const profileRepository = {
         ? db.query.media.findFirst({ where: and(eq(media.id, profile.aboutPhotoMediaId), eq(media.userId, userId), eq(media.status, "ready")) })
         : null,
     ]);
-    return { profile: profile ?? null, experiences: exp, educations: edu, skills: sk, links, photo: photo ?? null, aboutPhoto: aboutPhoto ?? null };
+    return { profile: profile ?? null, experiences: exp, educations: edu, skills: sk, links, highlights, photo: photo ?? null, aboutPhoto: aboutPhoto ?? null };
   },
 
   upsertBasics(userId: string, v: BasicsValues) {
@@ -144,9 +151,21 @@ export const profileRepository = {
     return db.delete(socialLinks).where(and(eq(socialLinks.id, id), eq(socialLinks.userId, userId))).returning().then((r) => r[0] ?? null);
   },
 
+  // ---- highlights ----
+  async createHighlight(userId: string, v: HighlightValues) {
+    const position = await nextPosition(profileHighlights, userId);
+    return db.insert(profileHighlights).values({ userId, position, ...v }).returning().then((r) => r[0]);
+  },
+  updateHighlight(userId: string, id: string, v: HighlightValues) {
+    return db.update(profileHighlights).set(v).where(and(eq(profileHighlights.id, id), eq(profileHighlights.userId, userId))).returning().then((r) => r[0] ?? null);
+  },
+  deleteHighlight(userId: string, id: string) {
+    return db.delete(profileHighlights).where(and(eq(profileHighlights.id, id), eq(profileHighlights.userId, userId))).returning().then((r) => r[0] ?? null);
+  },
+
   // Applies the given order (ids not owned by the user are ignored by the WHERE clause).
-  async reorder(kind: "experiences" | "educations" | "skills" | "links", userId: string, ids: string[]) {
-    const table = { experiences, educations, skills, links: socialLinks }[kind];
+  async reorder(kind: "experiences" | "educations" | "skills" | "links" | "highlights", userId: string, ids: string[]) {
+    const table = { experiences, educations, skills, links: socialLinks, highlights: profileHighlights }[kind];
     await db.transaction(async (tx) => {
       for (let i = 0; i < ids.length; i++) {
         await tx.update(table).set({ position: i }).where(and(eq(table.id, ids[i]), eq(table.userId, userId), inArray(table.id, ids)));
