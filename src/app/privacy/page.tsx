@@ -26,7 +26,7 @@ export default async function PrivacyPage() {
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
-        <section className="section">
+        <section className="section mt-5">
           <div className="container">
             <div className="row justify-content-center">
               <div className="col-lg-8">

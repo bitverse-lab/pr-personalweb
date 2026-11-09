@@ -52,17 +52,18 @@ export default function ProjectsView({ projects, categories, heading, subheading
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
       <ScrollRevealObserver />
-      <section className="bg-half-170 d-table w-100" style={{ backgroundImage: "url(/images/digital/bg01.jpg)" }} id="hero">
-        <div className="bg-overlay bg-primary-gradient-overlay"></div>
+      {/* Light hero instead of the template's stock photo of strangers, which read as someone else's
+          team on a personal portfolio; light also keeps the dark navbar legible, as on the home page. */}
+      <section className="bg-half-170 d-table w-100 bg-light" id="hero">
         <div className="container">
           <div className="row mt-5 justify-content-center">
             <div className="col-12">
               <div className="title-heading text-center">
-                <h1 className="h4 heading text-white title-dark mb-4">{heading}</h1>
-                {subheading && <h5 className="para-desc mx-auto fw-normal text-white-50">{subheading}</h5>}
+                <h1 className="h4 heading text-dark mb-4">{heading}</h1>
+                {subheading && <h5 className="para-desc mx-auto fw-normal text-secondary">{subheading}</h5>}
 
                 <div className="mt-4 pt-2">
-                  <Link href="/contact" className="btn btn-pills btn-light">
+                  <Link href="/contact" className="btn btn-pills btn-primary">
                     Contact Me
                   </Link>
                 </div>

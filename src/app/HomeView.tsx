@@ -13,6 +13,7 @@ import SmallFooter from "@/components/layout/SmallFooter";
 import ArticleCard from "@/components/shared/ArticleCard";
 import ContactSection from "@/components/shared/ContactSection";
 import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
+import FallbackImage, { initialsOf, PortraitInitials } from "@/components/shared/FallbackImage";
 import JsonLd from "@/components/shared/JsonLd";
 import TestimonialsSection from "@/components/shared/TestimonialsSection";
 import ScrollRevealObserver from "@/components/shared/ScrollRevealObserver";
@@ -30,6 +31,7 @@ const excerpt = (text: string, max = 190) => {
 
 export default function HomeView({ profile, projects, articles, testimonials }: { profile: Profile; projects: Project[]; articles: Article[]; testimonials: PublicTestimonial[] }) {
   const real = !profile.isPlaceholder;
+  const initials = initialsOf(profile.fullName);
   const reducedMotion = usePrefersReducedMotion();
   const categories: { value: string | null; label: string }[] = [{ value: null, label: "All" }, ...projectCategories(projects).map((c) => ({ value: c, label: c }))];
   const galleryImages = projects.map((project) => project.image);
@@ -81,11 +83,18 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
                   <div className="home-portrait-halo" aria-hidden="true" />
                   <div className="home-portrait-frame">
                     {profile.heroPhotoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={profile.heroPhotoUrl} alt={`Portrait of ${profile.fullName}`} />
+                      <FallbackImage
+                        src={profile.heroPhotoUrl}
+                        alt={`Portrait of ${profile.fullName}`}
+                        fallback={
+                          <div className="home-portrait-placeholder" role="img" aria-label={`Portrait of ${profile.fullName}`}>
+                            <span>{initials}</span>
+                          </div>
+                        }
+                      />
                     ) : (
                       <div className="home-portrait-placeholder" aria-label="Profile photo not set">
-                        <span>{profile.fullName.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>
+                        <span>{initials}</span>
                       </div>
                     )}
                   </div>
@@ -188,8 +197,12 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
                 {profile.aboutPhotoUrl && (
                   <div className="col-lg-5 col-md-6">
                     <div className="position-relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.aboutPhotoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
+                      <FallbackImage
+                        src={profile.aboutPhotoUrl}
+                        className="rounded-pill shadow img-fluid"
+                        alt={`Portrait of ${profile.fullName}`}
+                        fallback={<PortraitInitials name={profile.fullName} />}
+                      />
                       <div className="position-absolute top-0 start-0 z-index-m-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={profile.dotsImage} className="avatar avatar-xl-large" alt="" />

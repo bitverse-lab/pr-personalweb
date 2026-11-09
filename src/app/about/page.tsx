@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FiDownload, FiMapPin } from "react-icons/fi";
 
+import FallbackImage, { PortraitInitials } from "@/components/shared/FallbackImage";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import JsonLd from "@/components/shared/JsonLd";
@@ -12,7 +13,7 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
-  return profile.isPlaceholder ? { title: "About" } : { title: `About — ${profile.fullName}`, description: profile.headline || undefined };
+  return profile.isPlaceholder ? { title: "About" } : { title: "About", description: profile.headline || undefined };
 }
 
 export default async function AboutPage() {
@@ -52,8 +53,12 @@ export default async function AboutPage() {
                 {profile.aboutPhotoUrl && (
                   <div className="col-lg-5 col-md-6">
                     <div className="position-relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.aboutPhotoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
+                      <FallbackImage
+                        src={profile.aboutPhotoUrl}
+                        className="rounded-pill shadow img-fluid"
+                        alt={`Portrait of ${profile.fullName}`}
+                        fallback={<PortraitInitials name={profile.fullName} />}
+                      />
                       <div className="position-absolute top-0 start-0 z-index-m-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={profile.dotsImage} className="avatar avatar-xl-large" alt="" />

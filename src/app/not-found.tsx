@@ -1,6 +1,9 @@
 import Link from "next/link";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
+import type { Metadata } from "next";
 import SmallFooter from "@/components/layout/SmallFooter";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (

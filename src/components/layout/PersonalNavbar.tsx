@@ -17,6 +17,18 @@ export default function PersonalNavbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Escape closes the mobile menu and hands focus back to the button that opened it.
+  useEffect(() => {
+    if (!isMenu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setIsMenu(false);
+      document.getElementById("isToggle")?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isMenu]);
+
   // Sections with nothing published are left out, so visitors never land on an empty page from the menu.
   const navItems = [
     { label: "Home", href: "/" },
@@ -65,8 +77,9 @@ export default function PersonalNavbar() {
                 </a>
               </li>
             ))}
+            {/* Hidden below lg: next to a long name it wrapped onto a second header row and covered page titles; the menu carries it instead. */}
             {!site.isPlaceholder && (
-              <li className="list-inline-item ms-1">
+              <li className="list-inline-item ms-1 d-none d-lg-inline-block">
                 <a href="/cv/download" className="btn btn-sm btn-pills btn-outline-primary d-inline-flex align-items-center gap-1">
                   <FiDownload aria-hidden /> CV
                 </a>
@@ -83,6 +96,13 @@ export default function PersonalNavbar() {
                   </Link>
                 </li>
               ))}
+              {!site.isPlaceholder && (
+                <li className="has-submenu d-lg-none">
+                  <a href="/cv/download" className="sub-menu-item" onClick={() => setIsMenu(false)}>
+                    Download CV
+                  </a>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
