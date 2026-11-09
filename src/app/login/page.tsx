@@ -1,6 +1,9 @@
 import { signIn } from "@/server/auth";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
+import type { Metadata } from "next";
 import SmallFooter from "@/components/layout/SmallFooter";
+
+export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
 export default async function LoginPage({
   searchParams,

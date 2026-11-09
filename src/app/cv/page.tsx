@@ -11,7 +11,7 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
-  return profile.isPlaceholder ? { title: "CV" } : { title: `CV — ${profile.fullName}`, description: profile.headline || undefined };
+  return profile.isPlaceholder ? { title: "CV" } : { title: "CV", description: profile.headline || undefined };
 }
 
 export default async function CvPage() {
