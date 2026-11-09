@@ -297,9 +297,8 @@ export function buildPrivate(ownerId: string, today: Date, ctx: PrivateContext):
   }
 
   // Health
-  if (!ctx.healthProfile) {
-    s.healthProfiles.push({ id: demoId("health_profile", 1), userId, heightCm: 172, sex: "male", birthDate: "2001-05-14", activityLevel: "moderate", goalType: "lose", targetWeightKg: 68, weeklyRateKg: 0.25, dailyCalories: 2100, proteinG: 140, carbsG: 220, fatG: 70, waterMl: 2500, weeklyWorkoutTarget: 4 });
-  }
+  // No health profile: the app upserts goals into the single per-user row, and it has no
+  // created_at to tell a demo row from one the owner has since edited. Goals stay the owner's.
   for (let d = 1; d <= 60; d++) {
     const date = jakartaDate(today, -d);
     if (ctx.weightDates.has(date)) continue;

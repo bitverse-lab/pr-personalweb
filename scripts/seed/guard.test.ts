@@ -1,5 +1,6 @@
 import { getTableColumns } from "drizzle-orm";
 import { expect, test } from "vitest";
+import { buildPrivate, emptyPrivateContext } from "./data/private";
 import { TABLES } from "./tables";
 import { deleteStatements, foreignKeyEdges, guardQueries } from "./guard";
 import { INSERT_ORDER } from "./plan";
@@ -36,11 +37,20 @@ test("a demo article linked to one of the owner's tags does not block clean", ()
 });
 
 test("rows the owner has edited since seeding are kept, not deleted", () => {
-  // the app upserts health goals and journal days into the existing (demo) row
-  for (const table of ["health_profile", "journal_entry"] as const) {
-    const where = deleteStatements("owner-1").find((s) => s.table === table)!.where;
-    expect(where).toContain(`"updated_at" <= "created_at"`);
+  // the app upserts journal days into the existing (demo) row
+  const where = deleteStatements("owner-1").find((s) => s.table === "journal_entry")!.where;
+  expect(where).toContain(`"updated_at" <= "created_at"`);
+});
+
+test("every column a delete statement references exists on its table", () => {
+  for (const s of deleteStatements("owner-1")) {
+    const cols = new Set(Object.values(getTableColumns(TABLES[s.table])).map((c) => c.name));
+    for (const [, col] of Array.from(s.where.matchAll(/"([a-z_]+)"/g))) expect(cols, `${s.table}.${col}`).toContain(col);
   }
+});
+
+test("the seed never creates a health profile; the owner's goals are theirs to set", () => {
+  expect(buildPrivate("owner-1", new Date("2026-11-09T00:00:00Z"), emptyPrivateContext()).healthProfiles).toEqual([]);
 });
 
 test("deletes run children first and only touch demo rows of the owner", () => {

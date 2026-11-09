@@ -22,9 +22,9 @@ const AUTH_TABLES = new Set(["user", "account", "session", "verificationToken"])
 // linked to a demo row would lose something.
 const JOIN_OWNER: Record<string, string> = { article_tag: "article_id" };
 
-// Tables the app upserts into by a natural key (user, or user + date), so the owner's later
-// edits land in the demo row itself. Rows touched after seeding are treated as the owner's.
-const KEEP_IF_EDITED = new Set(["health_profile", "journal_entry"]);
+// The app upserts journal days by (user, date), so the owner's later edits land in the demo row
+// itself. Rows touched after seeding are treated as the owner's and kept.
+const KEEP_IF_EDITED = new Set(["journal_entry"]);
 const LIKE_DEMO = `LIKE '${DEMO_PREFIX}%'`;
 const NOT_LIKE_DEMO = `NOT LIKE '${DEMO_PREFIX}%'`;
 const q = (name: string) => `"${name}"`;

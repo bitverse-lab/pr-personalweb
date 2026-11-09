@@ -120,6 +120,6 @@ test("no two demo rows share an id, across both builders", () => {
   expect(new Set(ids).size).toBe(ids.length);
 });
 
-test("a health profile is created only when the owner has none", () => {
-  expect(buildPrivate(OWNER, TODAY, emptyPrivateContext()).healthProfiles).toHaveLength(1);
+test("the seed never creates a health profile, even when the owner has none", () => {
+  expect(buildPrivate(OWNER, TODAY, emptyPrivateContext()).healthProfiles).toHaveLength(0);
 });
