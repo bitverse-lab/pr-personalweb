@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { FiAlertTriangle } from "react-icons/fi";
+import { reportError } from "@/lib/report-error";
 
 export interface WorkspaceErrorProps {
   /** What failed to load, in the owner's words: "your tasks", "this application". */
@@ -17,7 +18,7 @@ export interface WorkspaceErrorProps {
  */
 export default function WorkspaceError({ what = "this page", error, reset }: WorkspaceErrorProps) {
   useEffect(() => {
-    console.error(error);
+    reportError("workspace-render", error);
   }, [error]);
 
   return (

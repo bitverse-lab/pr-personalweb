@@ -5,39 +5,49 @@ import type { SetupItem } from "@/server/services/setup-service";
 // Onboarding card: shows what is left to set up, and disappears once everything is done.
 export default function SetupChecklist({ items }: { items: SetupItem[] }) {
   const done = items.filter((i) => i.done).length;
+  const remaining = items.filter((i) => !i.done);
   if (done === items.length) return null;
   const pct = Math.round((done / items.length) * 100);
 
   return (
-    <div className="card rounded shadow-sm mb-4">
+    <div className="card rounded shadow-sm mb-4 me-setup-card">
       <div className="card-body">
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-          <h6 className="mb-0">Finish setting up</h6>
-          <span className="text-muted small">{done} of {items.length} done</span>
-        </div>
-        <div className="progress mb-3" style={{ height: 6 }} role="progressbar" aria-label="Setup progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className="progress-bar" style={{ width: `${pct}%` }} />
-        </div>
-        <ul className="list-unstyled mb-0 row row-cols-1 row-cols-md-2 g-2">
-          {items.map((item) => (
-            <li className="col" key={item.key}>
-              {item.done ? (
-                <div className="d-flex align-items-start gap-2 text-muted">
-                  <FiCheckCircle className="text-success mt-1 flex-shrink-0" aria-label="Done" />
-                  <span className="text-decoration-line-through">{item.label}</span>
+        <div className="row align-items-center g-4">
+          <div className="col-12 col-xl-4">
+            <div className="d-flex align-items-center gap-3 mb-3">
+              <div className="features feature-primary feature-clean me-setup-feature flex-shrink-0" aria-hidden="true">
+                <div className="icons rounded">
+                  <FiCheckCircle className="icon" />
                 </div>
-              ) : (
-                <Link href={item.href} className="d-flex align-items-start gap-2 text-decoration-none text-dark">
-                  <FiCircle className="text-primary mt-1 flex-shrink-0" aria-label="To do" />
+              </div>
+              <div>
+                <h6 className="mb-1">Finish setting up</h6>
+                <span className="text-muted small">{done} of {items.length} complete</span>
+              </div>
+            </div>
+            <div className="progress" role="progressbar" aria-label="Setup progress" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+              <div className="progress-bar" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+
+          <ul className="me-setup-items col-12 col-xl-8 list-unstyled mb-0">
+            {remaining.map((item) => (
+              <li key={item.key}>
+                <Link href={item.href} className="me-setup-item d-flex align-items-start gap-3 h-100 p-3 rounded text-decoration-none">
+                  <div className="features feature-primary feature-clean me-setup-item-icon flex-shrink-0" aria-hidden="true">
+                    <div className="icons rounded">
+                      <FiCircle className="icon" />
+                    </div>
+                  </div>
                   <span>
-                    <span className="fw-semibold">{item.label}</span>
-                    <span className="d-block text-muted small">{item.hint}</span>
+                    <span className="fw-semibold d-block">{item.label}</span>
+                    <span className="text-muted small">{item.hint}</span>
                   </span>
                 </Link>
-              )}
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

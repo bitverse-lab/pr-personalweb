@@ -1,6 +1,8 @@
 import ProductivityHeatmap, { type ActivityPoint } from "./ProductivityHeatmap";
 import ProductivityTrendChart from "./ProductivityTrendChart";
 import ProductivityStats from "./ProductivityStats";
+import { FiActivity } from "react-icons/fi";
+import OverviewCard from "./OverviewCard";
 
 export default function ProductivitySection({
   activity = [],
@@ -10,18 +12,14 @@ export default function ProductivitySection({
   overdue?: number;
 }) {
   return (
-    <div className="card rounded shadow-sm h-100">
-      <div className="card-body">
-        <h6 className="card-title mb-3">Productivity</h6>
+    <OverviewCard title="Productivity" icon={FiActivity}>
+      <ProductivityStats activity={activity} overdue={overdue} />
 
-        <ProductivityStats activity={activity} overdue={overdue} />
+      <p className="text-muted small mb-2">Last 90 days</p>
+      <ProductivityHeatmap activity={activity} />
 
-        <p className="text-muted small mb-2">Last 90 days</p>
-        <ProductivityHeatmap activity={activity} />
-
-        <p className="text-muted small mb-2 mt-4">Completed per week</p>
-        <ProductivityTrendChart activity={activity} />
-      </div>
-    </div>
+      <p className="text-muted small mb-2 mt-4">Completed per week</p>
+      <ProductivityTrendChart activity={activity} />
+    </OverviewCard>
   );
 }

@@ -96,7 +96,7 @@ export default function ContactForm() {
         <FiSend aria-hidden /> {isPending ? "Sending…" : "Send message"}
       </button>
       <p className="text-muted small mt-3 mb-0">
-        I store your message only to reply to you. See the <Link href="/privacy">privacy notice</Link>.
+        I store your message only to reply to you. See the <Link className="text-decoration-underline" href="/privacy">privacy notice</Link>.
       </p>
     </form>
   );

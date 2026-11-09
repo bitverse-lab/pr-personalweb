@@ -111,13 +111,20 @@ export default function QuickCapture({ today }: { today: string }) {
     mode === "task" ? !!title.trim() : mode === "weight" ? !!kg : mode === "meal" ? !!kcal : mode === "water" ? !!ml : mode === "note" ? !!note.trim() : !!company.trim() && !!role.trim();
 
   return (
-    <div className="card rounded shadow-sm mb-4">
+    <div className="card rounded shadow-sm mb-4 me-quick-capture">
       <div className="card-body">
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <h6 className="mb-0">Quick capture</h6>
-          <div className="btn-group btn-group-sm flex-wrap" role="tablist" aria-label="What do you want to log?">
+          <div className="d-flex align-items-center gap-3">
+            <div className="features feature-primary feature-clean me-capture-feature flex-shrink-0" aria-hidden="true">
+              <div className="icons rounded">
+                <FiPlus className="icon" />
+              </div>
+            </div>
+            <h6 className="mb-0">Quick capture</h6>
+          </div>
+          <div className="me-capture-tabs d-flex flex-wrap gap-2" role="tablist" aria-label="What do you want to log?">
             {TABS.map(({ mode: m, label, Icon }) => (
-              <button key={m} type="button" role="tab" aria-selected={mode === m} className={`btn d-inline-flex align-items-center gap-1 ${mode === m ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setMode(m)}>
+              <button key={m} type="button" role="tab" aria-selected={mode === m} className={`btn btn-sm btn-pills d-inline-flex align-items-center gap-1 ${mode === m ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setMode(m)}>
                 <Icon aria-hidden /> {label}
               </button>
             ))}

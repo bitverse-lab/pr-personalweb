@@ -179,6 +179,19 @@ $value in $colors {
     }
 }
 
+.btn:focus-visible,
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 3px;
+}
+
+@media (hover: hover) {
+    .btn:not(:disabled):not(.disabled):hover {
+        transform: translateY(-1px);
+    }
+}
+
 button:not(:disabled) {
     outline: none;
 }
@@ -818,6 +831,7 @@ $value in $colors {
                 background-color: $primary;
                 border-color: $primary !important;
                 color: $white !important;
+                transform: translateY(-2px);
                 .fea-social {
                     fill: $primary;
                 }
@@ -890,8 +904,13 @@ $value in $colors {
     z-index: 99;
     bottom: 30px;
     right: 30px;
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.5s ease;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(8px);
     height: 36px;
     width: 36px;
     line-height: 34px;
@@ -900,6 +919,17 @@ $value in $colors {
     color: $white !important;
     .icons {
         transition: all 0.5s ease;
+    }
+    &.is-visible {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    &:hover {
+        transform: translateY(-3px);
+        .icons {
+            transform: translateY(-2px);
+        }
     }
 }
 

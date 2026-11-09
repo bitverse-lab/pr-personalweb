@@ -28,7 +28,7 @@ export const setupService = {
 
     return [
       { key: "name", label: "Add your name and headline", hint: "Replaces the template's sample content on every public page.", href: "/me/settings/profile", done: !!profile?.displayName?.trim() },
-      { key: "photo", label: "Upload a profile photo", hint: "Shown on your home and About pages.", href: "/me/settings/profile", done: !!profile?.photoMediaId },
+      { key: "photo", label: "Upload a profile photo", hint: "Shown in your home-page hero; the About photo can be customized separately.", href: "/me/settings/profile", done: !!profile?.photoMediaId },
       { key: "cv", label: "Add work experience or education", hint: "This is what your CV page and PDF are built from.", href: "/me/settings/profile", done: count(exp) + count(edu) > 0 },
       { key: "contact", label: "Add your public email and links", hint: "Shown on your Contact page, navbar and footer so people can reach you.", href: "/me/settings/profile", done: !!profile?.publicEmail },
       { key: "storage", label: "Connect file storage", hint: "Needed for photos, project images and application documents.", href: "/me/media", done: isStorageConfigured() },

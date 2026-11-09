@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
-import type FullCalendarType from "@fullcalendar/react";
 import { FiChevronLeft, FiChevronRight, FiPlus, FiCalendar } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
 import EventFormDialog, { type EventFormValues } from "./EventFormDialog";
 import { getCalendarEvents, createEvent } from "@/features/calendar/actions";
 import { toCalendarEventInput } from "@/features/calendar/mappers";
 import { useToast } from "@/components/shared/ToastProvider";
-import type { CalendarEventInput, CalendarViewMode } from "./CalendarView";
+import type { CalendarApi, CalendarEventInput, CalendarViewMode } from "./CalendarView";
 
 const CalendarView = dynamic(() => import("./CalendarView"), {
   ssr: false,
@@ -33,7 +32,7 @@ interface CalendarShellProps {
 }
 
 export default function CalendarShell({ initialEvents, initialRange }: CalendarShellProps) {
-  const calendarRef = useRef<FullCalendarType>(null);
+  const [calendarApi, setCalendarApi] = useState<CalendarApi | null>(null);
   const [events, setEvents] = useState<CalendarEventInput[]>(initialEvents);
   const [view, setView] = useState<CalendarViewMode>("dayGridMonth");
   const [dialogValues, setDialogValues] = useState<EventFormValues | null>(null);
@@ -41,12 +40,16 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
   const currentRange = useRef(initialRange);
   const toast = useToast();
 
+  const handleCalendarApi = useCallback((api: CalendarApi | null) => {
+    setCalendarApi(api);
+  }, []);
+
   useEffect(() => {
     if (window.matchMedia("(max-width: 576px)").matches) {
       setView("listDay");
-      calendarRef.current?.getApi().changeView("listDay");
+      calendarApi?.changeView("listDay");
     }
-  }, []);
+  }, [calendarApi]);
 
   const refetch = (range: { start: string; end: string }) => {
     currentRange.current = range;
@@ -86,7 +89,7 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
 
   const changeView = (nextView: CalendarViewMode) => {
     setView(nextView);
-    calendarRef.current?.getApi().changeView(nextView);
+    calendarApi?.changeView(nextView);
   };
 
   const handleMove = (
@@ -115,7 +118,7 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
               type="button"
               className="btn btn-sm btn-outline-primary"
               onClick={() => {
-                calendarRef.current?.getApi().prev();
+                calendarApi?.prev();
               }}
               aria-label="Previous"
             >
@@ -125,7 +128,7 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
               type="button"
               className="btn btn-sm btn-outline-primary"
               onClick={() => {
-                calendarRef.current?.getApi().today();
+                calendarApi?.today();
               }}
             >
               Today
@@ -134,7 +137,7 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
               type="button"
               className="btn btn-sm btn-outline-primary"
               onClick={() => {
-                calendarRef.current?.getApi().next();
+                calendarApi?.next();
               }}
               aria-label="Next"
             >
@@ -183,7 +186,7 @@ export default function CalendarShell({ initialEvents, initialRange }: CalendarS
         )}
 
         <CalendarView
-          ref={calendarRef}
+          onCalendarApi={handleCalendarApi}
           events={events}
           initialView={view}
           onRangeChange={refetch}

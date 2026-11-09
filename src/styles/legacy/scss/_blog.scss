@@ -40,7 +40,7 @@
                 transition: all 0.5s ease;
             }
         }
-        &:hover {
+        &:focus-within {
             .content {
                 bottom: 24px;
                 .author {
@@ -64,7 +64,7 @@
             right: 24px;
         }
     }
-    &:hover {
+    &:focus-within {
         .image {
             img {
                 transform: scale(1.1);
@@ -73,6 +73,26 @@
             .read-more {
                 bottom: 20px;
                 opacity: 1;
+            }
+        }
+    }
+    @media (hover: hover) {
+        &:hover {
+            .content {
+                bottom: 24px;
+                .author {
+                    opacity: 1;
+                }
+            }
+            .image {
+                img {
+                    transform: scale(1.1);
+                }
+                .blog-tag,
+                .read-more {
+                    bottom: 20px;
+                    opacity: 1;
+                }
             }
         }
     }
@@ -111,6 +131,16 @@
         justify-content: center;
         background: #f8f9fa;
         font-size: 20px;
+    }
+}
+
+@media (hover: none) {
+    .blog .image {
+        .blog-tag,
+        .read-more {
+            bottom: 20px;
+            opacity: 1;
+        }
     }
 }
 

@@ -15,6 +15,8 @@ function revalidateArticles(slug?: string) {
   revalidatePath("/me/articles");
   revalidatePath("/me");
   revalidatePath("/articles");
+  revalidatePath("/feed.xml");
+  revalidatePath("/sitemap.xml");
   if (slug) revalidatePath(`/articles/${slug}`);
 }
 

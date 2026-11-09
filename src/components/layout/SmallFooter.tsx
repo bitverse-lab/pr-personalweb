@@ -26,7 +26,7 @@ export default function SmallFooter() {
               <div className="text-center">
                 <p className="mb-0">
                   © {new Date().getFullYear()} {site.name}. All rights reserved. ·{" "}
-                  <Link href="/privacy" className="text-foot">Privacy</Link>
+                  <Link href="/privacy" className="text-foot text-decoration-underline">Privacy</Link>
                 </p>
               </div>
             </div>

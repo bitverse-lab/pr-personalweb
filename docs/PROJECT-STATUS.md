@@ -1,6 +1,6 @@
 # Personal OS — project status and handoff
 
-Last updated: 22 October 2026. Written for whoever picks this project up next, human or AI.
+Last updated: 24 October 2026. Written for whoever picks this project up next, human or AI.
 For architecture rules and day-to-day conventions, read `CLAUDE.md` first; this file is the
 story of how the project got here and what is left.
 
@@ -24,20 +24,17 @@ journal, writing, projects and files.
 | | |
 | --- | --- |
 | Feature work | **Complete.** Every planned module is built. |
-| Verification | `pnpm check` (typecheck + lint + 67 tests) and `pnpm build` all pass. |
-| Browser testing | **Never done.** No page has been looked at by a human or an agent. |
-| Deployment | Not deployed. No hosting, no CI, no migrations, no monitoring, no backups. |
-| Real content | Not filled in. Public pages show the neutral "being set up" placeholder. |
-| Database | Supabase project is **paused** (free tier, inactivity). Resume it before any work. |
+| Verification | Typecheck, lint, 77 unit tests and `next build` pass; build emits existing dependency and `<img>` warnings. |
+| Browser testing | Public routes and signed-in workspace pages checked; overview mobile layout, calendar controls, and article/project previews verified. Manually tested article/project publish-to-public flows against the current Supabase project using owner-approved E2E content, then removed the marked records and confirmed list, detail, RSS, and sitemap cleanup. Playwright covers public-route smoke tests, the signed-out `/me` redirect, WCAG 2.1 A/AA scans, public scroll-reveal behavior, and Projects hydration (20 tests pass). Authenticated flows, contact submission and other mutation flows remain untested. No screen-reader/manual accessibility audit yet. Inbox and Media pagination boundaries are unit-tested, but current data is below page size. |
+| Deployment | Not deployed. CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. An initial Drizzle baseline is prepared but not applied; hosting, monitoring and backups remain outstanding. |
+| Real content | Setup is incomplete. Existing published content remains; two pre-existing records identified by the owner as test content remain as drafts. Temporary E2E article/project records were removed after verification. |
+| Database | Supabase has been resumed; local public-page reads returned successfully. |
 
-### Immediate blockers
+### Before production
 
-1. **The last session's work is uncommitted.** 81 modified files and 11 new files sit in the
-   working tree; `origin/main` still points at the initial commit. Anyone cloning the
-   repository today gets none of it. Commit and push before doing anything else — otherwise
-   the audit described in section 5 will be silently lost or redone.
-2. **Supabase is paused.** Symptom: `tenant/user postgres.<ref> not found`. Resume it in the
-   Supabase dashboard. Nothing that touches data can be tested until then.
+Local development is unblocked. Complete the manual browser round, establish a safe migration
+baseline for the populated Supabase database, and configure hosting, monitoring and backups
+before production.
 
 ## 3. What is built
 
@@ -46,6 +43,11 @@ testimonials, CTA), `/about`, `/cv` (plus a generated PDF at `/cv/download`), `/
 `/projects/[slug]` with search and technology filters, `/articles` and `/articles/[slug]` with
 table of contents, share buttons, reading progress and previous/next, `/contact`, `/privacy`,
 `/login`, plus `/feed.xml`, `/sitemap.xml`, `/robots.txt` and JSON-LD.
+
+The home-page hero and About section now support separate photos. The existing profile photo
+remains the hero photo; About falls back to it until a dedicated About photo is uploaded in
+Profile & CV → Basics. The additive database column has been applied to the configured Supabase
+database, and the earlier uploaded photo remains unchanged.
 
 **Workspace (`/me`):**
 
@@ -88,10 +90,10 @@ table of contents, share buttons, reading progress and previous/next, `/contact`
 - **Public failure handling is asymmetric on purpose** — list pages degrade, detail pages
   return real errors. `CLAUDE.md` explains why; do not "simplify" it.
 
-## 5. The October audit (uncommitted)
+## 5. The October audit (committed)
 
-A full-codebase audit and upgrade was carried out in the previous session. Net effect:
-81 files changed, 11 added, **+1215 / −1353 lines** — it removed more code than it added.
+A full-codebase audit and upgrade was committed as `07377b8`. Net effect: **+1215 / −1353
+lines** — it removed more code than it added.
 
 **Found and fixed**
 
@@ -118,45 +120,48 @@ button press states and skeleton loaders.
 
 ## 6. Open issues
 
-1. **Nothing has been seen in a browser.** This is the single biggest risk. The 18 migrated
-   dialogs compile and are type-correct, but no one has watched one open. Check them first:
-   Tasks, Calendar, Career, Health (nutrition and workouts), Profile, Media, Testimonials.
-2. **`/articles/[slug]` status anomaly.** While the database is down it returns HTTP 200 with
-   the 404 page body, whereas the structurally identical `/projects/[slug]` correctly returns
-   404 or 500. Cause not found; needs a live database to diagnose. A soft 404 would let search
-   engines index non-existent article URLs.
-3. **The "newer article" previous/next link on article pages has never been confirmed working.**
-   The "older" direction was verified; the newer direction was not.
-4. **No pagination anywhere.** Every list loads all rows. Fine for one person today; Inbox and
+1. **Workspace browser testing is incomplete.** The 18 migrated dialogs compile and are
+   type-correct, but have not been opened in a browser. Check Tasks, Calendar, Career, Health
+   (nutrition and workouts), Profile, Media and Testimonials on desktop and mobile.
+2. **The "newer article" previous/next link has never been confirmed working.** The "older"
+   direction was verified; the newer direction was not.
+3. **No pagination anywhere.** Every list loads all rows. Fine for one person today; Inbox and
    Media will outgrow it.
-5. **Dependency advisories.** `pnpm audit --prod` reported 24 findings at last check: 23 in
+4. **Dependency advisories.** `pnpm audit --prod` reported 24 findings at last check: 23 in
    `next@14.2.35` (fixed only in Next 15+, which needs React 19 compatibility work) and 1 in
    Tiptap 2. Mitigations in place: the image optimizer is disabled
    (`images.unoptimized: true`), a prototype-pollution guard in `validateDoc`, and a PostCSS
    override in `pnpm-workspace.yaml`.
-6. No Content-Security-Policy. No screen-reader pass or automated axe checks.
+5. No Content-Security-Policy or screen-reader pass. Automated axe-core checks now cover the public pages and enforce WCAG 2.1 A/AA rules in Playwright/CI. Application error logs are privacy-sanitized, but no external monitoring provider is configured.
 
 ## 7. What to do next, in order
 
-1. **Commit and push the audit work.** See section 2.
-2. **Resume the Supabase project.**
-3. **Manual test round** in a desktop browser and on a phone: every workspace page, every
-   dialog, the contact form, and the two issues in section 6 (items 2 and 3).
-4. **Fill in real content** — Profile & CV, photo, first project, first article, testimonials.
+1. **Manual test round** in a desktop browser and on a phone: every workspace page, every
+   dialog, the contact form, and the newer-article navigation in section 6.
+2. **Fill in real content** — Profile & CV, photo, first project, first article, testimonials.
    The public site shows placeholders until a name is saved.
-5. **Replace `db:push` with tracked Drizzle migrations.** `src/db/migrations/` is empty, which
-   is acceptable for local development and not acceptable for production.
-6. **Add CI.** `.github/workflows/ci.yml` exists and runs install, typecheck, lint and tests on
+3. **Adopt tracked Drizzle migrations safely.** An initial schema baseline has been generated
+   under `src/db/migrations/`, but it has not been applied. It creates the current tables and is
+   only suitable for a fresh database; do not run it against the populated Supabase instance.
+   Before adopting migrations there, compare the live schema and establish a verified baseline.
+4. **Confirm CI is green.** `.github/workflows/ci.yml` runs install, typecheck, lint and tests on
    push to `main` and on pull requests. Confirm it goes green after the first push. `pnpm build`
    is deliberately not in CI because prerendering needs a database.
-7. **Deploy to Vercel:** set every environment variable including `SITE_URL` and the production
+5. **Deploy to Vercel:** set every environment variable including `SITE_URL` and the production
    `AUTH_URL`, add `<url>/api/auth/callback/google` to the Google OAuth client's authorised
    redirect URIs, run migrations, then check `/robots.txt`, `/sitemap.xml` and that `/me`
    redirects to `/login` when signed out. Pick a function region near the Supabase region.
-8. **Then, in rough priority order:** scheduled backups of both the database *and* the two
-   storage buckets (a database dump alone cannot restore the site), error monitoring
-   configured to keep journal, health and contact content out of its reports, Playwright
-   end-to-end tests, the Next 15 upgrade, a report-only CSP, and a screen-reader audit.
+6. **Then, in rough priority order:** implement scheduled backups of both the database and
+   storage buckets `public-media` and `private-docs` (a database dump alone cannot restore the
+   site). Owner preference: an external encrypted destination with 30 daily and 12 monthly
+   restore points; provider is still undecided. Treat database dumps and private documents as
+   sensitive, keep credentials out of logs, and rehearse restores in an isolated environment.
+   Do not export or store backup contents without separate owner approval. Select and configure an
+   error-monitoring provider only after reviewing its data-processing and retention settings;
+   current application logs omit exception messages, stacks, SQL parameters, user identifiers,
+   and request content. Also plan the Next 15 upgrade, use a report-only CSP, and complete a manual
+   keyboard/screen-reader audit. Public Playwright smoke and automated accessibility checks are
+   now in place; authenticated E2E still needs a safe test identity and data strategy.
 
 ## 8. Backlog
 

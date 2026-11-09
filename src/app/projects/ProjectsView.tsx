@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import Lightbox from "react-18-image-lightbox";
 import "react-18-image-lightbox/style.css";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
+import ResponsiveProjectGrid from "@/components/shared/ResponsiveProjectGrid";
+import ScrollRevealObserver from "@/components/shared/ScrollRevealObserver";
 import type { Project } from "@/features/projects/format";
 
 export default function ProjectsView({ projects, categories, heading, subheading }: { projects: Project[]; categories: string[]; heading: string; subheading: string }) {
@@ -50,6 +51,7 @@ export default function ProjectsView({ projects, categories, heading, subheading
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
+      <ScrollRevealObserver />
       <section className="bg-half-170 d-table w-100" style={{ backgroundImage: "url(/images/digital/bg01.jpg)" }} id="hero">
         <div className="bg-overlay bg-primary-gradient-overlay"></div>
         <div className="container">
@@ -70,7 +72,7 @@ export default function ProjectsView({ projects, categories, heading, subheading
         </div>
       </section>
 
-      <section className="section" id="portfolio">
+      <section className="section" id="portfolio" data-scroll-reveal>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-12 mb-4 filters-group-wrap text-center">
@@ -145,37 +147,35 @@ export default function ProjectsView({ projects, categories, heading, subheading
             </div>
           )}
           <div id="grid">
-            <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2, 900: 5 }}>
-              <Masonry>
-                {filteredProjects.map((project) => {
-                  const galleryIndex = galleryImages.indexOf(project.image);
-                  return (
-                    <div className="picture-item p-2" key={project.id}>
-                      <div className="card border-0 portfolio portfolio-primary portfolio-grid position-relative d-block overflow-hidden rounded">
-                        <div className="card-body p-0">
-                          <button
-                            type="button"
-                            onClick={() => handleImageClick(galleryIndex)}
-                            className="lightbox p-0 border-0 bg-transparent d-block w-100"
-                            aria-label={`View ${project.name} larger`}
-                          >
-                            <img loading="lazy" decoding="async" src={project.image} className="img-fluid" alt={project.name} />
-                          </button>
-                          <div className="grid-content bg-white p-3 rounded shadow">
-                            <h6 className="mb-1">
-                              <Link href={`/projects/${project.slug}`} className="text-dark title">
-                                {project.name}
-                              </Link>
-                            </h6>
-                            {project.label && <h6 className="text-muted fw-normal tag mb-0">{project.label}</h6>}
-                          </div>
+            <ResponsiveProjectGrid>
+              {filteredProjects.map((project) => {
+                const galleryIndex = galleryImages.indexOf(project.image);
+                return (
+                  <div className="picture-item p-2" key={project.id}>
+                    <div className="card border-0 portfolio portfolio-primary portfolio-grid position-relative d-block overflow-hidden rounded">
+                      <div className="card-body p-0">
+                        <button
+                          type="button"
+                          onClick={() => handleImageClick(galleryIndex)}
+                          className="lightbox p-0 border-0 bg-transparent d-block w-100"
+                          aria-label={`View ${project.name} larger`}
+                        >
+                          <img loading="lazy" decoding="async" src={project.image} className="img-fluid" alt={project.name} />
+                        </button>
+                        <div className="grid-content bg-white p-3 rounded shadow">
+                          <h6 className="mb-1">
+                            <Link href={`/projects/${project.slug}`} className="text-dark title">
+                              {project.name}
+                            </Link>
+                          </h6>
+                          {project.label && <h6 className="text-muted fw-normal tag mb-0">{project.label}</h6>}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </Masonry>
-            </ResponsiveMasonry>
+                  </div>
+                );
+              })}
+            </ResponsiveProjectGrid>
             {isLightboxOpen && (
               <Lightbox
                 mainSrc={galleryImages[currentImageIndex]}
@@ -197,7 +197,7 @@ export default function ProjectsView({ projects, categories, heading, subheading
           </div>
         </div>
 
-        <div className="container mt-100 mt-60" id="contact">
+        <div className="container mt-100 mt-60" id="contact" data-scroll-reveal>
           <div className="row justify-content-center">
             <div className="col-12">
               <div className="section-title text-center">

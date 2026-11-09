@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useDroppable } from "@dnd-kit/core";
+import { FiCalendar } from "react-icons/fi";
+import OverviewCard from "./OverviewCard";
 
 export interface MiniCalendarMarker {
   date: string; // "YYYY-MM-DD"
@@ -55,30 +56,22 @@ export default function MiniCalendar({ markers = [] }: { markers?: MiniCalendarM
   const monthLabel = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
   return (
-    <div className="card rounded shadow-sm h-100">
-      <div className="card-body">
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          <h6 className="card-title mb-0">{monthLabel}</h6>
-          <Link href="/me/calendar" className="small">
-            Open Calendar
-          </Link>
-        </div>
-        <div className="d-grid" style={{ gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-          {WEEKDAY_LABELS.map((label, index) => (
-            <div key={index} className="text-center text-muted small">
-              {label}
-            </div>
-          ))}
-          {cells.map((date, index) =>
-            date ? (
-              <MiniCalendarDay key={date} date={date} hasActivity={activityDates.has(date)} isToday={date === todayKey} />
-            ) : (
-              <div key={index} />
-            )
-          )}
-        </div>
-        <p className="text-muted small mt-2 mb-0">Drag a task here to schedule it.</p>
+    <OverviewCard title={monthLabel} icon={FiCalendar} href="/me/calendar" linkLabel="Open calendar">
+      <div className="d-grid" style={{ gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+        {WEEKDAY_LABELS.map((label, index) => (
+          <div key={index} className="text-center text-muted small">
+            {label}
+          </div>
+        ))}
+        {cells.map((date, index) =>
+          date ? (
+            <MiniCalendarDay key={date} date={date} hasActivity={activityDates.has(date)} isToday={date === todayKey} />
+          ) : (
+            <div key={index} />
+          )
+        )}
       </div>
-    </div>
+      <p className="text-muted small mt-2 mb-0">Drag a task here to schedule it.</p>
+    </OverviewCard>
   );
 }

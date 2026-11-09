@@ -24,6 +24,10 @@ a {
     text-decoration: none !important;
     cursor: pointer !important;
 }
+button:not(:disabled),
+[role="button"] {
+    cursor: pointer;
+}
 p {
     line-height: 1.6;
 }

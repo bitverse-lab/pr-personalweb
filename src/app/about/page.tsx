@@ -31,7 +31,7 @@ export default async function AboutPage() {
               name: profile.fullName,
               jobTitle: profile.headline || undefined,
               description: profile.summary || undefined,
-              image: profile.photoUrl ?? undefined,
+              image: profile.aboutPhotoUrl ?? undefined,
               email: profile.email ? `mailto:${profile.email}` : undefined,
               url: profile.website || undefined,
               sameAs: links.map((l) => l.url),
@@ -49,11 +49,11 @@ export default async function AboutPage() {
               </div>
             ) : (
               <div className="row align-items-center">
-                {profile.photoUrl && (
+                {profile.aboutPhotoUrl && (
                   <div className="col-lg-5 col-md-6">
                     <div className="position-relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.photoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
+                      <img src={profile.aboutPhotoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
                       <div className="position-absolute top-0 start-0 z-index-m-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={profile.dotsImage} className="avatar avatar-xl-large" alt="" />
@@ -62,8 +62,8 @@ export default async function AboutPage() {
                   </div>
                 )}
 
-                <div className={profile.photoUrl ? "col-lg-7 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0" : "col-lg-9 mx-auto"}>
-                  <div className={profile.photoUrl ? "ms-lg-5" : ""}>
+                <div className={profile.aboutPhotoUrl ? "col-lg-7 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0" : "col-lg-9 mx-auto"}>
+                  <div className={profile.aboutPhotoUrl ? "ms-lg-5" : ""}>
                     <div className="section-title">
                       <span className="badge rounded-pill bg-soft-primary">About Me</span>
                       <h1 className="h4 title mt-2 mb-2">{profile.fullName}</h1>

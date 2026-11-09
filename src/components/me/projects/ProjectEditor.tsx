@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { Fragment, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FiArchive, FiArrowLeft, FiExternalLink, FiGlobe, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { deleteProject, restoreProject, saveProject, setProjectFeatured, setProjectStatus } from "@/features/projects/actions";
-import { slugify } from "@/features/content/richtext";
+import { docToPlainText, slugify } from "@/features/content/richtext";
+import { projectPeriod } from "@/features/projects/format";
 import { useAutosave } from "@/hooks/useAutosave";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import { useToast } from "@/components/shared/ToastProvider";
 import ArticleStatusBadge from "@/components/me/content/ArticleStatusBadge";
 import { SaveIndicator } from "@/components/me/content/ArticleEditor";
@@ -47,7 +49,10 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [links, setLinks] = useState<LinkRow[]>(project.links);
   const [status, setStatus] = useState(project.status);
   const [featured, setFeatured] = useState(project.featured);
+  const [preview, setPreview] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const period = useMemo(() => projectPeriod(monthToDate(start) || null, monthToDate(end) || null), [start, end]);
+  const hasStory = useMemo(() => docToPlainText(doc).trim().length > 0, [doc]);
 
   const payload = useMemo(
     () => ({
@@ -123,38 +128,120 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
         <Link href="/me/projects" className="text-muted small d-inline-flex align-items-center gap-1">
           <FiArrowLeft /> All projects
         </Link>
-        <SaveIndicator status={saveStatus} error={error} />
+        <div className="d-flex align-items-center gap-3">
+          <SaveIndicator status={saveStatus} error={error} />
+          <div className="btn-group btn-group-sm" role="group" aria-label="Editor mode">
+            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(false)}>Write</button>
+            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(true)}>Preview</button>
+          </div>
+        </div>
       </div>
 
       <div className="row g-3">
-        <div className="col-lg-8">
-          <input className="form-control form-control-lg fw-semibold mb-3" placeholder="Project title" aria-label="Project title" maxLength={120} value={title} onChange={(e) => onTitle(e.target.value)} />
+        <div className={preview ? "col-12" : "col-lg-8"}>
+          {preview ? (
+            <article className="card rounded shadow-sm">
+              <div className="card-body">
+                <header className="text-center mb-4">
+                  <h2 className="h3 mb-3">{title || "Untitled project"}</h2>
+                  {summary.trim() && <p className="text-muted mx-auto mb-2" style={{ maxWidth: 640 }}>{summary}</p>}
+                  {period && <p className="text-muted small mb-0">{period}</p>}
+                </header>
+                <div className="row">
+                  <div className="col-lg-8 col-md-7">
+                    {gallery.length > 0 ? (
+                      gallery.map((image, index) => (
+                        <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.mediaId}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={image.url} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="img-fluid rounded shadow" alt={image.caption || `${title || "Project"} — image ${index + 1}`} />
+                          {image.caption && <figcaption className="text-muted small mt-2">{image.caption}</figcaption>}
+                        </figure>
+                      ))
+                    ) : (
+                      <p className="text-muted small">No project images added yet.</p>
+                    )}
+                    {hasStory ? (
+                      <section className="mt-4 pt-2">
+                        <h3 className="h5 mb-3">About this project</h3>
+                        <RichTextRenderer doc={doc} />
+                      </section>
+                    ) : (
+                      <p className="text-muted">No case study content yet.</p>
+                    )}
+                  </div>
+                  <aside className="col-lg-4 col-md-5 mt-4 mt-md-0">
+                    <div className="widget">
+                      <h3 className="h6 widget-title font-weight-bold pt-2 pb-2 bg-light rounded text-center">Project Details</h3>
+                      <dl className="row mb-0 mt-4">
+                        {[
+                          ...(client.trim() ? [{ label: "Client", value: client.trim() }] : []),
+                          ...(role.trim() ? [{ label: "Role", value: role.trim() }] : []),
+                          ...(category.trim() ? [{ label: "Category", value: category.trim() }] : []),
+                          ...(period ? [{ label: "Date", value: period }] : []),
+                          ...(location.trim() ? [{ label: "Location", value: location.trim() }] : []),
+                          ...(technologies.length ? [{ label: "Technologies", value: technologies.join(", ") }] : []),
+                        ].map((row) => (
+                          <Fragment key={row.label}>
+                            <dt className="col-md-4 fw-medium col-5">{row.label} :</dt>
+                            <dd className="col-md-8 col-7 text-muted">{row.value}</dd>
+                          </Fragment>
+                        ))}
+                        {links.filter((link) => link.label.trim() && link.url.trim()).map((link, index) => {
+                          const href = /^https?:\/\//i.test(link.url.trim()) ? link.url.trim() : null;
+                          return (
+                            <Fragment key={`${link.label}-${index}`}>
+                              <dt className="col-md-4 fw-medium col-5">{link.label.trim()} :</dt>
+                              <dd className="col-md-8 col-7 text-muted">
+                                {href ? <a href={href} target="_blank" rel="noopener noreferrer">{href.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : link.url.trim()}
+                              </dd>
+                            </Fragment>
+                          );
+                        })}
+                      </dl>
+                    </div>
+                    {technologies.length > 0 && (
+                      <div className="widget mt-4 pt-2 text-center">
+                        <h3 className="h6 widget-title font-weight-bold pt-2 pb-2 bg-light rounded">Built with</h3>
+                        <div className="tagcloud text-center mt-4">
+                          {technologies.map((technology) => <span className="badge bg-soft-primary text-primary m-1" key={technology}>{technology}</span>)}
+                        </div>
+                      </div>
+                    )}
+                  </aside>
+                </div>
+              </div>
+            </article>
+          ) : (
+            <>
+              <input className="form-control form-control-lg fw-semibold mb-3" placeholder="Project title" aria-label="Project title" maxLength={120} value={title} onChange={(e) => onTitle(e.target.value)} />
 
-          <div className="card rounded shadow-sm mb-3">
-            <div className="card-body">
-              <label className="form-label small mb-1" htmlFor="p-summary">Short summary</label>
-              <textarea id="p-summary" className="form-control" rows={2} maxLength={300} placeholder="One or two sentences shown on cards and in your CV" value={summary} onChange={(e) => setSummary(e.target.value)} />
-              <div className="form-text">{summary.length}/300</div>
-            </div>
-          </div>
+              <div className="card rounded shadow-sm mb-3">
+                <div className="card-body">
+                  <label className="form-label small mb-1" htmlFor="p-summary">Short summary</label>
+                  <textarea id="p-summary" className="form-control" rows={2} maxLength={300} placeholder="One or two sentences shown on cards and in your CV" value={summary} onChange={(e) => setSummary(e.target.value)} />
+                  <div className="form-text">{summary.length}/300</div>
+                </div>
+              </div>
 
-          <div className="card rounded shadow-sm mb-3">
-            <div className="card-body">
-              <h6 className="mb-2">Case study</h6>
-              <p className="text-muted small">Explain the problem, your approach, the architecture and the results. Headings, lists, code blocks and images all work.</p>
-              <RichEditor initial={project.content} onChange={setDoc} placeholder="What was the problem, and how did you solve it?" minHeight={320} />
-            </div>
-          </div>
+              <div className="card rounded shadow-sm mb-3">
+                <div className="card-body">
+                  <h6 className="mb-2">Case study</h6>
+                  <p className="text-muted small">Explain the problem, your approach, the architecture and the results. Headings, lists, code blocks and images all work.</p>
+                  <RichEditor initial={project.content} onChange={setDoc} placeholder="What was the problem, and how did you solve it?" minHeight={320} />
+                </div>
+              </div>
 
-          <div className="card rounded shadow-sm">
-            <div className="card-body">
-              <h6 className="mb-3">Images</h6>
-              <GalleryEditor items={gallery} coverMediaId={coverMediaId} onChange={setGallery} onCoverChange={setCoverMediaId} />
-            </div>
-          </div>
+              <div className="card rounded shadow-sm">
+                <div className="card-body">
+                  <h6 className="mb-3">Images</h6>
+                  <GalleryEditor items={gallery} coverMediaId={coverMediaId} onChange={setGallery} onCoverChange={setCoverMediaId} />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="col-lg-4">
+        {!preview && <div className="col-lg-4">
           <div className="card rounded shadow-sm mb-3">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -243,7 +330,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
               ))}
             </div>
           </div>
-        </div>
+        </div>}
       </div>
 
       {confirmDelete && (

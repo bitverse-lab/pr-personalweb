@@ -28,6 +28,7 @@ export interface ProfileData {
     availabilityNote: string;
   };
   photo: MediaDto | null;
+  aboutPhoto: MediaDto | null;
   experiences: { id: string; company: string; role: string; location: string | null; startDate: string; endDate: string | null; description: string | null; achievements: string[] }[];
   educations: { id: string; school: string; degree: string | null; field: string | null; startDate: string | null; endDate: string | null; description: string | null }[];
   skills: { id: string; name: string; category: string | null; level: number }[];
@@ -50,6 +51,7 @@ export async function getMyProfile(): Promise<ProfileData> {
       availabilityNote: f.profile?.availabilityNote ?? "",
     },
     photo: f.photo ? toMediaDto(f.photo) : null,
+    aboutPhoto: f.aboutPhoto ? toMediaDto(f.aboutPhoto) : null,
     experiences: f.experiences.map((e) => ({ id: e.id, company: e.company, role: e.role, location: e.location, startDate: e.startDate, endDate: e.endDate, description: e.description, achievements: e.achievements })),
     educations: f.educations.map((e) => ({ id: e.id, school: e.school, degree: e.degree, field: e.field, startDate: e.startDate, endDate: e.endDate, description: e.description })),
     skills: f.skills.map((s) => ({ id: s.id, name: s.name, category: s.category, level: s.level })),
@@ -75,6 +77,19 @@ export async function setProfilePhoto(input: unknown): Promise<ActionResult<{ ok
     if (!m || m.status !== "ready" || m.kind !== "image" || m.bucket !== "public-media") return { ok: false, error: "That image is not available" };
   }
   await profileRepository.setPhoto(userId, parsed.data.mediaId);
+  revalidateProfile();
+  return { ok: true, data: { ok: true } };
+}
+
+export async function setAboutPhoto(input: unknown): Promise<ActionResult<{ ok: true }>> {
+  const userId = await requireUserId();
+  const parsed = photoSchema.safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+  if (parsed.data.mediaId) {
+    const m = await mediaRepository.find(userId, parsed.data.mediaId);
+    if (!m || m.status !== "ready" || m.kind !== "image" || m.bucket !== "public-media") return { ok: false, error: "That image is not available" };
+  }
+  await profileRepository.setAboutPhoto(userId, parsed.data.mediaId);
   revalidateProfile();
   return { ok: true, data: { ok: true } };
 }

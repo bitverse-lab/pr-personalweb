@@ -5,6 +5,7 @@ import { articleRepository } from "@/server/repositories/article-repository";
 import { profileRepository } from "@/server/repositories/profile-repository";
 import { publicObjectUrl } from "@/server/storage/client";
 import { projectService } from "@/server/services/project-service";
+import { resolveProfilePhotoUrls } from "@/features/profile/photo";
 
 export interface SkillBar {
   label: string;
@@ -55,8 +56,10 @@ export interface Profile {
   location: string;
   email: string;
   website: string;
-  /** The owner's uploaded photo, or null (no stock photo is ever shown in its place). */
-  photoUrl: string | null;
+  /** The owner's hero photo, or null (no stock photo is ever shown in its place). */
+  heroPhotoUrl: string | null;
+  /** The About photo, falling back to the hero photo until a separate one is uploaded. */
+  aboutPhotoUrl: string | null;
   availableForWork: boolean;
   availabilityNote: string;
   skills: SkillBar[];
@@ -89,7 +92,8 @@ const placeholder: Profile = {
   location: "",
   email: "",
   website: "",
-  photoUrl: null,
+  heroPhotoUrl: null,
+  aboutPhotoUrl: null,
   availableForWork: false,
   availabilityNote: "",
   skills: [],
@@ -120,6 +124,10 @@ const loadProfile = unstable_cache(async (): Promise<Profile> => {
     const roles = full.profile?.roles ?? [];
     const headline = full.profile?.headline ?? "";
     const summary = full.profile?.summary ?? "";
+    const { heroPhotoUrl, aboutPhotoUrl } = resolveProfilePhotoUrls(
+      full.photo ? publicObjectUrl(full.photo.bucket, full.photo.storageKey) : null,
+      full.aboutPhoto ? publicObjectUrl(full.aboutPhoto.bucket, full.aboutPhoto.storageKey) : null,
+    );
     return {
       isPlaceholder: false,
       fullName: name,
@@ -131,7 +139,8 @@ const loadProfile = unstable_cache(async (): Promise<Profile> => {
       location: full.profile?.location ?? "",
       email: full.profile?.publicEmail ?? "",
       website: full.profile?.website ?? "",
-      photoUrl: full.photo ? publicObjectUrl(full.photo.bucket, full.photo.storageKey) : null,
+      heroPhotoUrl,
+      aboutPhotoUrl,
       availableForWork: full.profile?.availableForWork ?? false,
       availabilityNote: full.profile?.availabilityNote ?? "",
       skills: full.skills.map((s) => ({ label: s.name, percent: s.level })),

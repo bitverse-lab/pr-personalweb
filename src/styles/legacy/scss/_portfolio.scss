@@ -38,6 +38,18 @@
     }
 }
 
+.projects-grid-fallback {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    @media (min-width: 750px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 900px) {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
 
 .portfolio {
     @each $name,
@@ -106,13 +118,24 @@
         opacity: 0;
         transition: all 0.5s ease;
     }
-    &:hover {
+    &:focus-within {
         .overlay {
             opacity: 0.6;
         }
         .icons,
         .content {
             opacity: 1;
+        }
+    }
+    @media (hover: hover) {
+        &:hover {
+            .overlay {
+                opacity: 0.6;
+            }
+            .icons,
+            .content {
+                opacity: 1;
+            }
         }
     }
 
@@ -132,10 +155,18 @@
                 font-size: 15px !important;
             }
         }
-        &:hover { 
+        &:focus-within {
             box-shadow: $shadow;
             .grid-content {
                 transform: translateY(0);
+            }
+        }
+        @media (hover: hover) {
+            &:hover {
+                box-shadow: $shadow;
+                .grid-content {
+                    transform: translateY(0);
+                }
             }
         }
     }
@@ -144,9 +175,9 @@
         .port-image {
             z-index: 1;
             transition: all 0.5s ease;
-            &:hover {
-                transform: translate3d(-1px, -1px, 0) rotateZ(-2.5deg);
-            }
+        }
+        &:focus-within .port-image {
+            transform: translate3d(-1px, -1px, 0) rotateZ(-1deg);
         }
         .bg {
             position: absolute;
@@ -155,14 +186,35 @@
             left: 0;
             bottom: 0;
         }
+        @media (hover: hover) {
+            &:hover .port-image {
+                transform: translate3d(-1px, -1px, 0) rotateZ(-2.5deg);
+            }
+        }
     }
 
     &.portfolio-classic {
-        &:hover {
+        &:focus-within {
             img {
                 transform: scale(1.05);
             }
         }
+        @media (hover: hover) {
+            &:hover img {
+                transform: scale(1.05);
+            }
+        }
+    }
+}
+
+@media (hover: none) {
+    .portfolio.portfolio-grid .grid-content {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        margin: 12px;
     }
 }
 

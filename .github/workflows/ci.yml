@@ -19,3 +19,24 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://playwright:playwright@127.0.0.1:1/playwright
+      AUTH_SECRET: playwright-only-dummy-secret-not-for-authentication
+      AUTH_GOOGLE_ID: playwright-client-id
+      AUTH_GOOGLE_SECRET: playwright-client-secret
+      OWNER_EMAIL: playwright@example.invalid
+      AUTH_URL: http://localhost:3001
+      SITE_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

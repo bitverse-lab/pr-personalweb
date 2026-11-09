@@ -63,7 +63,7 @@
             }
         }
     }
-    &:hover {
+    &:focus-within {
         .team-image {
             overflow: hidden;
             position: relative;
@@ -82,6 +82,32 @@
                     .designation,
                     .team-social {
                         bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+    @media (hover: hover) {
+        &:hover {
+            .team-image {
+                overflow: hidden;
+                position: relative;
+                img {
+                    transform: scale(1.05);
+                }
+                .team-social {
+                    bottom: 16px;
+                }
+            }
+            &.team-two {
+                .team-image {
+                    .content {
+                        bottom: 20px;
+                        opacity: 1 !important;
+                        .designation,
+                        .team-social {
+                            bottom: 0;
+                        }
                     }
                 }
             }

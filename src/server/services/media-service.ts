@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { mediaRepository } from "@/server/repositories/media-repository";
 import { ensureBucket, getStorageClient, publicObjectUrl, BUCKETS } from "@/server/storage/client";
 import { extFor, kindOfMime, maxBytesFor, sanitizeName, sniffMime, formatBytes } from "@/features/media/rules";
+import { mediaReferenceLabels } from "@/features/media/references";
+import { reportError } from "@/lib/report-error";
 import type { MediaBucket, MediaKind, MediaPurpose } from "@/db/schema/media";
 import type { ServiceResult } from "./article-service";
 
@@ -54,9 +56,9 @@ async function removeObject(bucket: MediaBucket, key: string) {
   // Best effort: an orphaned object is harmless, a dangling row would not be. Failures are logged, not thrown.
   try {
     const { error } = await getStorageClient().storage.from(bucket).remove([key]);
-    if (error) console.error(`[storage] could not remove object from ${bucket}: ${error.message}`);
+    if (error) reportError("storage-cleanup", error);
   } catch (e) {
-    console.error(`[storage] could not remove object from ${bucket}:`, e instanceof Error ? e.message : e);
+    reportError("storage-cleanup", e);
   }
 }
 
@@ -138,6 +140,10 @@ export const mediaService = {
   async remove(userId: string, id: string): Promise<ServiceResult<{ id: string }>> {
     const row = await mediaRepository.find(userId, id);
     if (!row) return { ok: false, error: "File not found" };
+    const references = mediaReferenceLabels(await mediaRepository.references(userId, row));
+    if (references.length > 0) {
+      return { ok: false, error: `Cannot delete this file while it is used in ${references.join(", ")}. Remove it from those items first.` };
+    }
     await mediaRepository.delete(userId, id);
     await removeObject(row.bucket, row.storageKey);
     return { ok: true, data: { id } };

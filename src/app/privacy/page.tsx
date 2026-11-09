@@ -69,11 +69,11 @@ export default async function PrivacyPage() {
                   You can ask me to show, correct or delete anything you have sent me.{" "}
                   {email ? (
                     <>
-                      Write to <a href={`mailto:${email}`}>{email}</a> or use the <Link href="/contact">contact form</Link>.
+                      Write to <a className="text-decoration-underline" href={`mailto:${email}`}>{email}</a> or use the <Link className="text-decoration-underline" href="/contact">contact form</Link>.
                     </>
                   ) : (
                     <>
-                      Use the <Link href="/contact">contact form</Link>.
+                      Use the <Link className="text-decoration-underline" href="/contact">contact form</Link>.
                     </>
                   )}
                 </p>

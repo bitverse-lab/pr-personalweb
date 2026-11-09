@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect } from "react";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
+import { reportError } from "@/lib/report-error";
 
 // Shown when a page fails while rendering. The details stay in the server logs; visitors only see this.
 // It keeps the site's own header and footer so a visitor who lands here can still get somewhere useful.
 export default function GlobalRouteError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error(error);
+    reportError("public-render", error);
   }, [error]);
 
   return (

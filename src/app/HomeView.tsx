@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { TypeAnimation } from "react-type-animation";
-import { Parallax } from "react-parallax";
 import Lightbox from "react-18-image-lightbox";
 import "react-18-image-lightbox/style.css";
-import { FiCamera, FiDownload } from "react-icons/fi";
+import { FiArrowDown, FiArrowUpRight, FiCamera, FiDownload, FiMapPin } from "react-icons/fi";
 import { MdArrowForward } from "react-icons/md";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
@@ -16,13 +15,18 @@ import ContactSection from "@/components/shared/ContactSection";
 import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
 import JsonLd from "@/components/shared/JsonLd";
 import TestimonialsSection from "@/components/shared/TestimonialsSection";
+import ScrollRevealObserver from "@/components/shared/ScrollRevealObserver";
 import type { PublicTestimonial } from "@/lib/data/testimonials";
 import type { Profile } from "@/lib/data/profile";
 import type { Article } from "@/lib/data/articles";
 import { projectCategories, type Project } from "@/features/projects/format";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-const excerpt = (text: string, max = 190) => (text.length > max ? `${text.slice(0, max).trimEnd()}…` : text);
+const excerpt = (text: string, max = 190) => {
+  if (text.length <= max) return text;
+  const excerptEnd = text.slice(0, max).trimEnd().lastIndexOf(" ");
+  return `${text.slice(0, excerptEnd > 0 ? excerptEnd : max).trimEnd()}…`;
+};
 
 export default function HomeView({ profile, projects, articles, testimonials }: { profile: Profile; projects: Project[]; articles: Article[]; testimonials: PublicTestimonial[] }) {
   const real = !profile.isPlaceholder;
@@ -47,6 +51,7 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
+        <ScrollRevealObserver />
         {real && (
           <JsonLd
             data={{
@@ -54,7 +59,7 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
               name: profile.fullName,
               jobTitle: profile.headline || undefined,
               description: profile.summary || undefined,
-              image: profile.photoUrl ?? undefined,
+              image: profile.heroPhotoUrl ?? undefined,
               email: profile.email ? `mailto:${profile.email}` : undefined,
               url: profile.website || undefined,
               sameAs: profile.links.map((l) => l.url).filter((u) => /^https?:\/\//.test(u)),
@@ -64,70 +69,100 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
         )}
 
         {/* ---- Hero ---- */}
-        <section className="bg-home personal-hero d-flex align-items-center background-effect overflow-hidden z-index-1" id="home">
-          {reducedMotion ? (
-            <div role="presentation" style={{ position: "absolute", inset: 0, backgroundImage: `url(${profile.heroOverlayImage})`, backgroundRepeat: "no-repeat", backgroundSize: "auto 100%" }} />
-          ) : (
-            <Parallax
-              blur={{ min: 0, max: 0 }}
-              bgImage={profile.heroOverlayImage}
-              bgImageAlt=""
-              strength={500}
-              bgStyle={{ width: "auto", height: "100%" }}
-              style={{ position: "absolute", width: "100%", height: "100%" }}
-            />
-          )}
-          <div className="container-fluid position-relative">
-            <div className="container position-relative z-index-1">
-              <div className="row mt-5">
-                <div className="col">
-                  <div className="title-heading">
-                    <div className="row">
-                      <div className="col-lg-4 col-md-6 order-2 order-lg-1 mt-4 mt-sm-0">
-                        <div className="rounded personal-hero-para">
-                          {profile.availableForWork && (
-                            <span className="badge rounded-pill bg-soft-success text-success d-inline-flex align-items-center gap-2 mb-3">
-                              <span className="rounded-circle bg-success d-inline-block" style={{ width: 8, height: 8 }} aria-hidden />
-                              Available for work
-                            </span>
-                          )}
-                          {real && profile.headline && <p className="h5 mb-3 sub-title">{profile.headline}</p>}
-                          <p className="para-desc para mb-0">{real ? excerpt(profile.summary || profile.tagline) : profile.tagline}</p>
-                          {real && (
-                            <div className="mt-4 d-flex flex-wrap gap-2">
-                              <a href="/cv/download" className="btn btn-primary d-inline-flex align-items-center gap-2">
-                                <FiDownload aria-hidden /> Download CV
-                              </a>
-                              <Link href="/contact" className="btn btn-outline-primary">
-                                Contact me
-                              </Link>
-                            </div>
-                          )}
-                        </div>
+        <section className="home-hero-personal position-relative background-effect overflow-hidden" id="home">
+          <div className="home-personal-overlay" aria-hidden="true" />
+          <ul className="home-personal-circles" aria-hidden="true">
+            {Array.from({ length: 8 }, (_, index) => <li key={index} />)}
+          </ul>
+          <div className="container position-relative z-index-1">
+            <div className="row align-items-center home-hero-row">
+              <div className="col-lg-6 order-1">
+                <div className="home-portrait-stage">
+                  <div className="home-portrait-halo" aria-hidden="true" />
+                  <div className="home-portrait-frame">
+                    {profile.heroPhotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={profile.heroPhotoUrl} alt={`Portrait of ${profile.fullName}`} />
+                    ) : (
+                      <div className="home-portrait-placeholder" aria-label="Profile photo not set">
+                        <span>{profile.fullName.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>
                       </div>
-
-                      <div className="col-lg-4 offset-lg-4 col-md-6 order-1 order-lg-1">
-                        <h1 className="display-3 title fw-bold mb-0">
-                          {profile.firstName} <br />
-                          {reducedMotion ? (
-                            <span className="typewrite">{profile.roleSequence[0]}</span>
-                          ) : (
-                            <TypeAnimation sequence={profile.roleSequence.flatMap((word) => [word, 2000])} wrapper="span" speed={5} className="typewrite" repeat={Infinity} cursor={false} />
-                          )}
-                        </h1>
-                      </div>
+                    )}
+                  </div>
+                  {real && (profile.skills[0] || profile.location) && (
+                    <div className="home-portrait-note">
+                      <span className="home-portrait-note-mark" aria-hidden="true" />
+                      <span>{profile.skills[0]?.label ?? profile.location}</span>
                     </div>
+                  )}
+                </div>
+              </div>
+              <div className="col-lg-6 order-2">
+                <div className="home-hero-copy">
+                  <div className="home-hero-meta">
+                    {profile.availableForWork && (
+                      <span className="home-availability">
+                        <span className="home-availability-dot" aria-hidden="true" />
+                        Available for work
+                      </span>
+                    )}
+                    {profile.location && (
+                      <span className="home-hero-location">
+                        <FiMapPin aria-hidden="true" />
+                        {profile.location}
+                      </span>
+                    )}
+                  </div>
+                  <p className="home-hero-kicker">{real ? "Personal portfolio" : "Personal website & workspace"}</p>
+                  <h1 className="home-personal-title">
+                    {real ? (
+                      <>
+                        Hi, I’m
+                        <br />
+                        <span>{profile.fullName}</span>
+                      </>
+                    ) : (
+                      <>Ideas, work, and life in one place.</>
+                    )}
+                  </h1>
+                  <div className="home-hero-roles" aria-label={profile.roleSequence.join(", ")}>
+                    <span className="home-hero-role-label">{real ? "Focused on" : "A personal home for"}</span>
+                    {reducedMotion ? (
+                      <strong className="home-hero-role">{profile.roleSequence[0]}</strong>
+                    ) : (
+                      <TypeAnimation sequence={profile.roleSequence.flatMap((word) => [word, 2000])} wrapper="strong" className="home-hero-role" speed={5} repeat={Infinity} cursor={false} />
+                    )}
+                  </div>
+                  <div className="home-personal-panel">
+                    <p className="home-hero-summary">{real ? excerpt(profile.summary || profile.tagline) : profile.tagline}</p>
+                    {real && (
+                      <div className="home-hero-actions">
+                        <Link href="/contact" className="btn btn-primary btn-pills home-hero-primary">
+                          Let’s talk <FiArrowUpRight aria-hidden="true" />
+                        </Link>
+                        <Link href="#project" className="btn btn-outline-primary btn-pills">
+                          Explore my work <FiArrowUpRight aria-hidden="true" />
+                        </Link>
+                      </div>
+                    )}
+                    {real && profile.skills.length > 0 && (
+                      <div className="home-hero-skills" aria-label="Key skills">
+                        {profile.skills.slice(0, 3).map((skill) => (
+                          <span key={skill.label}>{skill.label}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="personal-overlay bg-overlay bg-primary-gradient-overlay"></div>
-          <ul className="circles p-0 mb-0">
-            {Array.from({ length: 10 }, (_, i) => (
-              <li key={i}></li>
-            ))}
-          </ul>
+          {real && (
+            <a className="home-hero-scroll" href="#project">
+              <FiArrowDown aria-hidden="true" />
+              <span>Scroll to explore</span>
+            </a>
+          )}
         </section>
 
         <div className="position-relative">
@@ -146,15 +181,15 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
         </div>
 
         {/* ---- About + skills ---- */}
-        {real && (profile.summary || profile.skills.length > 0 || profile.photoUrl) && (
-          <section className="section" id="about">
+        {real && (profile.summary || profile.skills.length > 0 || profile.aboutPhotoUrl) && (
+          <section className="section" id="about" data-scroll-reveal>
             <div className="container">
               <div className="row align-items-center">
-                {profile.photoUrl && (
+                {profile.aboutPhotoUrl && (
                   <div className="col-lg-5 col-md-6">
                     <div className="position-relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.photoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
+                      <img src={profile.aboutPhotoUrl} className="rounded-pill shadow img-fluid" alt={`Portrait of ${profile.fullName}`} />
                       <div className="position-absolute top-0 start-0 z-index-m-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={profile.dotsImage} className="avatar avatar-xl-large" alt="" />
@@ -163,8 +198,8 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
                   </div>
                 )}
 
-                <div className={`${profile.photoUrl ? "col-lg-7 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0" : "col-lg-9 mx-auto"}`}>
-                  <div className={profile.photoUrl ? "ms-lg-5" : ""}>
+                <div className={`${profile.aboutPhotoUrl ? "col-lg-7 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0" : "col-lg-9 mx-auto"}`}>
+                  <div className={profile.aboutPhotoUrl ? "ms-lg-5" : ""}>
                     <div className="section-title">
                       <span className="badge rounded-pill bg-soft-primary">About Me</span>
                       <h2 className="h4 title mt-2 mb-4">{profile.headline || profile.fullName}</h2>
@@ -174,17 +209,6 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
                         </p>
                       )}
                     </div>
-
-                    {profile.skills.map((skill) => (
-                      <div className="progress-box mt-4" key={skill.label}>
-                        <h3 className="h6 title fw-normal text-muted">{skill.label}</h3>
-                        <div className="progress" role="progressbar" aria-label={`${skill.label} proficiency`} aria-valuenow={skill.percent} aria-valuemin={0} aria-valuemax={100}>
-                          <div className="progress-bar position-relative bg-primary" style={{ width: `${skill.percent}%` }}>
-                            <div className="progress-value d-block text-muted h6">{skill.percent}%</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
 
                     <div className="mt-4">
                       <Link href="/about" className="btn btn-link primary text-muted h6 mb-0">
@@ -198,9 +222,42 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
           </section>
         )}
 
+        {/* ---- Skills ---- */}
+        {real && profile.skills.length > 0 && (
+          <section className="section bg-light" id="skills" data-scroll-reveal>
+            <div className="container">
+              <div className="row justify-content-center">
+                <div className="col-lg-8 text-center">
+                  <div className="section-title mb-4 pb-2">
+                    <span className="badge rounded-pill bg-soft-primary">What I work with</span>
+                    <h2 className="h4 title mt-2 mb-3">Skills &amp; Expertise</h2>
+                  </div>
+                </div>
+              </div>
+              <div className="row">
+                {profile.skills.map((skill) => (
+                  <div className="col-lg-4 col-md-6 mt-4 pt-2" key={skill.label}>
+                    <div className="features feature-primary feature-clean feature-transition home-skill-card p-4 border-0 shadow rounded-md h-100">
+                      <div className="d-flex align-items-start justify-content-between gap-3">
+                        <h3 className="h5 title mb-0">{skill.label}</h3>
+                        <span className="home-skill-percent text-muted">{skill.percent}%</span>
+                      </div>
+                      <div className="progress-box mt-4">
+                        <div className="progress" role="progressbar" aria-label={`${skill.label} proficiency`} aria-valuenow={skill.percent} aria-valuemin={0} aria-valuemax={100}>
+                          <div className="progress-bar bg-primary" style={{ width: `${skill.percent}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ---- Experience ---- */}
         {real && profile.experience.length > 0 && (
-          <section className="section bg-light" id="experience">
+          <section className="section" id="experience" data-scroll-reveal>
             <div className="container">
               <div className="row justify-content-center">
                 <div className="col-12 text-center">
@@ -225,7 +282,7 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
 
         {/* ---- Projects ---- */}
         {projects.length > 0 && (
-          <section className="section" id="project">
+          <section className="section bg-light" id="project" data-scroll-reveal>
             <div className="container">
               <div className="row justify-content-center">
                 <div className="col-12">
@@ -307,7 +364,7 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
 
         {/* ---- Latest articles ---- */}
         {articles.length > 0 && (
-          <section className="section bg-light" id="articles">
+          <section className="section" id="articles" data-scroll-reveal>
             <div className="container">
               <div className="section-title text-center mb-4 pb-2">
                 <h2 className="h4 title mb-4">Latest Articles</h2>
@@ -333,18 +390,23 @@ export default function HomeView({ profile, projects, articles, testimonials }: 
 
         {/* ---- Availability banner ---- */}
         {real && profile.availableForWork && (
-          <section className="section pt-0">
-            <div className="container">
-              <div className="rounded shadow bg-primary text-center text-white p-5">
-                <h2 className="h4 text-white title-dark mb-2">I am open to new opportunities</h2>
-                {profile.availabilityNote && <p className="text-white-50 mx-auto mb-4" style={{ maxWidth: 560 }}>{profile.availabilityNote}</p>}
-                <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                  <Link href="#contact" className="btn btn-light">
-                    Get in touch
-                  </Link>
-                  <a href="/cv/download" className="btn btn-outline-light d-inline-flex align-items-center gap-2">
-                    <FiDownload aria-hidden /> Download CV
-                  </a>
+          <section className="home-availability-cta section position-relative overflow-hidden" data-scroll-reveal>
+            <div className="bg-overlay bg-primary-gradient-overlay" aria-hidden="true" />
+            <div className="container position-relative z-index-1">
+              <div className="row justify-content-center">
+                <div className="col-lg-8 text-center">
+                  <div className="section-title mb-0">
+                    <h2 className="h4 text-white title-dark mb-2">I am open to new opportunities</h2>
+                    {profile.availabilityNote && <p className="home-availability-note text-white-50 mx-auto mb-0">{profile.availabilityNote}</p>}
+                    <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                      <Link href="#contact" className="btn btn-warning btn-pills text-dark">
+                        Get in touch <FiArrowDown aria-hidden="true" />
+                      </Link>
+                      <a href="/cv/download" className="btn btn-light btn-pills d-inline-flex align-items-center gap-2">
+                        <FiDownload aria-hidden="true" /> Download CV
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

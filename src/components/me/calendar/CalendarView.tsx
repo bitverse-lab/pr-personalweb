@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { useEffect, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import type { CalendarApi, DatesSetArg, EventClickArg, EventDropArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
@@ -25,6 +25,7 @@ export interface CalendarEventInput {
 export interface CalendarViewProps {
   events: CalendarEventInput[];
   initialView: CalendarViewMode;
+  onCalendarApi: (api: CalendarApi | null) => void;
   onRangeChange: (range: { start: string; end: string }) => void;
   onDateSelect: (selection: { start: string; end: string; allDay: boolean }) => void;
   onEventClick: (eventId: string) => void;
@@ -48,13 +49,25 @@ function handleMove(
   );
 }
 
-const CalendarView = forwardRef<FullCalendar, CalendarViewProps>(function CalendarView(
-  { events, initialView, onRangeChange, onDateSelect, onEventClick, onEventMove },
-  ref
-) {
+const CalendarView = function CalendarView({
+  events,
+  initialView,
+  onCalendarApi,
+  onRangeChange,
+  onDateSelect,
+  onEventClick,
+  onEventMove,
+}: CalendarViewProps) {
+  const calendarRef = useRef<FullCalendar>(null);
+
+  useEffect(() => {
+    onCalendarApi(calendarRef.current?.getApi() ?? null);
+    return () => onCalendarApi(null);
+  }, [onCalendarApi]);
+
   return (
     <FullCalendar
-      ref={ref}
+      ref={calendarRef}
       plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
       initialView={initialView}
       headerToolbar={false}
@@ -75,7 +88,7 @@ const CalendarView = forwardRef<FullCalendar, CalendarViewProps>(function Calend
       eventResize={(arg: EventResizeDoneArg) => handleMove(arg, onEventMove)}
     />
   );
-});
+};
 
 export type { CalendarApi };
 export default CalendarView;

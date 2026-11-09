@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { extFor, formatBytes, kindOfMime, maxBytesFor, sanitizeName, sniffMime } from "./rules";
+import { mediaReferenceLabels } from "./references";
 
 const pad = (...b: number[]) => new Uint8Array([...b, ...new Array(24).fill(0)]);
 const text = (s: string) => new Uint8Array([...Array.from(Buffer.from(s, "latin1")), ...new Array(24).fill(0)]);
@@ -50,5 +51,16 @@ describe("type and size rules", () => {
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(2048)).toBe("2 KB");
     expect(formatBytes(5 * 1024 * 1024)).toBe("5.0 MB");
+  });
+
+  it("describes every kind of media reference before a file can be deleted", () => {
+    expect(mediaReferenceLabels({ articles: 0, journal: 0, projects: 0, profile: 0, applications: 0 })).toEqual([]);
+    expect(mediaReferenceLabels({ articles: 1, journal: 2, projects: 1, profile: 1, applications: 2 })).toEqual([
+      "1 article",
+      "2 journal entries",
+      "1 project",
+      "your profile photo",
+      "2 applications",
+    ]);
   });
 });

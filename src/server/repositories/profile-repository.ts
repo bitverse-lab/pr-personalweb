@@ -58,10 +58,15 @@ export const profileRepository = {
       db.select().from(skills).where(eq(skills.userId, userId)).orderBy(asc(skills.position)),
       db.select().from(socialLinks).where(eq(socialLinks.userId, userId)).orderBy(asc(socialLinks.position)),
     ]);
-    const photo = profile?.photoMediaId
-      ? await db.query.media.findFirst({ where: and(eq(media.id, profile.photoMediaId), eq(media.userId, userId), eq(media.status, "ready")) })
-      : null;
-    return { profile: profile ?? null, experiences: exp, educations: edu, skills: sk, links, photo: photo ?? null };
+    const [photo, aboutPhoto] = await Promise.all([
+      profile?.photoMediaId
+        ? db.query.media.findFirst({ where: and(eq(media.id, profile.photoMediaId), eq(media.userId, userId), eq(media.status, "ready")) })
+        : null,
+      profile?.aboutPhotoMediaId
+        ? db.query.media.findFirst({ where: and(eq(media.id, profile.aboutPhotoMediaId), eq(media.userId, userId), eq(media.status, "ready")) })
+        : null,
+    ]);
+    return { profile: profile ?? null, experiences: exp, educations: edu, skills: sk, links, photo: photo ?? null, aboutPhoto: aboutPhoto ?? null };
   },
 
   upsertBasics(userId: string, v: BasicsValues) {
@@ -78,6 +83,15 @@ export const profileRepository = {
       .insert(profiles)
       .values({ userId, photoMediaId: mediaId })
       .onConflictDoUpdate({ target: profiles.userId, set: { photoMediaId: mediaId, updatedAt: new Date() } })
+      .returning()
+      .then((r) => r[0]);
+  },
+
+  setAboutPhoto(userId: string, mediaId: string | null) {
+    return db
+      .insert(profiles)
+      .values({ userId, aboutPhotoMediaId: mediaId })
+      .onConflictDoUpdate({ target: profiles.userId, set: { aboutPhotoMediaId: mediaId, updatedAt: new Date() } })
       .returning()
       .then((r) => r[0]);
   },

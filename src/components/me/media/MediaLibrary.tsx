@@ -5,24 +5,30 @@ import { useRouter } from "next/navigation";
 import { FiCopy, FiDownload, FiFileText, FiImage, FiTrash2 } from "react-icons/fi";
 import { deleteMedia, getDocumentDownloadUrl, getMediaReferences } from "@/features/media/actions";
 import { STORAGE_SOFT_LIMIT_BYTES, formatBytes } from "@/features/media/rules";
+import { mediaReferenceLabels } from "@/features/media/references";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
+import PaginationControls from "@/components/shared/PaginationControls";
 import { useToast } from "@/components/shared/ToastProvider";
 import UploadDropzone from "./UploadDropzone";
 import type { MediaDto } from "@/server/services/media-service";
+import { paginate } from "@/lib/pagination";
 
 type Filter = "all" | "image" | "document";
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const PAGE_SIZE = 24;
 
 export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usage: { bytes: number; count: number } }) {
   const router = useRouter();
   const toast = useToast();
   const [filter, setFilter] = useState<Filter>("all");
-  const [target, setTarget] = useState<{ media: MediaDto; refs: string | null } | null>(null);
+  const [page, setPage] = useState(1);
+  const [target, setTarget] = useState<MediaDto | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const shown = useMemo(() => items.filter((m) => filter === "all" || m.kind === filter), [items, filter]);
+  const pageData = useMemo(() => paginate(shown, page, PAGE_SIZE), [shown, page]);
   const pct = Math.min(100, Math.round((usage.bytes / STORAGE_SOFT_LIMIT_BYTES) * 100));
 
   const copy = async (url: string) => {
@@ -44,18 +50,21 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
   const askDelete = (m: MediaDto) =>
     startTransition(async () => {
       const refs = await getMediaReferences(m.id);
-      const parts: string[] = [];
-      if (refs?.articles) parts.push(`${refs.articles} article${refs.articles === 1 ? "" : "s"}`);
-      if (refs?.journal) parts.push(`${refs.journal} journal entr${refs.journal === 1 ? "y" : "ies"}`);
-      if (refs?.projects) parts.push(`${refs.projects} project${refs.projects === 1 ? "" : "s"}`);
-      if (refs?.profile) parts.push("your profile photo");
-      if (refs?.applications) parts.push(`${refs.applications} application${refs.applications === 1 ? "" : "s"}`);
-      setTarget({ media: m, refs: parts.length ? parts.join(", ") : null });
+      if (!refs) {
+        toast.error("This file is no longer available. Refresh the library and try again.");
+        return;
+      }
+      const labels = mediaReferenceLabels(refs);
+      if (labels.length > 0) {
+        toast.error(`This file is still used in ${labels.join(", ")}. Remove those references before deleting it.`);
+        return;
+      }
+      setTarget(m);
     });
 
   const confirmDelete = () => {
     if (!target) return;
-    const m = target.media;
+    const m = target;
     startTransition(async () => {
       const result = await deleteMedia(m.id);
       setTarget(null);
@@ -69,7 +78,7 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
     <>
       <div className="card rounded shadow-sm mb-3">
         <div className="card-body">
-          <UploadDropzone purpose="library" accept="any" onUploaded={() => router.refresh()} />
+          <UploadDropzone purpose="library" accept="any" onUploaded={() => { setPage(1); router.refresh(); }} />
           <div className="mt-3">
             <div className="d-flex justify-content-between small text-muted">
               <span>{usage.count} file{usage.count === 1 ? "" : "s"}</span>
@@ -86,7 +95,7 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
         <div className="card-body">
           <div className="btn-group btn-group-sm mb-3" role="group" aria-label="Filter files">
             {(["all", "image", "document"] as Filter[]).map((f) => (
-              <button key={f} type="button" className={`btn ${filter === f ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setFilter(f)}>
+              <button key={f} type="button" className={`btn ${filter === f ? "btn-primary" : "btn-outline-primary"}`} onClick={() => { setFilter(f); setPage(1); }}>
                 {f === "all" ? "All" : f === "image" ? "Images" : "Documents"}
               </button>
             ))}
@@ -96,7 +105,7 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
             <EmptyState icon={FiImage} title="No files here yet" description="Upload images to use in articles and your profile, or documents for job applications." />
           ) : (
             <div className="row g-3">
-              {shown.map((m) => (
+              {pageData.items.map((m) => (
                 <div className="col-6 col-md-4 col-xl-3" key={m.id}>
                   <div className="border rounded h-100 bg-white overflow-hidden d-flex flex-column">
                     {m.kind === "image" && m.url ? (
@@ -131,17 +140,22 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
               ))}
             </div>
           )}
+          <PaginationControls
+            page={pageData.page}
+            pageCount={pageData.pageCount}
+            start={pageData.start}
+            end={pageData.end}
+            total={pageData.total}
+            itemLabel={pageData.total === 1 ? "file" : "files"}
+            onPageChange={setPage}
+          />
         </div>
       </div>
 
       {target && (
         <ConfirmDialog
           title="Delete file?"
-          message={
-            target.refs
-              ? `"${target.media.name}" is used in ${target.refs}. Deleting it will break those places. This cannot be undone.`
-              : `"${target.media.name}" will be permanently deleted. This cannot be undone.`
-          }
+          message={`"${target.name}" will be permanently deleted. This cannot be undone.`}
           isPending={isPending}
           onConfirm={confirmDelete}
           onCancel={() => setTarget(null)}

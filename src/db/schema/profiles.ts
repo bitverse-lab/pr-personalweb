@@ -29,6 +29,7 @@ export const profiles = pgTable("profile", {
   availableForWork: boolean("available_for_work").notNull().default(false),
   availabilityNote: text("availability_note"),
   photoMediaId: uuid("photo_media_id").references(() => media.id, { onDelete: "set null" }),
+  aboutPhotoMediaId: uuid("about_photo_media_id").references(() => media.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

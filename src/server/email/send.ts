@@ -1,5 +1,6 @@
 // Optional email notification for new contact messages, through Resend's HTTP API (no SDK needed).
 // Without RESEND_API_KEY nothing is sent: messages still arrive in the /me inbox.
+import { reportError } from "@/lib/report-error";
 
 export interface ContactEmail {
   name: string;
@@ -35,7 +36,7 @@ export async function sendContactNotification(msg: ContactEmail): Promise<boolea
     if (!res.ok) console.error(`[email] Resend responded with status ${res.status}`);
     return res.ok;
   } catch (e) {
-    console.error("[email] could not send notification:", e instanceof Error ? e.name : "error");
+    reportError("contact-email", e);
     return false;
   } finally {
     clearTimeout(timer);

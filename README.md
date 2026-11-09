@@ -47,6 +47,24 @@ pnpm check    # typecheck + lint + unit tests (the same as CI)
 
 Conventions: keep the layering `UI → Server Action → requireUserId → Zod → service → repository`; every query must filter by `userId`; add schema changes additively so `pnpm db:push` stays non-interactive. Never commit `.env.local` or any secret. `personal-os-master-specification.pdf` is the product spec.
 
+### Browser tests
+
+Install Playwright's Chromium browser once, then run the non-mutating browser and accessibility checks:
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+The tests check public-route rendering, the signed-out `/me` redirect, and automatically detectable
+WCAG 2.1 A/AA issues on the public pages. This does not replace keyboard, screen-reader, or manual
+contrast testing. The test runner starts the app on port 3001, or reuses an existing local server there. Locally,
+it uses the app's normal environment and may read public data from the configured database; the
+included tests do not sign in, submit forms, or write records. CI starts the app with dummy
+credentials and an unreachable local database URL, so it does not access Supabase or external
+services. To test another running instance, set `PLAYWRIGHT_BASE_URL`. Authenticated flows and
+tests that mutate data are intentionally not configured yet.
+
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | Supabase pooled connection (runtime) |
@@ -70,6 +88,7 @@ Conventions: keep the layering `UI → Server Action → requireUserId → Zod �
 | `pnpm check` | Typecheck + lint + tests in one go (what CI runs) |
 | `pnpm lint` | ESLint (only `<img>` warnings from the template are expected) |
 | `pnpm test` | Vitest unit tests (calculations, validation, upload rules) |
+| `pnpm test:e2e` | Playwright smoke tests and automated WCAG 2.1 A/AA checks for public pages |
 | `pnpm db:push` | Apply schema changes to the database (renames/drops need a TTY prompt, so prefer additive changes) |
 
 Run `pnpm build` with the dev server stopped and `.next` deleted; a concurrent dev server corrupts the build cache.
@@ -97,6 +116,7 @@ Uploads go browser → Supabase directly via a one-time signed URL for a server-
 - Rich text is stored as validated JSON (whitelisted nodes, `http(s)`/`mailto` links, `http(s)` images) and rendered as React elements. There is no raw HTML rendering anywhere.
 - `/me/settings/data/export` downloads all of your records as one JSON file (auth required, never cached). Login tokens are never included.
 - Security headers (`nosniff`, frame denial, referrer/permissions policy, HSTS) are set in `next.config.mjs`. `/me` and `/login` are `noindex` and `no-store`.
+- Application error logs use `src/lib/report-error.ts`, which records only a fixed error area and an allowlisted JavaScript error type. It deliberately omits exception messages, stacks, SQL parameters, user identifiers and request content. No third-party error-monitoring SDK is configured; choose and configure a provider only after reviewing its data-processing and retention settings.
 - A strict Content-Security-Policy is **not** enabled yet: the template's inline styles and the YouTube modal need a tuned policy. Add one (start with report-only) before launch if desired.
 - There is no rate limiting. It is a single-owner app behind Google sign-in; add it (e.g. at the host/WAF) if the public contact or download endpoints become abused.
 

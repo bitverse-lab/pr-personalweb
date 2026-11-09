@@ -5,14 +5,18 @@ import { FiCornerUpLeft, FiInbox, FiMail, FiSearch, FiTrash2 } from "react-icons
 import { deleteMessage, restoreMessage, setMessageRead, type InboxMessage } from "@/features/contact/actions";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
+import PaginationControls from "@/components/shared/PaginationControls";
 import { useToast } from "@/components/shared/ToastProvider";
+import { paginate } from "@/lib/pagination";
 
 const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+const PAGE_SIZE = 25;
 
 export default function InboxList({ messages }: { messages: InboxMessage[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [target, setTarget] = useState<InboxMessage | null>(null);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
 
@@ -26,6 +30,7 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
         : messages.filter((m) => [m.name, m.email, m.subject, m.message].some((field) => field?.toLowerCase().includes(needle))),
     [messages, needle]
   );
+  const pageData = useMemo(() => paginate(shown, page, PAGE_SIZE), [shown, page]);
 
   const toggleRead = (m: InboxMessage, read: boolean) =>
     startTransition(async () => {
@@ -66,7 +71,10 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
           placeholder="Search name, email or message"
           aria-label="Search messages"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
       {needle && (
@@ -85,7 +93,7 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
         />
       ) : (
       <ul className="list-unstyled mb-0">
-        {shown.map((m) => {
+        {pageData.items.map((m) => {
           const unread = !m.readAt;
           const isOpen = openId === m.id;
           return (
@@ -127,6 +135,15 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
         })}
       </ul>
       )}
+      <PaginationControls
+        page={pageData.page}
+        pageCount={pageData.pageCount}
+        start={pageData.start}
+        end={pageData.end}
+        total={pageData.total}
+        itemLabel={pageData.total === 1 ? "message" : "messages"}
+        onPageChange={setPage}
+      />
       {target && <ConfirmDialog title="Delete message?" message={`The message from ${target.name} will be deleted. You can undo right after.`} isPending={isPending} onConfirm={confirmDelete} onCancel={() => setTarget(null)} />}
     </>
   );

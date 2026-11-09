@@ -297,6 +297,7 @@
                     }
                 }
                 &:hover > a,
+                &:focus-within > a,
                 &.active {
                     &:after {
                         content: "";
@@ -311,6 +312,9 @@
                         margin: 0 auto;
                         transition: all 0.5s ease;
                         transform: rotate(-10deg);
+                    }
+                    > a:focus-visible {
+                        color: $primary !important;
                     }
                 }
             }

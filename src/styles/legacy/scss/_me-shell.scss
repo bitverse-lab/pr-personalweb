@@ -28,14 +28,27 @@ $me-sidebar-width: 260px;
     background: $white;
     box-shadow: $shadow;
     padding: 24px 16px;
+    border-right: 1px solid rgba($dark, 0.06);
 
     @media (min-width: 992px) {
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        overflow-y: auto;
+        overflow: hidden;
         z-index: 1030;
+    }
+}
+
+.me-sidebar > nav {
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($dark, 0.2) transparent;
+
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb {
+        background: rgba($dark, 0.2);
+        border-radius: 6px;
     }
 }
 
@@ -113,6 +126,85 @@ $me-sidebar-width: 260px;
     @media (min-width: 992px) {
         margin-left: $me-sidebar-width;
     }
+}
+
+.me-main > .container-fluid {
+    max-width: 1600px;
+    margin-inline: auto;
+}
+
+.me-setup-card {
+    .progress { height: 6px; }
+    .me-setup-feature .icons,
+    .me-setup-item-icon .icons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+    }
+
+    .me-setup-feature .icon,
+    .me-setup-item-icon .icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.me-setup-item {
+    background: var(--app-surface);
+    color: $dark;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        background: $white;
+        box-shadow: $shadow;
+        transform: translateY(-2px);
+    }
+}
+
+.me-setup-items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+    .me-setup-items { grid-template-columns: 1fr; }
+}
+
+.me-capture-tabs {
+    .btn { white-space: nowrap; }
+}
+
+.me-shell .features.me-capture-feature .icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--app-primary-soft);
+    color: $primary;
+}
+
+.me-shell .features.me-capture-feature .icons .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.me-shell .me-overview-card .features.me-overview-feature .icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: var(--app-primary-soft);
+    color: $primary;
+}
+
+.me-shell .me-overview-card .features.me-overview-feature .icons .icon {
+    width: 19px;
+    height: 19px;
 }
 
 // Centered modal dialog (task/event forms, confirmations) — distinct from
@@ -256,13 +348,19 @@ $a11y-muted: #5f6b76;
 
 .btn-warning,
 .btn-warning:disabled {
-    background-color: $a11y-warning;
-    border-color: $a11y-warning;
-    color: #fff;
+    background-color: $a11y-warning !important;
+    border-color: $a11y-warning !important;
+    color: #fff !important;
 }
 .btn-warning:hover,
 .btn-warning:focus,
-.btn-warning:active { background-color: darken($a11y-warning, 6%); border-color: darken($a11y-warning, 6%); color: #fff; }
+.btn-warning:active { background-color: darken($a11y-warning, 6%) !important; border-color: darken($a11y-warning, 6%) !important; color: #fff !important; }
+
+.alert.alert-success {
+    background-color: $a11y-success !important;
+    border-color: $a11y-success !important;
+    color: #fff !important;
+}
 
 // Anchored headings must not hide under the sticky navbar when reached from the table of contents.
 .rich-render h2,
@@ -312,10 +410,6 @@ html { scroll-behavior: smooth; }
 }
 html.is-navigating,
 html.is-navigating a { cursor: progress; }
-
-// Page fade-in (opacity only: a transform here would break position: fixed inside the page)
-@keyframes page-enter { from { opacity: 0; } to { opacity: 1; } }
-.page-enter { animation: page-enter 0.22s ease-out both; }
 
 // Pressable things react instantly
 .btn,

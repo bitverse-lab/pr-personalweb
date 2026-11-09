@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import ArticleCard from "@/components/shared/ArticleCard";
+import ArticleListSkeleton from "@/components/shared/ArticleListSkeleton";
 import ArticleSidebar from "@/components/shared/ArticleSidebar";
 import ParallaxBackground from "@/components/shared/ParallaxBackground";
 import { getArticles } from "@/lib/data/articles";
@@ -13,7 +15,21 @@ export const metadata: Metadata = {
   description: "Writing on things I am building and learning.",
 };
 
-export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ q?: string; tag?: string }> }) {
+type ArticlesPageProps = { searchParams: Promise<{ q?: string; tag?: string }> };
+
+export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
+  return (
+    <>
+      <PersonalNavbar />
+      <Suspense fallback={<ArticleListSkeleton />}>
+        <ArticlesContent searchParams={searchParams} />
+      </Suspense>
+      <SmallFooter />
+    </>
+  );
+}
+
+async function ArticlesContent({ searchParams }: ArticlesPageProps) {
   const { q = "", tag = "" } = await searchParams;
   const all = await getArticles();
 
@@ -27,7 +43,6 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
       <section className="d-table w-100 position-relative overflow-hidden">
         <ParallaxBackground image="/images/blog/blog.jpg" alt="articles background" />
@@ -135,7 +150,6 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Pro
         </div>
       </section>
       </main>
-      <SmallFooter />
     </>
   );
 }

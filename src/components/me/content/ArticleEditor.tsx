@@ -127,12 +127,22 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
             onChange={(e) => onTitle(e.target.value)}
           />
           {preview ? (
-            <div className="card rounded shadow-sm">
+            <article className="card rounded shadow-sm overflow-hidden">
+              {coverUrl && /^https?:\/\//i.test(coverUrl) && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverUrl} alt="" className="img-fluid w-100" />
+              )}
               <div className="card-body">
+                {tags.length > 0 && (
+                  <div className="d-flex flex-wrap gap-2 mb-3">
+                    {tags.map((tag) => <span className="badge bg-soft-primary text-primary" key={tag}>{tag}</span>)}
+                  </div>
+                )}
                 <h3 className="mb-3">{title || "Untitled"}</h3>
-                {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={doc} />}
+                {excerpt.trim() && <p className="lead text-muted">{excerpt}</p>}
+                {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={doc} className="mt-3" />}
               </div>
-            </div>
+            </article>
           ) : (
             <RichEditor initial={article.content} onChange={setDoc} placeholder="Tell your story…" minHeight={420} />
           )}

@@ -64,14 +64,14 @@ export const mediaRepository = {
     return db.delete(media).where(eq(media.id, id)).then(() => undefined);
   },
 
-  // How many places still reference this file (article bodies, covers, journal bodies, profile photo, application documents).
+  // How many places still reference this file (article bodies, covers, journal bodies, profile photos, application documents).
   async references(userId: string, m: { id: string; storageKey: string }) {
     const needle = `%${m.storageKey}%`;
     const [a, c, j, p, d, pj] = await Promise.all([
       db.select({ n: sql<number>`count(*)::int` }).from(articles).where(and(eq(articles.userId, userId), sql`${articles.content}::text like ${needle}`)),
       db.select({ n: sql<number>`count(*)::int` }).from(articles).where(and(eq(articles.userId, userId), sql`${articles.coverUrl} like ${needle}`)),
       db.select({ n: sql<number>`count(*)::int` }).from(journalEntries).where(and(eq(journalEntries.userId, userId), sql`${journalEntries.content}::text like ${needle}`)),
-      db.select({ n: sql<number>`count(*)::int` }).from(profiles).where(and(eq(profiles.userId, userId), eq(profiles.photoMediaId, m.id))),
+      db.select({ n: sql<number>`count(*)::int` }).from(profiles).where(and(eq(profiles.userId, userId), or(eq(profiles.photoMediaId, m.id), eq(profiles.aboutPhotoMediaId, m.id)))),
       db.select({ n: sql<number>`count(*)::int` }).from(applicationDocuments).where(and(eq(applicationDocuments.userId, userId), eq(applicationDocuments.mediaId, m.id))),
       db.select({ n: sql<number>`count(distinct ${projects.id})::int` }).from(projects).leftJoin(projectMedia, eq(projectMedia.projectId, projects.id)).where(and(eq(projects.userId, userId), or(eq(projects.coverMediaId, m.id), eq(projectMedia.mediaId, m.id), sql`${projects.content}::text like ${needle}`))),
     ]);

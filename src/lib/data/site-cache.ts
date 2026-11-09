@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { reportError } from "@/lib/report-error";
 
 /** Tag shared by every cached read of public site data (profile, links, published articles/projects). */
 export const SITE_TAG = "site-data";
@@ -26,7 +27,7 @@ export async function publicRead<T>(what: string, read: () => Promise<T>, fallba
   try {
     return await read();
   } catch (error) {
-    console.error(`[public] could not load ${what}; showing the page without it.`, error);
+    reportError("public-read", error);
     return fallback;
   }
 }
