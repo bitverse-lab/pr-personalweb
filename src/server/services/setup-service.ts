@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { articles, educations, experiences, healthProfiles, profiles, projects, weightEntries } from "@/db/schema";
+import { articles, educations, experiences, healthProfiles, profiles, projects, tasks, weightEntries } from "@/db/schema";
+import { DEMO_PREFIX } from "@/lib/demo";
 import { isStorageConfigured } from "@/server/storage/client";
 
 export interface SetupItem {
@@ -13,8 +14,21 @@ export interface SetupItem {
 
 const count = (rows: { n: number }[]) => rows[0]?.n ?? 0;
 
+/** The owner's rows created by `pnpm db:seed` (demo-prefixed ids). */
+export function demoRowsOf(table: typeof projects | typeof articles | typeof tasks, userId: string) {
+  return and(eq(table.userId, userId), sql`${table.id}::text like ${`${DEMO_PREFIX}%`}`)!;
+}
+
 // Onboarding checklist for the Overview: what still needs doing before the site and workspace are fully useful.
 export const setupService = {
+  /** Demo data is loaded if any of these always-seeded tables holds a demo row. */
+  async hasDemoData(userId: string): Promise<boolean> {
+    const found = await Promise.all(
+      [projects, articles, tasks].map((t) => db.select({ one: sql<number>`1` }).from(t).where(demoRowsOf(t, userId)).limit(1)),
+    );
+    return found.some((r) => r.length > 0);
+  },
+
   async checklist(userId: string): Promise<SetupItem[]> {
     const [profile, exp, edu, healthGoals, weight, publishedProjects, publishedArticles] = await Promise.all([
       db.query.profiles.findFirst({ where: eq(profiles.userId, userId) }),
