@@ -1,0 +1,42 @@
+import type { PgTable } from "drizzle-orm/pg-core";
+import * as schema from "../../src/db/schema";
+import type { SeedTable } from "./plan";
+
+/** Drizzle table object for every seeded SQL table name. */
+export const TABLES: Record<SeedTable, PgTable> = {
+  media: schema.media,
+  experience: schema.experiences,
+  education: schema.educations,
+  skill: schema.skills,
+  social_link: schema.socialLinks,
+  project: schema.projects,
+  project_link: schema.projectLinks,
+  project_media: schema.projectMedia,
+  tag: schema.tags,
+  article: schema.articles,
+  article_tag: schema.articleTags,
+  testimonial: schema.testimonials,
+  contact_message: schema.contactMessages,
+  task: schema.tasks,
+  subtask: schema.subtasks,
+  calendar_event: schema.calendarEvents,
+  company: schema.companies,
+  application: schema.applications,
+  application_status_history: schema.applicationStatusHistory,
+  application_contact: schema.applicationContacts,
+  application_timeline_event: schema.applicationTimelineEvents,
+  interview: schema.interviews,
+  journal_entry: schema.journalEntries,
+  health_profile: schema.healthProfiles,
+  weight_entry: schema.weightEntries,
+  body_measurement: schema.bodyMeasurements,
+  food: schema.foods,
+  meal: schema.meals,
+  meal_item: schema.mealItems,
+  water_entry: schema.waterEntries,
+  exercise: schema.exercises,
+  routine: schema.routines,
+  routine_exercise: schema.routineExercises,
+  workout: schema.workouts,
+  workout_set: schema.workoutSets,
+};

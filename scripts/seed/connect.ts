@@ -16,6 +16,18 @@ export function openDatabase(): { db: SeedDb; host: string; close(): Promise<voi
   return { db: drizzle(client, { schema }), host: new URL(url).hostname, close: () => client.end() };
 }
 
+/**
+ * One line for the terminal. Drizzle wraps driver errors as "Failed query: … params: …", which
+ * hides the real cause (e.g. DNS) and echoes parameters such as the owner's email; show the cause.
+ */
+export function describeError(error: unknown): string {
+  if (!(error instanceof Error)) return "Unexpected failure.";
+  if (error.message.startsWith("Failed query:")) {
+    return error.cause instanceof Error ? `Database error: ${error.cause.message}` : "Database query failed.";
+  }
+  return error.message;
+}
+
 /** `--yes` skips the prompt; otherwise only a typed "yes" proceeds. */
 export async function confirm(question: string, argv: string[]): Promise<boolean> {
   if (argv.includes("--yes")) return true;
