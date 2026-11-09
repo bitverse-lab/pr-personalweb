@@ -73,3 +73,34 @@ test.describe("on a phone with reduced motion", () => {
     await expect(rows.last()).toBeVisible({ timeout: 1_000 });
   });
 });
+
+test.describe("before or without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("the owner's name is on screen, not waiting for hydration to slide in", async ({ page }) => {
+    await page.goto("/");
+    // IntersectionObserver-based: a word clipped by its overflow:hidden line does not count as in view
+    await expect(page.locator(".hero-c-line > span").first()).toBeInViewport({ ratio: 0.9 });
+  });
+});
+
+test("the typed query is not announced keystroke by keystroke; the result is", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("console-query")).not.toHaveAttribute("aria-live", /.+/);
+  await expect(page.getByTestId("console-footer")).toHaveAttribute("aria-live", "polite");
+});
+
+test("re-running right after choosing a tab never leaves the rows invisible", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("console-footer")).toContainText(/\d+ rows?/, SLOW);
+  // both clicks inside the ~200 ms the old rows take to leave
+  await page.evaluate(() => {
+    (Array.from(document.querySelectorAll("[role=tab]")).find((t) => t.textContent?.includes("stack.sql")) as HTMLElement).click();
+    setTimeout(() => (document.querySelector("[aria-label=\"Run again\"]") as HTMLElement).click(), 50);
+  });
+  await expect(page.getByTestId("console-footer")).toContainText(/\d+ rows?/, SLOW);
+  await page.waitForTimeout(1_500); // let every row animation finish
+  const opacities = await page.getByTestId("console-rows").locator("[data-row]").evaluateAll((rows) => rows.map((r) => getComputedStyle(r).opacity));
+  expect(opacities.length).toBeGreaterThan(0);
+  expect(opacities.every((o) => o === "1")).toBe(true);
+});

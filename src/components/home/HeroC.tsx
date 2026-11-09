@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { FiDownload } from "react-icons/fi";
 import QueryConsole from "@/components/home/QueryConsole";
@@ -10,24 +10,18 @@ import type { Profile } from "@/lib/data/profile";
 /** The home hero: the owner's name, one positioning line, and their CV as a live query. */
 export default function HeroC({ profile, console: data }: { profile: Profile; console: ConsoleData | null }) {
   const [human, setHuman] = useState(false);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const words = profile.fullName.split(/\s+/).filter(Boolean);
   const availability = profile.availableForWork ? ["Open to full-time roles", profile.location].filter(Boolean).join(", ") : profile.location;
-
-  // Name reveal: lines rise out of their own masks once, on arrival (CSS handles reduced motion).
-  useEffect(() => {
-    titleRef.current?.classList.add("is-in");
-  }, []);
 
   return (
     <section className="hero-c" aria-labelledby="hero-title">
       <div className="container">
         <div className="hero-c-grid">
           <div className="hero-c-copy">
-            <h1 id="hero-title" className="hero-c-title" ref={titleRef}>
+            <h1 id="hero-title" className="hero-c-title">
               {words.map((w, i) => (
                 <span className="hero-c-line" key={`${w}-${i}`}>
-                  <span style={{ transitionDelay: `${i * 0.1}s` }} className={i === words.length - 1 ? "hero-c-accent" : undefined}>
+                  <span style={{ animationDelay: `${i * 0.1}s` }} className={i === words.length - 1 ? "hero-c-accent" : undefined}>
                     {w}
                     {i === words.length - 1 ? "." : ""}
                   </span>

@@ -48,6 +48,8 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
   const clear = () => {
     timers.current.forEach(window.clearTimeout);
     timers.current = [];
+    // a cancelled tab switch must not leave its fill:"forwards" exit (opacity 0) on the rows
+    rowsRef.current?.getAnimations({ subtree: true }).forEach((a) => a.cancel());
   };
 
   // Motion 1 — execution: query (typed on first run) → "executing…" sweep → rows enter.
@@ -177,7 +179,7 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
             <span aria-hidden="true">▶</span><span className="qc-run-label"> Run again</span>
           </button>
         </div>
-        <div className="qc-query" data-testid="console-query" aria-live="polite">
+        <div className="qc-query" data-testid="console-query">
           {human ? <span className="qc-comment">{query}</span> : highlightSql(query)}
           {phase === "typing" && <span className="qc-caret" aria-hidden="true" />}
         </div>
@@ -204,13 +206,13 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
                 onBlur={isLayers ? () => crossHighlight(null) : undefined}
               >
                 <td data-col="key">{isProjects ? <button type="button" className="qc-link" data-slug={row.slug} onClick={(e) => openCase(row, e.currentTarget.closest("tr")!)}>{row.key}</button> : row.key}</td>
-                <td className="qc-value">{isProjects ? `${row.layers?.length ?? 0} layers` : row.value}</td>
+                <td className="qc-value">{row.value}</td>
                 <td className="qc-note">{row.note}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="qc-foot" data-testid="console-footer">
+        <div className="qc-foot" data-testid="console-footer" aria-live="polite">
           <span>{showRows && phase === "done" ? `${table.rows.length} row${table.rows.length === 1 ? "" : "s"}` : phase === "executing" ? "executing…" : ""}</span>
           <span className="qc-ok">{phase === "done" && age ? `✓ ${data.ms} ms · ${age}` : ""}</span>
         </div>

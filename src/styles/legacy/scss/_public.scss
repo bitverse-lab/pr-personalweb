@@ -173,14 +173,17 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     display: block;
     overflow: hidden;
     padding-bottom: 0.04em;
+    // A CSS animation, not a class added after hydration: the name (the LCP element) appears even
+    // when JavaScript is slow, fails, or is off.
     > span {
         display: inline-block;
-        transform: translateY(105%);
-        transition: transform 0.8s $ease-out;
+        animation: hero-c-rise 0.8s $ease-out both;
     }
 }
-.hero-c-title.is-in .hero-c-line > span {
-    transform: none;
+@keyframes hero-c-rise {
+    from {
+        transform: translateY(105%);
+    }
 }
 .hero-c-accent {
     color: $primary;
@@ -623,8 +626,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
 @media (prefers-reduced-motion: reduce) {
     .hero-c-line > span {
-        transform: none !important;
-        transition: none;
+        animation: none;
     }
     .qc {
         transform: none !important;
