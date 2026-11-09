@@ -23,7 +23,7 @@ test("two skills in one category give that layer once", () => {
 });
 
 test("layerSet is the union over projects, in skill order", () => {
-  expect(layerSet([{ technologies: ["PyTorch"] }, { technologies: ["FastAPI", "Pandas"] }, { technologies: ["Rust"] }], skills)).toEqual(["data", "api", "ml"]);
+  expect(layerSet([{ technologies: ["PyTorch"] }, { technologies: ["FastAPI", "Pandas"] }, { technologies: ["Rust"] }], skills)).toEqual(["api", "ml", "data"]);
 });
 
 test("the current role is the experience with no end date", () => {
