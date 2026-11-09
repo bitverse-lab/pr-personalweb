@@ -704,3 +704,106 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     min-height: 280px;
     aspect-ratio: auto !important;
 }
+
+// ============================================================ inner pages: shared head
+.page-head {
+    padding: 150px 0 48px;
+    background: $light;
+    @media (max-width: 991px) {
+        padding: 110px 0 36px;
+    }
+}
+.page-head-title {
+    font-size: clamp(32px, 4.6vw, 56px);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: $dark;
+    max-width: 22ch;
+    margin: 0;
+    text-wrap: balance;
+}
+.page-head-lede {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    line-height: 1.6;
+    color: $text-meta;
+    max-width: 60ch;
+    margin: 18px 0 0;
+}
+.layer-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+}
+.page-cta {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    color: $dark;
+    margin: 0;
+    a {
+        font-weight: 600;
+        color: $primary;
+    }
+}
+
+// ============================================================ project detail
+.project-outcome {
+    display: inline-block;
+    margin: 18px 0 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: $white;
+    border: 1px solid $gray-200;
+    font-family: $font-mono;
+    font-size: 15px;
+    color: $primary;
+    font-variant-numeric: tabular-nums;
+}
+.project-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 48px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+}
+.project-facts {
+    position: sticky;
+    top: 100px;
+    @media (max-width: 991px) {
+        position: static;
+    }
+}
+.facts {
+    margin: 0;
+}
+.facts-row {
+    padding: 10px 0;
+    border-top: 1px solid $gray-200;
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+    dt {
+        font-weight: 400;
+        margin-bottom: 2px;
+    }
+    dd {
+        margin: 0;
+        color: $dark;
+    }
+}
+.facts-tech {
+    font-family: $font-family-secondary;
+    color: $dark;
+    line-height: 1.6;
+    margin: 0;
+}
+.facts-link {
+    font-weight: 600;
+    color: $primary;
+}

@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Fragment } from "react";
 import Link from "next/link";
 import CoverBlock from "@/components/shared/CoverBlock";
-import { AiOutlineCalendar, AiOutlineUser } from "react-icons/ai";
-
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import JsonLd from "@/components/shared/JsonLd";
+import PrevNext from "@/components/shared/PrevNext";
 import { siteUrl } from "@/lib/site";
 import { getProfile } from "@/lib/data/profile";
 import { getAdjacentProjects, getProjectBySlug, getProjects } from "@/lib/data/projects";
-import PrevNext from "@/components/shared/PrevNext";
 import { docToPlainText } from "@/features/content/richtext";
+import { layersOf } from "@/features/projects/layers";
 
 export const revalidate = 300;
 
@@ -30,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+// Deliberately not wrapped in publicRead (CLAUDE.md): null means "no such project" → 404; an outage must error.
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
@@ -38,153 +37,115 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { prev, next } = getAdjacentProjects(all, project.slug);
   const { detail } = project;
   const hasStory = docToPlainText(detail.content).length > 0;
+  const layers = layersOf(project.technologies, profile.skills.map((s) => ({ name: s.label, category: s.category })));
+  const meta = [project.period, detail.client, detail.role].filter(Boolean).join(" · ");
 
-  const rows = [
-    detail.client ? { label: "Client", value: detail.client } : null,
-    detail.role ? { label: "Role", value: detail.role } : null,
-    project.label ? { label: "Category", value: project.label } : null,
-    project.period ? { label: "Date", value: project.period } : null,
-    detail.location ? { label: "Location", value: detail.location } : null,
-    project.technologies.length ? { label: "Technologies", value: project.technologies.join(", ") } : null,
+  const facts = [
+    detail.client ? { label: "client", value: detail.client } : null,
+    detail.role ? { label: "role", value: detail.role } : null,
+    project.label ? { label: "category", value: project.label } : null,
+    detail.location ? { label: "location", value: detail.location } : null,
   ].filter((r): r is { label: string; value: string } => r !== null);
 
   return (
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
-      <JsonLd
-        data={{
-          "@type": "CreativeWork",
-          name: project.name,
-          description: project.summary || undefined,
-          dateCreated: detail.startDate ?? undefined,
-          image: detail.coverUrl ? [detail.coverUrl] : undefined,
-          keywords: project.technologies.join(", ") || undefined,
-          creator: { "@type": "Person", name: profile.fullName },
-          url: `${siteUrl()}/projects/${project.slug}`,
-        }}
-      />
-      <section className="bg-half-170 bg-light d-table w-100">
-        <div className="container">
-          <div className="row mt-5 justify-content-center">
-            <div className="col-12">
-              <div className="title-heading text-center">
-                <ul className="list-inline">
-                  <li className="list-inline-item me-3">
-                    <AiOutlineUser className="h5 mb-0" />
-                    <Link href="/about" className="text-primary">
-                      {" "}
-                      {profile.firstName}
-                    </Link>
-                  </li>
-                  {project.period && (
-                    <li className="list-inline-item text-muted me-3">
-                      <AiOutlineCalendar className="h5 text-dark mb-0" /> {project.period}
-                    </li>
-                  )}
-                </ul>
-
-                <h1 className="h5 heading fw-semibold sub-heading mb-0">{project.name}</h1>
-                {project.summary && <p className="text-muted mt-3 mb-0 mx-auto" style={{ maxWidth: 640 }}>{project.summary}</p>}
+        <JsonLd
+          data={{
+            "@type": "CreativeWork",
+            name: project.name,
+            description: project.summary || undefined,
+            dateCreated: detail.startDate ?? undefined,
+            image: detail.coverUrl ? [detail.coverUrl] : undefined,
+            keywords: project.technologies.join(", ") || undefined,
+            creator: { "@type": "Person", name: profile.fullName },
+            url: `${siteUrl()}/projects/${project.slug}`,
+          }}
+        />
+        <section className="page-head">
+          <div className="container">
+            <p className="mono-meta mb-3">
+              <Link href="/projects" className="path-label">← ~/work</Link>
+              {meta && <span> · {meta}</span>}
+            </p>
+            <h1 className="page-head-title">{project.name}</h1>
+            {project.summary && <p className="page-head-lede">{project.summary}</p>}
+            {layers.length > 0 && (
+              <div className="case-layers mt-3" data-testid="project-layers" aria-label="Layers I built">
+                {layers.map((l) => (
+                  <span key={l} className={`layer-chip ${l === "ml" || l === "model" ? "layer-chip--ml" : ""}`}>{l}</span>
+                ))}
               </div>
-            </div>
+            )}
+            {project.outcome && <p className="project-outcome" data-testid="project-outcome">{project.outcome}</p>}
           </div>
-        </div>
-      </section>
-      <section className="section">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-6 col-lg-8">
-              {project.gallery.length > 0 ? (
-                project.gallery.map((image, index) => (
-                  <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.url}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image.url} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="img-fluid rounded shadow" alt={image.caption || `${project.name} — image ${index + 1}`} />
-                    {image.caption && <figcaption className="text-muted small mt-2">{image.caption}</figcaption>}
-                  </figure>
-                ))
-              ) : (
-                <CoverBlock src={project.image} title={project.name} className="shadow" />
-              )}
+        </section>
 
-              {hasStory && (
-                <div className="section-title mt-4 pt-2">
-                  <h4 className="mb-4">About this project</h4>
-                  <RichTextRenderer doc={detail.content} />
-                </div>
-              )}
+        <section className="section pt-4">
+          <div className="container">
+            <div className="project-layout">
+              <div className="project-main">
+                {project.gallery.length > 0 ? (
+                  project.gallery.map((image, index) => (
+                    <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.url}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={image.url} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="img-fluid rounded" alt={image.caption || `${project.name} — image ${index + 1}`} />
+                      {image.caption && <figcaption className="mono-meta mt-2">{image.caption}</figcaption>}
+                    </figure>
+                  ))
+                ) : (
+                  <CoverBlock src={project.image} title={project.name} />
+                )}
 
-              <PrevNext
-                prev={prev ? { href: `/projects/${prev.slug}`, title: prev.name } : null}
-                next={next ? { href: `/projects/${next.slug}`, title: next.name } : null}
-                prevLabel="Previous project"
-                nextLabel="Next project"
-              />
-            </div>
-
-            <div className="col-lg-4 col-md-6 mt-4 mt-sm-0 pt-2 pt-sm-0">
-              <div className="sidebar sticky-bar ms-lg-4">
-                <div className="widget">
-                  <h6 className="widget-title font-weight-bold pt-2 pb-2 bg-light rounded text-center">Project Details</h6>
-
-                  <dl className="row mb-0 mt-4">
-                    {rows.map((r) => (
-                      <Fragment key={r.label}>
-                        <dt className="col-md-4 fw-medium col-5">{r.label} :</dt>
-                        <dd className="col-md-8 col-7 text-muted">{r.value}</dd>
-                      </Fragment>
-                    ))}
-                    {detail.links.map((l) => (
-                      <Fragment key={l.url}>
-                        <dt className="col-md-4 fw-medium col-5">{l.label} :</dt>
-                        <dd className="col-md-8 col-7 text-muted">
-                          <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-reset">
-                            {l.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                          </a>
-                        </dd>
-                      </Fragment>
-                    ))}
-                  </dl>
-                </div>
-
-                {project.technologies.length > 0 && (
-                  <div className="widget mt-4 pt-2 text-center">
-                    <h6 className="widget-title font-weight-bold pt-2 pb-2 bg-light rounded">Built with</h6>
-                    <div className="tagcloud text-center mt-4">
-                      {project.technologies.map((tag) => (
-                        <span className="badge bg-soft-primary text-primary m-1" key={tag}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                {hasStory && (
+                  <div className="reading-col mt-5">
+                    <RichTextRenderer doc={detail.content} />
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="container mt-100 mt-60">
-          <div className="row justify-content-center">
-            <div className="col-12">
-              <div className="section-title text-center">
-                <h6 className="text-primary fw-normal mb-3">Open to new opportunities</h6>
-                <h2 className="h1 title mb-4">
-                  Want to work together? <br /> Let&apos;s talk.
-                </h2>
-                <div className="mt-4 d-flex justify-content-center gap-2">
-                  <Link href="/contact" className="btn btn-primary">
-                    Contact me
-                  </Link>
-                  <Link href="/projects" className="btn btn-outline-primary">
-                    More projects
-                  </Link>
-                </div>
+                <PrevNext
+                  prev={prev ? { href: `/projects/${prev.slug}`, title: prev.name } : null}
+                  next={next ? { href: `/projects/${next.slug}`, title: next.name } : null}
+                  prevLabel="Previous project"
+                  nextLabel="Next project"
+                />
               </div>
+
+              <aside className="project-facts" aria-label="Project facts">
+                {facts.length > 0 && (
+                  <dl className="facts">
+                    {facts.map((f) => (
+                      <div key={f.label} className="facts-row">
+                        <dt className="mono-meta">{f.label}</dt>
+                        <dd>{f.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {project.technologies.length > 0 && (
+                  <div className="mt-4">
+                    <p className="mono-meta mb-2">built with</p>
+                    <p className="facts-tech">{project.technologies.join(" · ")}</p>
+                  </div>
+                )}
+                {detail.links.length > 0 && (
+                  <ul className="list-unstyled mt-4 mb-0">
+                    {detail.links.map((l) => (
+                      <li key={l.url} className="mb-2">
+                        <a href={l.url} target="_blank" rel="noopener noreferrer" className="facts-link">{l.label} ↗</a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </aside>
             </div>
+
+            <p className="page-cta mt-5">
+              Want something like this built? <Link href="/contact">Let&apos;s talk →</Link>
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
       </main>
       <SmallFooter />
     </>
