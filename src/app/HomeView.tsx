@@ -17,12 +17,14 @@ import type { Project } from "@/features/projects/format";
 interface HomeViewProps {
   profile: Profile;
   projects: Project[];
+  /** How long the projects read took when this page was generated. */
+  workMs: number;
   articles: Article[];
   testimonials: PublicTestimonial[];
   console: ConsoleData | null;
 }
 
-export default function HomeView({ profile, projects, articles, testimonials, console: consoleData }: HomeViewProps) {
+export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData }: HomeViewProps) {
   const real = !profile.isPlaceholder;
   const skills = profile.skills.map((s) => ({ name: s.label, category: s.category }));
 
@@ -57,23 +59,36 @@ export default function HomeView({ profile, projects, articles, testimonials, co
           </section>
         )}
 
-        <SelectedWork projects={projects.slice(0, 3)} skills={skills} />
+        <SelectedWork
+          projects={projects.slice(0, 3)}
+          skills={skills}
+          query={{ sql: "SELECT title, layers, outcome FROM project WHERE published ORDER BY featured DESC LIMIT 3;", ms: workMs }}
+        />
 
         <LatestWriting articles={articles} />
 
         {real && profile.experience.length > 0 && (
           <section className="section home-experience" id="experience" aria-labelledby="experience-title">
             <div className="container">
-              <h2 id="experience-title" className="selected-work-title">Experience</h2>
-              <ExperienceTimeline entries={profile.experience} />
-              <Link href="/cv" className="writing-all d-inline-block mt-4">Full CV →</Link>
+              {/* Heading column stays in view while the timeline scrolls, so the wide screen isn't half empty. */}
+              <div className="row">
+                <div className="col-lg-4">
+                  <div className="xp-head">
+                    <h2 id="experience-title" className="selected-work-title">Experience</h2>
+                    <Link href="/cv" className="writing-all d-inline-block">Full CV <span className="link-arrow" aria-hidden="true">→</span></Link>
+                  </div>
+                </div>
+                <div className="col-lg-8">
+                  <ExperienceTimeline entries={profile.experience} />
+                </div>
+              </div>
             </div>
           </section>
         )}
 
         <TestimonialsSection items={testimonials} />
 
-        <ContactSection />
+        <ContactSection dark />
       </main>
       <SmallFooter />
     </>

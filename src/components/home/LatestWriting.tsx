@@ -30,7 +30,7 @@ export default function LatestWriting({ articles }: { articles: Article[] }) {
                   </li>
                 ))}
               </ul>
-              <Link href="/articles" className="writing-all">All writing →</Link>
+              <Link href="/articles" className="writing-all">All writing <span className="link-arrow" aria-hidden="true">→</span></Link>
             </div>
           )}
         </div>

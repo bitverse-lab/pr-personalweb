@@ -32,6 +32,19 @@ function crossHighlight(layer: string | null) {
   if (label) label.textContent = layer ? `WHERE layer = '${layer}'` : "";
 }
 
+/** Lights the one Selected-work card for `slug` and dims the rest; null clears. */
+function highlightCase(slug: string | null) {
+  const work = document.getElementById("work");
+  if (!work) return;
+  for (const card of Array.from(work.querySelectorAll<HTMLElement>("[data-case]"))) {
+    const has = !!slug && card.id === `case-${slug}`;
+    card.classList.toggle("lit", has);
+    card.classList.toggle("dim", !!slug && !has);
+  }
+  const label = work.querySelector<HTMLElement>("[data-filter-label]");
+  if (label) label.textContent = slug ? `WHERE slug = '${slug}'` : "";
+}
+
 export default function QueryConsole({ data, human }: { data: ConsoleData; human: boolean }) {
   const reduce = usePrefersReducedMotion();
   const [tab, setTab] = useState(0);
@@ -138,6 +151,36 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
     });
   };
 
+  // The other direction: pointing at a case study lights its row while projects.sql is showing.
+  useEffect(() => {
+    const work = document.getElementById("work");
+    const body = rowsRef.current;
+    if (!work || !body || table.name !== "projects.sql") return;
+    const light = (slug: string | null) => {
+      for (const tr of Array.from(body.rows)) tr.classList.toggle("qc-row--lit", !!slug && tr.dataset.slug === slug);
+    };
+    const cards = Array.from(work.querySelectorAll<HTMLElement>("[data-case]"));
+    const offs = cards.map((card) => {
+      const slug = card.id.replace(/^case-/, "");
+      const on = () => light(slug);
+      const off = () => light(null);
+      card.addEventListener("pointerenter", on);
+      card.addEventListener("pointerleave", off);
+      card.addEventListener("focusin", on);
+      card.addEventListener("focusout", off);
+      return () => {
+        card.removeEventListener("pointerenter", on);
+        card.removeEventListener("pointerleave", off);
+        card.removeEventListener("focusin", on);
+        card.removeEventListener("focusout", off);
+      };
+    });
+    return () => {
+      offs.forEach((f) => f());
+      light(null);
+    };
+  }, [table.name]);
+
   // Subtle depth that follows a fine pointer; never on touch or reduced motion.
   useEffect(() => {
     if (reduce || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
@@ -198,12 +241,13 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
                 key={`${table.name}-${row.key}`}
                 data-row
                 data-layer={isLayers ? row.key : undefined}
+                data-slug={isProjects ? row.slug : undefined}
                 tabIndex={isLayers ? 0 : undefined}
                 className={isLayers || isProjects ? "qc-row--interactive" : undefined}
-                onMouseEnter={isLayers ? () => crossHighlight(row.key) : undefined}
-                onMouseLeave={isLayers ? () => crossHighlight(null) : undefined}
-                onFocus={isLayers ? () => crossHighlight(row.key) : undefined}
-                onBlur={isLayers ? () => crossHighlight(null) : undefined}
+                onMouseEnter={isLayers ? () => crossHighlight(row.key) : isProjects ? () => highlightCase(row.slug ?? null) : undefined}
+                onMouseLeave={isLayers ? () => crossHighlight(null) : isProjects ? () => highlightCase(null) : undefined}
+                onFocus={isLayers ? () => crossHighlight(row.key) : isProjects ? () => highlightCase(row.slug ?? null) : undefined}
+                onBlur={isLayers ? () => crossHighlight(null) : isProjects ? () => highlightCase(null) : undefined}
               >
                 <td data-col="key">{isProjects ? <button type="button" className="qc-link" data-slug={row.slug} onClick={(e) => openCase(row, e.currentTarget.closest("tr")!)}>{row.key}</button> : row.key}</td>
                 <td className="qc-value">{row.value}</td>

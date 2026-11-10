@@ -161,7 +161,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 }
 .hero-c-title {
-    font-size: clamp(44px, 6.2vw, 84px);
+    font-size: clamp(44px, 6.2vw, 84px) !important; // the template sizes every h1 with !important (was rendering 42px)
     line-height: 0.95;
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -419,6 +419,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         line-height: 1.45;
     }
     .qc-row--interactive:hover td,
+    .qc-row--lit td,
     .qc-row--interactive:focus-within td,
     .qc-row--interactive:focus td {
         background: rgba($console-key, 0.09);
@@ -491,9 +492,122 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     animation: none;
 }
 
+// ============================================================ home: section banding
+// Home alternates two light tones and closes on one navy band (Contact), so the page ends on the
+// console's colour instead of zig-zagging: hero white · work white · writing $light · experience
+// white · testimonials $light · contact navy. A hairline marks each light-to-light change.
+.selected-work,
+.latest-writing,
+.home-experience,
+#testimonials {
+    border-top: 1px solid var(--app-border);
+}
+// The template's soft-primary tint (its "work" sections in the portfolio demos): visibly blue, still quiet.
+.latest-writing {
+    background: var(--app-primary-soft);
+}
+
+// The query behind a section, set under its title like a result footer in a SQL client.
+.section-query {
+    margin: -14px 0 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-family: $font-mono;
+    font-size: 12.5px;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+}
+.section-query-sql {
+    font-family: inherit;
+    font-size: inherit;
+    color: $text-meta;
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+}
+.section-query-result {
+    color: $ml-ink;
+    white-space: nowrap;
+}
+
+// ------------------------------------------------------------ motion that explains something
+// All of it is opt-in to motion: nothing here runs under prefers-reduced-motion.
+@media (prefers-reduced-motion: no-preference) {
+    // Links that lead somewhere nudge their arrow toward it.
+    .link-arrow {
+        display: inline-block;
+        transition: transform 0.2s $ease-out;
+    }
+    a:hover > .link-arrow,
+    a:focus-visible > .link-arrow {
+        transform: translateX(3px);
+    }
+    // A cover leans in slightly when its card is the one being considered.
+    .cover-block {
+        transition: transform 0.35s $ease-out;
+    }
+    .case:hover .cover-block,
+    .case.lit .cover-block,
+    .writing-latest-link:hover .cover-block {
+        transform: scale(1.03);
+    }
+}
+
+// Experience rail fills with reading progress (scroll-driven, CSS only). Browsers without
+// scroll timelines keep the static grey rail; nothing is hidden behind the animation.
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .xp-item {
+            view-timeline-name: --xp-item;
+        }
+        // `.xp` prefix: the base rail rules sit later in this file and would otherwise win.
+        .xp .xp-item::before {
+            background: linear-gradient($primary, $primary) top / 100% 0% no-repeat, var(--app-border);
+            animation: xp-rail-fill linear both;
+            animation-timeline: --xp-item;
+            animation-range: cover 40% cover 65%; // fills as the role passes the middle of the screen
+        }
+        .xp .xp-item:not(.xp-item--current)::after {
+            animation: xp-ring-fill linear both;
+            animation-timeline: --xp-item;
+            animation-range: cover 38% cover 42%;
+        }
+    }
+}
+@keyframes xp-rail-fill {
+    to {
+        background-size: 100% 100%, auto;
+    }
+}
+@keyframes xp-ring-fill {
+    to {
+        background: $primary;
+    }
+}
+
+// Experience on Home: heading column sticks while the timeline scrolls.
+.xp-head {
+    @media (min-width: 992px) {
+        position: sticky;
+        top: 110px;
+    }
+    @media (max-width: 991px) {
+        margin-bottom: 8px;
+    }
+}
+
+// Testimonials: the quote is the content, so it reads at body size in ink, not muted grey.
+.testimonial-quote {
+    font-family: $font-family-secondary;
+    font-size: 17px;
+    line-height: 1.6;
+    color: $dark;
+}
+
 // ============================================================ selected work
 .selected-work-title {
-    font-size: clamp(26px, 3.2vw, 38px);
+    font-size: clamp(30px, 4vw, 52px) !important; // beats the template's !important h2 size
     font-weight: 700;
     letter-spacing: -0.02em;
     color: $dark;
@@ -647,19 +761,68 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 // ============================================================ experience (shared: home, CV)
+// A thin rail with a small ring per role, sitting in the gap between "when" and "what". The current
+// role is a filled ring. No glow, no animation: the rail is structure, not decoration.
+$xp-when: 170px;
+$xp-gap: 28px;
+$xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 .xp-item {
+    position: relative;
     display: grid;
-    grid-template-columns: 170px minmax(0, 1fr);
-    gap: 28px;
+    grid-template-columns: $xp-when minmax(0, 1fr);
+    gap: $xp-gap;
     padding: 22px 0;
-    border-top: 1px solid $gray-200;
     &:first-child {
-        border-top: 0;
         padding-top: 0;
+    }
+    // the rail
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: $xp-rail;
+        width: 1px;
+        background: var(--app-border);
+    }
+    &:first-child::before {
+        top: 11px;
+    }
+    &:last-child::before {
+        bottom: calc(100% - 33px);
+    }
+    &:only-child::before {
+        display: none;
+    }
+    // the ring, level with the role title
+    &::after {
+        content: "";
+        position: absolute;
+        top: 29px;
+        left: $xp-rail - 4.5px;
+        width: 9px;
+        height: 9px;
+        box-sizing: border-box;
+        border: 2px solid $primary;
+        border-radius: 50%;
+        background: $white;
+    }
+    &:first-child::after {
+        top: 7px;
+    }
+    &--current::after {
+        background: $primary;
     }
     @media (max-width: 767px) {
         grid-template-columns: minmax(0, 1fr);
         gap: 6px;
+        padding-left: 26px;
+        &::before {
+            left: 4px;
+        }
+        &::after {
+            left: 0;
+        }
     }
 }
 .xp-now {
@@ -1222,6 +1385,30 @@ h3.mono-meta {
 .contact-open {
     color: $ml-ink;
 }
+// "copy" beside the email: a mono word, not an icon button, so it reads like the rows around it.
+.contact-copy {
+    margin-left: 6px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.6;
+    color: $text-meta;
+    cursor: pointer;
+    &:hover,
+    &:focus-visible {
+        color: $primary;
+    }
+}
+.contact-dark .contact-copy {
+    color: $console-dim;
+    &:hover,
+    &:focus-visible {
+        color: $console-key;
+    }
+}
 .contact-form-card {
     background: $white;
     border: 1px solid $gray-200;
@@ -1229,6 +1416,31 @@ h3.mono-meta {
     padding: 28px;
     @media (max-width: 767px) {
         padding: 20px;
+    }
+}
+
+// Dark variant (Home only): the closing band reuses the console's navy. The form card stays white on
+// purpose, so inputs, labels and validation colours keep the contrast they were built for.
+.contact-dark {
+    border-bottom: 1px solid $console-line; // the footer is dark too; keep the two bands distinct
+    // Console navy easing toward the brand blue, like the template's closing CTA band but without a photo.
+    // The lightest stop is still dark enough that the dim text below keeps ≥ 4.5:1.
+    background: linear-gradient(160deg, $console-bg 0%, mix($console-bg, $primary, 75%) 100%);
+    .contact-title {
+        color: $white;
+    }
+    .contact-lede,
+    .contact-rows dt {
+        color: $console-dim;
+    }
+    .contact-rows dd {
+        color: $console-text;
+    }
+    .contact-rows a {
+        color: $console-key;
+    }
+    .contact-open {
+        color: $success;
     }
 }
 
