@@ -9,6 +9,8 @@
 export const chart = {
   /** Categorical slot 1. The default for a single-series chart. */
   series1: "#2a78d6",
+  /** series1 stepped back: earlier periods, so the current one (in series1) leads. */
+  series1Recede: "#a9c9f2",
   /** Categorical slot 2. Pairs with series1 (raw values vs their average). */
   series2: "#eb6834",
   /** Categorical slot 3. */

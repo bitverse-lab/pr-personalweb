@@ -42,9 +42,10 @@ export default function TaskEditDialog({ initialValues, onClose }: TaskEditDialo
       const result = await updateTask({
         id: initialValues.id,
         title,
-        description: description || undefined,
-        dueDate: dueDate || undefined,
-        priority: priority || undefined,
+        // null, not undefined: emptying a field in the form must actually clear it.
+        description: description.trim() || null,
+        dueDate: dueDate || null,
+        priority: priority || null,
         tags,
       });
       if (!result.ok) {

@@ -5,12 +5,8 @@ import SubtaskToggleList, { useSubtaskItems } from "./SubtaskToggleList";
 import type { SubtaskDto } from "@/features/tasks/subtask-actions";
 import type { TaskPriority } from "@/db/schema/productivity";
 import DialogShell from "@/components/shared/DialogShell";
-
-const PRIORITY_BADGE: Record<TaskPriority, string> = {
-  high: "badge bg-soft-danger text-danger",
-  medium: "badge bg-soft-warning text-warning",
-  low: "badge bg-soft-success text-success",
-};
+import { DueText, PriorityFlag } from "./TaskMeta";
+import { dayKey } from "@/features/calendar/format";
 
 export interface TaskDetailValues {
   id: string;
@@ -35,17 +31,22 @@ export default function TaskDetailDialog({
 
   return (
     <DialogShell title={task.title} onClose={onClose}>
-      <div className="d-flex flex-wrap gap-1 mb-3">
-        {task.priority && <span className={PRIORITY_BADGE[task.priority]}>{task.priority}</span>}
-        {task.tags.map((tag) => (
-          <span key={tag} className="badge bg-light text-dark">
-            {tag}
-          </span>
-        ))}
-      </div>
+      {(task.priority || task.tags.length > 0) && (
+        <div className="task-meta mb-3">
+          {task.priority && <PriorityFlag priority={task.priority} />}
+          {task.tags.map((tag) => (
+            <span key={tag} className="task-tag">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
       {task.dueDate && (
         <p className="small mb-2">
-          <span className="text-muted">Due:</span> {task.dueDate}
+          <span className="text-muted">Due:</span>{" "}
+          {new Date(`${task.dueDate}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
+          {" · "}
+          <DueText due={task.dueDate} today={dayKey(new Date())} />
         </p>
       )}
       {task.description ? (

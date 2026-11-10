@@ -14,9 +14,9 @@ export default function MoodPicker({ value, onChange }: { value: number | null; 
             role="radio"
             aria-checked={active}
             className={`btn btn-sm d-inline-flex align-items-center gap-1 ${active ? "btn-primary" : "btn-outline-secondary"}`}
-            style={active ? undefined : { borderLeft: `4px solid ${MOOD_COLOR[v]}` }}
             onClick={() => onChange(active ? null : v)}
           >
+            {!active && <span className="mood-dot" style={{ background: MOOD_COLOR[v] }} aria-hidden />}
             <Icon aria-hidden /> {label}
           </button>
         );

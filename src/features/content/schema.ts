@@ -31,6 +31,8 @@ export const saveArticleSchema = z.object({
   id: z.uuid(),
   title: z.string().trim().max(160, "Title is too long"),
   slug: z.string().trim().max(120),
+  // True while the slug still follows the title: a clash is then resolved by numbering, not refused.
+  slugAuto: z.boolean().optional(),
   excerpt: z.string().trim().max(400, "Excerpt must be 400 characters or fewer").nullish(),
   content: richDocSchema,
   coverUrl: optionalUrl,

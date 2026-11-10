@@ -32,6 +32,10 @@ export async function sweepE2ERows(): Promise<Record<string, number>> {
     counts.article = (await sql`delete from "article" where user_id = ${id} and title like 'E2E · %'`).count;
     counts.testimonial = (await sql`delete from "testimonial" where user_id = ${id} and author_name like 'E2E · %'`).count;
     counts.experience = (await sql`delete from "experience" where user_id = ${id} and company like 'E2E · %'`).count;
+    counts.application = (await sql`delete from "application" where user_id = ${id} and role_title like 'E2E · %'`).count;
+    counts.company = (await sql`delete from "company" where user_id = ${id} and name like 'E2E · %'`).count;
+    counts.task = (await sql`delete from "task" where user_id = ${id} and title like 'E2E · %'`).count;
+    counts.calendarEvent = (await sql`delete from "calendar_event" where user_id = ${id} and title like 'E2E · %'`).count;
     return counts;
   } finally {
     await sql.end();

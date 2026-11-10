@@ -52,10 +52,11 @@ export const careerService = {
   },
 
   // Company (find-or-create) + application + first history row + "created" timeline event, atomically.
-  createApplication(userId: string, input: CreateApplicationInput) {
+  // `today` is the owner's calendar day: the default applied date must not be yesterday's UTC date.
+  createApplication(userId: string, input: CreateApplicationInput, today: string) {
     return db.transaction(async (tx) => {
       const company = await repo.findOrCreateCompany(userId, input.companyName, tx);
-      const appliedAt = input.appliedAt ?? (input.status === "applied" ? new Date().toISOString().slice(0, 10) : undefined);
+      const appliedAt = input.appliedAt ?? (input.status === "applied" ? today : undefined);
       const application = await repo.insertApplication(tx, userId, {
         companyId: company.id,
         roleTitle: input.roleTitle,
@@ -99,13 +100,13 @@ export const careerService = {
   },
 
   // Status update + history row + timeline event, atomically. Same-status change is a no-op.
-  changeStatus(userId: string, id: string, status: ApplicationStatus) {
+  changeStatus(userId: string, id: string, status: ApplicationStatus, today: string) {
     return db.transaction(async (tx) => {
       const current = await repo.findApplicationById(userId, id, tx);
       if (!current) return null;
       if (current.status === status) return current;
       const appliedAt =
-        status === "applied" && !current.appliedAt ? new Date().toISOString().slice(0, 10) : undefined;
+        status === "applied" && !current.appliedAt ? today : undefined;
       const updated = await repo.updateApplication(tx, userId, id, {
         status,
         ...(appliedAt && { appliedAt }),

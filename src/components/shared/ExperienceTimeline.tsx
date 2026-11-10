@@ -6,7 +6,7 @@ export default function ExperienceTimeline({ entries }: { entries: ExperienceEnt
   return (
     <ol className="xp list-unstyled mb-0">
       {entries.map((entry, index) => (
-        <li className="xp-item" key={`${entry.company}-${entry.period}-${index}`}>
+        <li className={entry.current ? "xp-item xp-item--current" : "xp-item"} key={`${entry.company}-${entry.period}-${index}`}>
           <p className="xp-when mono-meta mb-0">
             {entry.period}
             {entry.current && <span className="xp-now"> · now</span>}

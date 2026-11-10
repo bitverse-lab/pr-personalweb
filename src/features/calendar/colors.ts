@@ -12,6 +12,17 @@ export const EVENT_COLORS: Record<EventColor, string> = {
   red: "#e34948",
 };
 
+// Each colour carries a name, so "red" means something to whoever reads the calendar. The names
+// fit the demo data (interviews red, gym orange, family pink) and are fixed: no schema change.
+export const EVENT_CATEGORY: Record<EventColor, string> = {
+  blue: "Work",
+  red: "Important",
+  green: "Focus",
+  orange: "Fitness",
+  pink: "Personal",
+  violet: "Learning",
+};
+
 export function eventColorHex(color: EventColor | null | undefined): string {
   return EVENT_COLORS[color ?? "blue"];
 }

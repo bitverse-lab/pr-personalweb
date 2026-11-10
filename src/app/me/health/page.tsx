@@ -42,6 +42,8 @@ export default async function HealthPage() {
           label="Calories today"
           value={day.targets.calories ? `${day.totals.calories} / ${day.targets.calories}` : day.totals.calories}
           hint={remaining === null ? "kcal eaten" : remaining >= 0 ? `${remaining} kcal remaining` : `${Math.abs(remaining)} kcal over`}
+          progress={day.targets.calories ? day.totals.calories / day.targets.calories : null}
+          overIsBad
         />
         <HealthStat
           label="Weight"
@@ -52,8 +54,14 @@ export default async function HealthPage() {
           label="Workouts this week"
           value={workouts.week.target ? `${workouts.week.count} / ${workouts.week.target}` : workouts.week.count}
           hint={`${workouts.streak}-day streak`}
+          progress={workouts.week.target ? workouts.week.count / workouts.week.target : null}
         />
-        <HealthStat label="Water today" value={`${day.waterMl} ml`} hint={day.targets.waterMl ? `of ${day.targets.waterMl} ml` : "set a goal in Goals"} />
+        <HealthStat
+          label="Water today"
+          value={`${day.waterMl} ml`}
+          hint={day.targets.waterMl ? `of ${day.targets.waterMl} ml` : "set a goal in Goals"}
+          progress={day.targets.waterMl ? day.waterMl / day.targets.waterMl : null}
+        />
       </div>
 
       <div className="row g-3 mb-4">

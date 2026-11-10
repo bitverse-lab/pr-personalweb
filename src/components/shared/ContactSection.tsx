@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ContactForm from "./ContactForm";
 import { useSite } from "@/lib/site-context";
 
@@ -11,17 +12,29 @@ export default function ContactSection({
   heading = "Hiring, a project, or a question about a post?",
   id = "contact",
   level = 2,
+  dark = false,
 }: {
   heading?: string;
   id?: string;
   level?: 1 | 2;
+  dark?: boolean;
 }) {
   const site = useSite();
   const links = site.links.filter((l) => /^https?:\/\//i.test(l.url));
   const Heading = level === 1 ? "h1" : "h2";
+  const [copied, setCopied] = useState(false);
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(site.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Clipboard can be blocked (insecure context, permissions); the mailto link still works.
+    }
+  };
 
   return (
-    <section className="section" id={id}>
+    <section className={dark ? "section contact-dark" : "section"} id={id}>
       <div className="container">
         <div className="contact-grid">
           <div>
@@ -31,7 +44,13 @@ export default function ContactSection({
               {site.email && (
                 <div>
                   <dt>email</dt>
-                  <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+                  <dd>
+                    <a href={`mailto:${site.email}`}>{site.email}</a>{" "}
+                    <button type="button" className="contact-copy" onClick={copyEmail} aria-label={copied ? "Email address copied" : "Copy email address"}>
+                      {copied ? "copied" : "copy"}
+                    </button>
+                    <span className="visually-hidden" aria-live="polite">{copied ? "Email address copied" : ""}</span>
+                  </dd>
                 </div>
               )}
               {links.map((l) => (

@@ -21,6 +21,8 @@ import { getApplicationStatusCounts, getInterviews } from "@/features/career/act
 import { getTaskCompletionActivity, getOverdueTaskCount } from "@/features/tasks/analytics";
 import { toTaskPreview } from "@/features/tasks/mappers";
 import { toEventPreview } from "@/features/calendar/mappers";
+import { untilLabel } from "@/features/career/insights";
+import { getUserTimeZone } from "@/lib/timezone";
 
 export default async function MeOverviewPage() {
   const session = await auth();
@@ -81,12 +83,14 @@ export default async function MeOverviewPage() {
         id: row.id,
         applicationId: row.applicationId,
         title: `${row.companyName} — ${row.roleTitle}`,
-        whenLabel: row.startAt.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }),
+        whenLabel: untilLabel(row.startAt, now),
       })),
   };
-  const taskPreviews = tasks.map(toTaskPreview);
+  const taskPreviews = tasks.map((t) => toTaskPreview(t, health.today));
+  // Event days in the owner's timezone; toISOString() put an early-morning event on the day before.
+  const localDay = new Intl.DateTimeFormat("en-CA", { timeZone: await getUserTimeZone(), year: "numeric", month: "2-digit", day: "2-digit" });
   const markers = [
-    ...monthEvents.map((event) => ({ date: event.startAt.toISOString().slice(0, 10) })),
+    ...monthEvents.map((event) => ({ date: localDay.format(event.startAt) })),
     ...tasks.filter((task) => task.dueDate).map((task) => ({ date: task.dueDate! })),
   ];
 
@@ -119,7 +123,7 @@ export default async function MeOverviewPage() {
             <TasksSection tasks={taskPreviews} />
           </div>
           <div className="col">
-            <MiniCalendar markers={markers} />
+            <MiniCalendar markers={markers} today={health.today} />
           </div>
           <div className="col">
             <CalendarSection events={events.map(toEventPreview)} />
@@ -133,8 +137,9 @@ export default async function MeOverviewPage() {
           <div className="col">
             <JournalSection summary={journalSummary} />
           </div>
-          <div className="col">
-            <ProductivitySection activity={activity} overdue={overdue} />
+          {/* Full width: alone in half a row it left an empty column beside it. */}
+          <div className="col col-md-12">
+            <ProductivitySection activity={activity} overdue={overdue} today={health.today} />
           </div>
         </div>
       </div>

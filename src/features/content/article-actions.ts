@@ -44,19 +44,19 @@ export async function createArticleDraft(): Promise<ActionResult<{ id: string }>
 }
 
 // Called by autosave: no list revalidation, only the public page when the article is live.
-export async function saveArticle(input: unknown): Promise<ActionResult<{ updatedAt: string }>> {
+export async function saveArticle(input: unknown): Promise<ActionResult<{ updatedAt: string; slug: string; slugError: string | null }>> {
   const userId = await requireUserId();
   const parsed = saveArticleSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const { id, ...rest } = parsed.data;
-  const before = await articleRepository.findById(userId, id);
   const result = await articleService.save(userId, id, rest);
   if (!result.ok) return result;
-  if (before?.status === "published") {
-    revalidateArticles(before.slug);
-    if (before.slug !== rest.slug) revalidatePath(`/articles/${rest.slug}`);
+  const { wasLive, previousSlug, ...data } = result.data;
+  if (wasLive) {
+    revalidateArticles(previousSlug);
+    if (previousSlug !== data.slug) revalidatePath(`/articles/${data.slug}`);
   }
-  return result;
+  return { ok: true, data };
 }
 
 export async function setArticleStatus(input: unknown): Promise<ActionResult<ArticleListItem>> {

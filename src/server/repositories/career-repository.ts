@@ -31,6 +31,10 @@ const applicationColumns = {
   notes: applications.notes,
   createdAt: applications.createdAt,
   updatedAt: applications.updatedAt,
+  // When it entered its current stage: the latest status change on record (null for rows that predate history).
+  stageSince: sql<Date | null>`(select max(${applicationStatusHistory.changedAt}) from ${applicationStatusHistory} where ${applicationStatusHistory.applicationId} = ${applications.id})`.mapWith(
+    applicationStatusHistory.changedAt
+  ),
 };
 
 export const careerRepository = {

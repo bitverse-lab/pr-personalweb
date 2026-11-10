@@ -9,6 +9,26 @@ import PaginationControls from "@/components/shared/PaginationControls";
 import { useToast } from "@/components/shared/ToastProvider";
 import { paginate } from "@/lib/pagination";
 
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("") || "?";
+
+// "just now", "3 h ago", "yesterday", "5 days ago", then the date; the exact time is in the tooltip.
+function ago(iso: string) {
+  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 60 * 24) return `${Math.round(minutes / 60)} h ago`;
+  const days = Math.round(minutes / (60 * 24));
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const fmt = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 const PAGE_SIZE = 25;
 
@@ -99,12 +119,17 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
           return (
             <li key={m.id} className="border-top">
               <button type="button" className="btn w-100 text-start px-0 py-3 d-flex align-items-start gap-3 border-0" aria-expanded={isOpen} onClick={() => open(m)}>
-                <span className="mt-1 rounded-circle flex-shrink-0" style={{ width: 10, height: 10, background: unread ? "var(--app-primary)" : "transparent", border: unread ? "none" : "1px solid var(--bs-border-color)" }} aria-hidden />
+                {/* Sender initials, with the unread dot on the avatar's corner. */}
+                <span className={`inbox-avatar${unread ? " is-unread" : ""}`} aria-hidden>
+                  {initials(m.name)}
+                </span>
                 <span className="flex-grow-1 min-w-0">
                   <span className="d-flex flex-wrap gap-2 align-items-baseline">
                     <strong className={unread ? "" : "fw-normal"}>{m.name}</strong>
                     {unread && <span className="badge bg-primary">New</span>}
-                    <span className="text-muted small">{fmt(m.createdAt)}</span>
+                    <span className="text-muted small" title={fmt(m.createdAt)}>
+                      {ago(m.createdAt)}
+                    </span>
                   </span>
                   <span className={`d-block ${isOpen ? "" : "text-truncate"} ${unread ? "fw-semibold" : ""}`}>{m.subject || "(no subject)"}</span>
                   {!isOpen && <span className="d-block text-muted small text-truncate">{m.message}</span>}

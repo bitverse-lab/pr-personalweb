@@ -103,7 +103,7 @@ function Toolbar({ editor, openDialog }: { editor: Editor; openDialog: (k: Exclu
       <ToolButton label="Code block" active={editor.isActive("codeBlock")} onClick={() => chain().toggleCodeBlock().run()}><span className="fw-semibold">{"{ }"}</span></ToolButton>
       <ToolButton label="Divider" onClick={() => chain().setHorizontalRule().run()}><FiMinus /></ToolButton>
       <span className="vr mx-1" />
-      <ToolButton label="Link" active={editor.isActive("link")} onClick={() => openDialog("link")}><FiLink /></ToolButton>
+      <ToolButton label="Link (Ctrl+K)" active={editor.isActive("link")} onClick={() => openDialog("link")}><FiLink /></ToolButton>
       <ToolButton label="Image" onClick={() => openDialog("image")}><FiImage /></ToolButton>
       <span className="vr mx-1" />
       <ToolButton label="Undo" disabled={!editor.can().undo()} onClick={() => chain().undo().run()}><FiRotateCcw /></ToolButton>
@@ -136,9 +136,22 @@ export default function RichEditor({
       Placeholder.configure({ placeholder }),
     ],
     content: initial as JSONContent,
-    editorProps: { attributes: { class: "rich-content", role: "textbox", "aria-multiline": "true", "aria-label": "Editor" } },
+    editorProps: {
+      attributes: { class: "rich-content", role: "textbox", "aria-multiline": "true", "aria-label": "Editor" },
+      // Ctrl/Cmd+K: the usual "insert link" shortcut.
+      handleKeyDown: (_view, event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          setDialog("link");
+          return true;
+        }
+        return false;
+      },
+    },
     onCreate: ({ editor: e }) => onReady?.(e),
-    onUpdate: ({ editor: e }) => onChange(e.getJSON() as RichDoc),
+    // ProseMirror builds mark/node attrs with Object.create(null) (e.g. a pasted link), which Server
+    // Actions refuse to serialise; structuredClone yields plain objects.
+    onUpdate: ({ editor: e }) => onChange(structuredClone(e.getJSON()) as RichDoc),
   });
 
   if (!editor) return <div className="border rounded bg-white" style={{ minHeight: minHeight + 50 }} />;

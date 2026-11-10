@@ -45,4 +45,12 @@ export const moveEventSchema = z.object({
 });
 export type MoveEventInput = z.infer<typeof moveEventSchema>;
 
+export const conflictCheckSchema = z
+  .object({
+    start: z.iso.datetime({ offset: true }),
+    end: z.iso.datetime({ offset: true }),
+    excludeId: z.string().uuid().optional(),
+  })
+  .refine((v) => new Date(v.end) > new Date(v.start), { message: "End must be after start", path: ["end"] });
+
 export const eventIdSchema = z.object({ id: z.string().uuid() });

@@ -6,16 +6,15 @@ export default function TestimonialsSection({ items }: { items: PublicTestimonia
   return (
     <section className="section bg-light" id="testimonials">
       <div className="container">
-        <div className="section-title text-center mb-4 pb-2">
-          <h2 className="h4 title mb-3">What people say</h2>
-        </div>
-        <div className="row justify-content-center">
+        <h2 className="selected-work-title">What people say</h2>
+        <div className="row">
           {items.map((t) => (
-            <div className={`${items.length === 1 ? "col-lg-8" : "col-lg-4 col-md-6"} mt-4`} key={t.id}>
+            // Even counts sit two-up so the last row never strands a single card (4 → 2×2, not 3 + 1).
+            <div className={`${items.length === 1 ? "col-lg-8" : items.length % 2 === 0 ? "col-md-6" : "col-lg-4 col-md-6"} mt-4`} key={t.id}>
               <figure className="card border-0 bg-white h-100 mb-0">
                 <blockquote className="card-body p-4 rounded shadow m-2 mb-0">
                   <i className="mdi mdi-format-quote-open fs-1 text-primary" aria-hidden="true" />
-                  <p className="text-muted mb-0" style={{ whiteSpace: "pre-line" }}>“{t.quote}”</p>
+                  <p className="testimonial-quote mb-0" style={{ whiteSpace: "pre-line" }}>“{t.quote}”</p>
                   <footer className="d-flex align-items-start justify-content-between gap-3 mt-4">
                     <span>
                       <span className="fw-semibold d-block text-dark">{t.authorName}</span>

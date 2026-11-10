@@ -23,6 +23,7 @@ export interface ArticleDetail extends ArticleListItem {
 export interface ArticleSaveInput {
   title: string;
   slug: string;
+  slugAuto?: boolean;
   excerpt?: string | null;
   content: RichDoc;
   coverUrl?: string | null;
@@ -80,6 +81,8 @@ export const articleService = {
   },
 
   async createDraft(userId: string) {
+    // "New article" opened and then left behind used to pile up as empty "Untitled" drafts.
+    await articleRepository.deleteEmptyDrafts(userId);
     const slug = await uniqueSlug(userId, `draft-${Math.random().toString(36).slice(2, 8)}`);
     return articleRepository.insert(userId, {
       title: "",
@@ -94,11 +97,29 @@ export const articleService = {
     });
   },
 
-  async save(userId: string, id: string, input: ArticleSaveInput): Promise<ServiceResult<{ updatedAt: string }>> {
+  /**
+   * Saves everything the editor holds. A slug clash never blocks the rest of the save (that used to
+   * stop the writing itself from saving): an automatic slug is numbered, a typed one is kept as it
+   * was and reported back as `slugError`.
+   */
+  async save(
+    userId: string,
+    id: string,
+    input: ArticleSaveInput
+  ): Promise<ServiceResult<{ updatedAt: string; slug: string; slugError: string | null; wasLive: boolean; previousSlug: string }>> {
     const problem = validateDoc(input.content);
     if (problem) return { ok: false, error: problem };
-    const slug = slugify(input.slug);
-    if (await articleRepository.slugTaken(userId, slug, id)) return { ok: false, error: "That URL slug is already used by another article" };
+    const current = await articleRepository.findById(userId, id);
+    if (!current) return { ok: false, error: "Article not found" };
+    let slug = slugify(input.slug);
+    let slugError: string | null = null;
+    if (await articleRepository.slugTaken(userId, slug, id)) {
+      if (input.slugAuto) slug = await uniqueSlug(userId, slug, id);
+      else {
+        slugError = `"${slug}" is already used by another article`;
+        slug = current.slug;
+      }
+    }
     const plainText = docToPlainText(input.content);
 
     const row = await db.transaction(async (tx) => {
@@ -120,7 +141,10 @@ export const articleService = {
       return updated;
     });
     if (!row) return { ok: false, error: "Article not found" };
-    return { ok: true, data: { updatedAt: row.updatedAt.toISOString() } };
+    return {
+      ok: true,
+      data: { updatedAt: row.updatedAt.toISOString(), slug: row.slug, slugError, wasLive: current.status === "published", previousSlug: current.slug },
+    };
   },
 
   async setStatus(userId: string, id: string, status: ArticleStatus): Promise<ServiceResult<ArticleListItem>> {

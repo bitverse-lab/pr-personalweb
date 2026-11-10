@@ -43,6 +43,7 @@ export interface ProjectDetail extends ProjectListItem {
 export interface ProjectSaveInput {
   title: string;
   slug: string;
+  slugAuto?: boolean;
   summary?: string | null;
   outcome?: string | null;
   category?: string | null;
@@ -183,11 +184,28 @@ export const projectService = {
     });
   },
 
-  async save(userId: string, id: string, input: ProjectSaveInput): Promise<ServiceResult<{ updatedAt: string }>> {
+  /**
+   * A slug clash never blocks the rest of the save: an automatic slug is numbered, a typed one is
+   * kept as it was and reported back as `slugError` (same rule as articles).
+   */
+  async save(
+    userId: string,
+    id: string,
+    input: ProjectSaveInput
+  ): Promise<ServiceResult<{ updatedAt: string; slug: string; slugError: string | null; wasLive: boolean; previousSlug: string }>> {
     const problem = validateDoc(input.content);
     if (problem) return { ok: false, error: problem };
-    const slug = slugify(input.slug);
-    if (await projectRepository.slugTaken(userId, slug, id)) return { ok: false, error: "That URL slug is already used by another project" };
+    const current = await projectRepository.findById(userId, id);
+    if (!current) return { ok: false, error: "Project not found" };
+    let slug = slugify(input.slug);
+    let slugError: string | null = null;
+    if (await projectRepository.slugTaken(userId, slug, id)) {
+      if (input.slugAuto) slug = await uniqueSlug(userId, slug, id);
+      else {
+        slugError = `"${slug}" is already used by another project`;
+        slug = current.slug;
+      }
+    }
 
     // cover and gallery must be the user's own, verified, public images
     const wanted = Array.from(new Set([...input.gallery.map((g) => g.mediaId), ...(input.coverMediaId ? [input.coverMediaId] : [])]));
@@ -204,7 +222,10 @@ export const projectService = {
       return updated;
     });
     if (!row) return { ok: false, error: "Project not found" };
-    return { ok: true, data: { updatedAt: row.updatedAt.toISOString() } };
+    return {
+      ok: true,
+      data: { updatedAt: row.updatedAt.toISOString(), slug: row.slug, slugError, wasLive: current.status === "published", previousSlug: current.slug },
+    };
   },
 
   async setStatus(userId: string, id: string, status: ProjectStatus): Promise<ServiceResult<ProjectListItem>> {

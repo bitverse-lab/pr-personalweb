@@ -1,5 +1,6 @@
 "use server";
 
+import { todayInUserTz } from "@/lib/timezone";
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/server/auth";
 import { careerService } from "@/server/services/career-service";
@@ -64,7 +65,7 @@ export async function createApplication(input: unknown): Promise<ActionResult<{ 
   const userId = await requireUserId();
   const parsed = createApplicationSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error.issues) };
-  const application = await careerService.createApplication(userId, parsed.data);
+  const application = await careerService.createApplication(userId, parsed.data, await todayInUserTz());
   revalidateCareer();
   return { ok: true, data: { id: application.id } };
 }
@@ -83,7 +84,7 @@ export async function changeApplicationStatus(input: unknown): Promise<ActionRes
   const userId = await requireUserId();
   const parsed = changeStatusSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Invalid status" };
-  const row = await careerService.changeStatus(userId, parsed.data.id, parsed.data.status);
+  const row = await careerService.changeStatus(userId, parsed.data.id, parsed.data.status, await todayInUserTz());
   if (!row) return { ok: false, error: "Application not found" };
   revalidateCareer();
   return { ok: true, data: { id: row.id } };

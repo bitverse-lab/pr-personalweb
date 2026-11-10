@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo, useState, useTransition } from "react";
+import { Fragment, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FiArchive, FiArrowLeft, FiExternalLink, FiGlobe, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { deleteProject, restoreProject, saveProject, setProjectFeatured, setProjectStatus } from "@/features/projects/actions";
@@ -35,6 +35,8 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [title, setTitle] = useState(project.title);
   const [slug, setSlug] = useState(project.slug);
   const [slugTouched, setSlugTouched] = useState(!project.slug.startsWith("draft-"));
+  const [savedSlug, setSavedSlug] = useState(project.slug);
+  const [slugError, setSlugError] = useState<string | null>(null);
   const [summary, setSummary] = useState(project.summary ?? "");
   const [outcome, setOutcome] = useState(project.outcome ?? "");
   const [category, setCategory] = useState(project.category ?? "");
@@ -60,6 +62,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
       id: project.id,
       title,
       slug,
+      slugAuto: !slugTouched,
       summary,
       outcome,
       category,
@@ -73,14 +76,35 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
       coverMediaId: coverMediaId && gallery.some((g) => g.mediaId === coverMediaId) ? coverMediaId : null,
       gallery: gallery.map((g) => ({ mediaId: g.mediaId, caption: g.caption })),
       // half-filled rows are kept on screen but not sent until both fields are filled
-      links: links.filter((l) => l.label.trim() && l.url.trim()),
+      links: links
+        .filter((l) => l.label.trim() && l.url.trim())
+        // "github.com/me/x" is what people type; without a scheme the whole project used to stop saving.
+        .map((l) => ({ label: l.label, url: /^https?:\/\//i.test(l.url.trim()) ? l.url.trim() : `https://${l.url.trim()}` })),
     }),
-    [project.id, title, slug, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
+    [project.id, title, slug, slugTouched, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
   );
-  const { status: saveStatus, error, flush } = useAutosave(payload, async (p) => {
+  const { status: saveStatus, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveProject(p);
-    return result.ok ? null : result.error;
+    if (!result.ok) return result.error;
+    const sent = slugify(p.slug);
+    // The server numbered a clashing automatic slug; show it, unless the title moved on meanwhile.
+    if (result.data.slug !== sent) setSlug((current) => (slugify(current) === sent ? result.data.slug : current));
+    setSavedSlug(result.data.slug);
+    setSlugError(result.data.slugError);
+    return null;
   });
+
+  // Ctrl/Cmd+S saves now instead of opening the browser's "Save page" dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void flush();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flush]);
 
   const onTitle = (value: string) => {
     setTitle(value);
@@ -89,11 +113,13 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
 
   const changeStatus = (next: "draft" | "published" | "archived") =>
     startTransition(async () => {
-      const saved = await saveProject(payload);
-      if (!saved.ok) return toast.error(saved.error);
+      // persist first (waiting for any autosave in flight) so the published version is what is on screen
+      const problem = await flush();
+      if (problem) return toast.error(`Could not save first: ${problem}`);
       const result = await setProjectStatus({ id: project.id, status: next });
       if (!result.ok) return toast.error(result.error);
       setStatus(result.data.status);
+      setSavedSlug(result.data.slug);
       setSlugTouched(true);
       toast.success(next === "published" ? "Published — it is now live on your site" : next === "archived" ? "Project archived" : "Moved back to drafts");
     });
@@ -126,15 +152,18 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
 
   return (
     <>
+      <h1 className="visually-hidden">Edit project: {title.trim() || "Untitled project"}</h1>
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <Link href="/me/projects" className="text-muted small d-inline-flex align-items-center gap-1">
           <FiArrowLeft /> All projects
         </Link>
         <div className="d-flex align-items-center gap-3">
-          <SaveIndicator status={saveStatus} error={error} />
+          <span title="Ctrl+S saves right away">
+            <SaveIndicator status={saveStatus} error={error} savedAt={savedAt} onRetry={() => void flush()} />
+          </span>
           <div className="btn-group btn-group-sm" role="group" aria-label="Editor mode">
-            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(false)}>Write</button>
-            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(true)}>Preview</button>
+            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={!preview} onClick={() => setPreview(false)}>Write</button>
+            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={preview} onClick={() => setPreview(true)}>Preview</button>
           </div>
         </div>
       </div>
@@ -213,8 +242,9 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                 </div>
               </div>
             </article>
-          ) : (
-            <>
+          ) : null}
+          {/* Kept mounted while previewing: unmounting it lost the case study and its undo history. */}
+          <div className={preview ? "d-none" : undefined}>
               <input className="form-control form-control-lg fw-semibold mb-3" placeholder="Project title" aria-label="Project title" maxLength={120} value={title} onChange={(e) => onTitle(e.target.value)} />
 
               <div className="card rounded shadow-sm mb-3">
@@ -239,8 +269,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   <GalleryEditor items={gallery} coverMediaId={coverMediaId} onChange={setGallery} onCoverChange={setCoverMediaId} />
                 </div>
               </div>
-            </>
-          )}
+          </div>
         </div>
 
         {!preview && <div className="col-lg-4">
@@ -257,7 +286,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   </button>
                 ) : (
                   <>
-                    <Link href={`/projects/${slug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
+                    <Link href={`/projects/${savedSlug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
                       <FiExternalLink /> View on site
                     </Link>
                     <button type="button" className="btn btn-outline-secondary" disabled={isPending} onClick={() => changeStatus("draft")}>Unpublish (back to draft)</button>
@@ -284,9 +313,10 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
               <h6 className="mb-3">Details</h6>
               <div className="mb-3">
                 <label className="form-label small mb-1" htmlFor="p-slug">URL slug</label>
-                <div className="input-group input-group-sm">
+                <div className="input-group input-group-sm has-validation">
                   <span className="input-group-text">/projects/</span>
-                  <input id="p-slug" className="form-control" maxLength={120} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} onBlur={() => setSlug(slugify(slug))} />
+                  <input id="p-slug" className={`form-control${slugError ? " is-invalid" : ""}`} maxLength={120} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} onBlur={() => setSlug(slugify(slug))} />
+                  {slugError && <div className="invalid-feedback">{slugError}. The project keeps /projects/{savedSlug} until you pick another.</div>}
                 </div>
                 {status === "published" && <div className="form-text">Changing the slug of a published project changes its public link.</div>}
               </div>

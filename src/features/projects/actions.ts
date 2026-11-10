@@ -43,19 +43,19 @@ export async function createProjectDraft(): Promise<ActionResult<{ id: string }>
 }
 
 // Called by autosave: only touches the public pages when the project is live.
-export async function saveProject(input: unknown): Promise<ActionResult<{ updatedAt: string }>> {
+export async function saveProject(input: unknown): Promise<ActionResult<{ updatedAt: string; slug: string; slugError: string | null }>> {
   const userId = await requireUserId();
   const parsed = saveProjectSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const { id, ...rest } = parsed.data;
-  const before = await projectRepository.findById(userId, id);
   const result = await projectService.save(userId, id, rest);
   if (!result.ok) return result;
-  if (before?.status === "published") {
-    revalidateProjects(before.slug);
-    if (before.slug !== rest.slug) revalidatePath(`/projects/${rest.slug}`);
+  const { wasLive, previousSlug, ...data } = result.data;
+  if (wasLive) {
+    revalidateProjects(previousSlug);
+    if (previousSlug !== data.slug) revalidatePath(`/projects/${data.slug}`);
   }
-  return result;
+  return { ok: true, data };
 }
 
 export async function setProjectStatus(input: unknown): Promise<ActionResult<ProjectListItem>> {

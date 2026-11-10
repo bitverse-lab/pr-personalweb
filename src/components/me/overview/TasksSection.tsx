@@ -7,6 +7,7 @@ export interface TaskPreview {
   id: string;
   title: string;
   dueLabel?: string;
+  dueTone?: "overdue" | "today" | "soon" | "later";
 }
 
 export default function TasksSection({ tasks = [] }: { tasks?: TaskPreview[] }) {

@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { articles, articleTags, tags, users } from "@/db/schema";
 import type { ArticleStatus, RichDoc } from "@/db/schema/content";
@@ -94,6 +94,27 @@ export const articleRepository = {
       .where(and(eq(articles.id, id), eq(articles.userId, userId)))
       .returning()
       .then((r) => r[0] ?? null);
+  },
+
+  /**
+   * Drafts with nothing in them at all (no title, text, excerpt, cover or tags), untouched for ten
+   * minutes, so one just opened in another tab is never pulled away.
+   */
+  deleteEmptyDrafts(userId: string) {
+    return db
+      .delete(articles)
+      .where(
+        and(
+          eq(articles.userId, userId),
+          eq(articles.status, "draft"),
+          eq(articles.title, ""),
+          eq(articles.wordCount, 0),
+          isNull(articles.excerpt),
+          isNull(articles.coverUrl),
+          sql`${articles.updatedAt} < now() - interval '10 minutes'`,
+          notExists(db.select({ one: sql`1` }).from(articleTags).where(eq(articleTags.articleId, articles.id)))
+        )
+      );
   },
 
   delete(userId: string, id: string) {

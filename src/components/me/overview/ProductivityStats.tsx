@@ -1,17 +1,10 @@
 import { FiAlertTriangle, FiArrowDown, FiArrowUp, FiMinus, FiZap } from "react-icons/fi";
 import type { ActivityPoint } from "./ProductivityHeatmap";
+import { addDaysTo } from "@/features/tasks/dates";
 
-const DAY_MS = 86400000;
-
-function dayKey(offsetDays: number): string {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return new Date(date.getTime() - offsetDays * DAY_MS).toISOString().slice(0, 10);
-}
-
-function computeStats(activity: ActivityPoint[]) {
+function computeStats(activity: ActivityPoint[], today: string) {
   const counts = new Map(activity.map((point) => [point.day, point.count]));
-  const on = (offset: number) => counts.get(dayKey(offset)) ?? 0;
+  const on = (offset: number) => counts.get(addDaysTo(today, -offset)) ?? 0;
 
   // Streak counts back from today, or from yesterday if nothing is done yet today.
   let streak = 0;
@@ -41,8 +34,8 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export default function ProductivityStats({ activity, overdue }: { activity: ActivityPoint[]; overdue: number }) {
-  const { streak, thisWeek, lastWeek } = computeStats(activity);
+export default function ProductivityStats({ activity, overdue, today }: { activity: ActivityPoint[]; overdue: number; today: string }) {
+  const { streak, thisWeek, lastWeek } = computeStats(activity, today);
   const delta = thisWeek - lastWeek;
   const DeltaIcon = delta > 0 ? FiArrowUp : delta < 0 ? FiArrowDown : FiMinus;
   const deltaText = delta === 0 ? "Same as last week" : `${delta > 0 ? "+" : ""}${delta} vs last week`;

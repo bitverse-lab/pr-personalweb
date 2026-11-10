@@ -14,6 +14,8 @@ export interface ApplicationDto {
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
+  /** When it entered its current stage (latest status change), or null for rows without history. */
+  stageSince: Date | null;
 }
 
 export interface UpcomingInterviewDto {

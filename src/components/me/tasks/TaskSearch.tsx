@@ -25,7 +25,11 @@ export default function TaskSearch({
       return;
     }
     const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      // Read the URL as it is now, not as it was when typing started: a filter link clicked in the
+      // meantime must survive. And only navigate when the search actually changed, otherwise a
+      // stray run (React dev double-invokes effects) would undo that click with a stale URL.
+      const params = new URLSearchParams(window.location.search);
+      if ((params.get("q") ?? "") === value.trim()) return;
       if (value.trim()) params.set("q", value.trim());
       else params.delete("q");
       const query = params.toString();

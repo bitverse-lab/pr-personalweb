@@ -1,17 +1,11 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import TaskActions from "@/components/me/tasks/TaskActions";
 import SubtaskProgress from "@/components/me/tasks/SubtaskProgress";
+import { DueText, PriorityFlag } from "@/components/me/tasks/TaskMeta";
 import type { SubtaskDto } from "@/features/tasks/subtask-actions";
 import type { TaskPriority, TaskStatus } from "@/db/schema/productivity";
-
-const PRIORITY_BADGE: Record<TaskPriority, string> = {
-  high: "badge bg-soft-danger text-danger",
-  medium: "badge bg-soft-warning text-warning",
-  low: "badge bg-soft-success text-success",
-};
 
 export interface BoardTask {
   id: string;
@@ -25,31 +19,40 @@ export interface BoardTask {
   subtasks: SubtaskDto[];
 }
 
-export default function TaskBoardCard({ task }: { task: BoardTask }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id });
-
-  const style = transform
-    ? { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.5 : 1 }
-    : undefined;
-
+/** The card face, shared by the card in its column and the lifted copy that follows the pointer. */
+export function TaskBoardCardBody({ task, today }: { task: BoardTask; today: string }) {
   return (
-    <div ref={setNodeRef} style={style} className="card rounded shadow-sm mb-2 me-board-card">
-      <div className="card-body p-3" {...listeners} {...attributes}>
-        <p className="mb-2" style={{ cursor: "grab" }}>
-          {task.title}
-        </p>
-        <div className="d-flex flex-wrap gap-1 mb-2">
-          {task.priority && <span className={PRIORITY_BADGE[task.priority]}>{task.priority}</span>}
+    <>
+      <p className="task-card-title">{task.title}</p>
+      {(task.dueDate || task.priority || task.tags.length > 0) && (
+        <div className="task-meta">
+          {task.dueDate && <DueText due={task.dueDate} today={today} done={task.status === "done"} />}
+          {task.priority && <PriorityFlag priority={task.priority} />}
           {task.tags.map((tag) => (
-            <span key={tag} className="badge bg-light text-dark">
-              {tag}
+            <span key={tag} className="task-tag">
+              #{tag}
             </span>
           ))}
         </div>
-        {task.dueDate && <div className="text-muted small mb-2">{task.dueDate}</div>}
-        <SubtaskProgress subtasks={task.subtasks} />
+      )}
+      {task.subtasks.length > 0 && (
+        <div className="mt-2">
+          <SubtaskProgress subtasks={task.subtasks} />
+        </div>
+      )}
+    </>
+  );
+}
+
+export default function TaskBoardCard({ task, today }: { task: BoardTask; today: string }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: task.id });
+
+  return (
+    <div ref={setNodeRef} className={`task-card${isDragging ? " is-placeholder" : ""}${task.status === "done" ? " is-done" : ""}`}>
+      <div className="task-card-grip" {...listeners} {...attributes} aria-label={`Move "${task.title}"`} aria-roledescription="draggable task">
+        <TaskBoardCardBody task={task} today={today} />
       </div>
-      <div className="card-footer bg-white border-top-0 d-flex justify-content-end gap-1 py-1">
+      <div className="task-card-actions">
         <TaskActions task={task} />
       </div>
     </div>

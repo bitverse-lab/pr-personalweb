@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FiTrendingUp } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
 import HealthStat from "@/components/me/health/HealthStat";
+import { fmtDate } from "@/features/health/format";
 import WeightLogForm from "@/components/me/health/weight/WeightLogForm";
 import WeightChart from "@/components/me/health/weight/WeightChart";
 import WeightEntryList from "@/components/me/health/weight/WeightEntryList";
@@ -32,13 +33,14 @@ export default async function WeightPage({ searchParams }: { searchParams: Promi
       </div>
 
       <div className="row row-cols-2 row-cols-lg-4 g-2 mb-4">
-        <HealthStat label="Current" value={latest ? `${latest.weightKg} kg` : "—"} hint={latest ? `logged ${latest.date}` : "no entries yet"} />
+        <HealthStat label="Current" value={latest ? `${latest.weightKg} kg` : "—"} hint={latest ? `logged ${fmtDate(latest.date, { weekday: "short", month: "short", day: "numeric" })}` : "no entries yet"} />
         <HealthStat label="7-day average" value={overview.sevenDayAverage ? `${overview.sevenDayAverage} kg` : "—"} hint={`this week vs last: ${fmtDelta(overview.weekDelta)}`} />
         <HealthStat label="BMI" value={bmi ? bmi.value : "—"} hint={bmi ? bmi.category : "set your height in Goals"} />
         <HealthStat
           label="Goal progress"
           value={target?.progress != null ? `${target.progress}%` : "—"}
           hint={target ? `target ${target.weightKg} kg` : "set a target in Goals"}
+          progress={target?.progress != null ? target.progress / 100 : null}
         />
       </div>
 

@@ -1,3 +1,4 @@
+import { sessionMinutes } from "@/features/health/workout-meta";
 import { db } from "@/db";
 import { workoutRepository, type SetValues } from "@/server/repositories/workout-repository";
 import { healthProfileRepository } from "@/server/repositories/health-profile-repository";
@@ -103,11 +104,16 @@ async function previousByExercise(userId: string, exerciseIds: string[], exclude
   return { previous, history };
 }
 
-const durationMin = (start: Date, end: Date | null) => (end ? Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000)) : null);
+// Null for unfinished or forgotten sessions (see sessionMinutes), so "time this week" stays honest.
+const durationMin = sessionMinutes;
+
+// Users whose starter exercises are known to exist: the count is checked once per server process, not per request.
+const seeded = new Set<string>();
 
 export const workoutService = {
   async ensureSeeded(userId: string) {
-    if ((await workoutRepository.countExercises(userId)) > 0) return;
+    if (seeded.has(userId)) return;
+    if ((await workoutRepository.countExercises(userId)) > 0) return void seeded.add(userId);
     await workoutRepository.insertExercisesIgnoreDuplicates(
       userId,
       STARTER_EXERCISES.map((e) => ({ name: e.name, muscleGroup: e.muscleGroup, equipment: e.equipment, kind: e.kind ?? "strength" }))

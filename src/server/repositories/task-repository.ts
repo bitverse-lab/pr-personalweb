@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, lt, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { tasks, subtasks } from "@/db/schema";
 import type { TaskStatus, TaskPriority } from "@/db/schema/productivity";
@@ -21,6 +21,15 @@ export const taskRepository = {
       where: and(...conditions),
       orderBy: [asc(doneLastOrder), asc(orderCol), desc(tasks.createdAt)],
       limit: filters.limit,
+    });
+  },
+
+  // Tasks due on any day in [from, to] (inclusive "YYYY-MM-DD"), shown on the calendar beside events.
+  findDueBetween(userId: string, from: string, to: string) {
+    return db.query.tasks.findMany({
+      where: and(eq(tasks.userId, userId), gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+      orderBy: [asc(doneLastOrder), asc(tasks.dueDate), asc(tasks.createdAt)],
+      limit: 200,
     });
   },
 
@@ -108,13 +117,14 @@ export const taskRepository = {
   },
 
   // Daily count of tasks completed since `sinceDate`, for the productivity heatmap/trend chart.
-  getCompletionActivity(userId: string, sinceDate: Date) {
+  // Days are the owner's calendar days (`tz`), not UTC ones: a task ticked off at 6 am in Jakarta belongs to today.
+  getCompletionActivity(userId: string, sinceDate: Date, tz: string) {
     return db.execute<{ day: string; count: number }>(sql`
-      select date(${tasks.completedAt}) as day, count(*)::int as count
+      select to_char(${tasks.completedAt} at time zone ${tz}, 'YYYY-MM-DD') as day, count(*)::int as count
       from ${tasks}
       where ${tasks.userId} = ${userId} and ${tasks.status} = 'done' and ${tasks.completedAt} >= ${sinceDate.toISOString()}
-      group by date(${tasks.completedAt})
-      order by day
+      group by 1
+      order by 1
     `);
   },
 };

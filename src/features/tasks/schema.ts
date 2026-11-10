@@ -20,7 +20,15 @@ export const createTaskSchema = z.object({
 });
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
-export const updateTaskSchema = createTaskSchema.partial().extend({ id: z.string().uuid() });
+// null clears a field (no due date, no priority, no description); undefined leaves it unchanged.
+export const updateTaskSchema = createTaskSchema
+  .partial()
+  .extend({
+    id: z.string().uuid(),
+    description: z.string().trim().max(2000).nullable().optional(),
+    dueDate: z.iso.date().nullable().optional(),
+    priority: taskPrioritySchema.nullable().optional(),
+  });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
 export const taskIdSchema = z.object({ id: z.string().uuid() });

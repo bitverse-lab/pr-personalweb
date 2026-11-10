@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { FiUser } from "react-icons/fi";
 import { saveBasics, setAboutPhoto, setProfilePhoto, type ProfileData } from "@/features/profile/actions";
 import TagInput from "@/components/me/content/TagInput";
@@ -9,6 +9,16 @@ import { useToast } from "@/components/shared/ToastProvider";
 
 export default function BasicsForm({ data }: { data: ProfileData }) {
   const [f, setF] = useState(data.basics);
+  const [savedJson, setSavedJson] = useState(() => JSON.stringify(data.basics));
+  const dirty = JSON.stringify(f) !== savedJson;
+
+  // This form saves on Save, not as you type: closing the tab used to drop an edited bio silently.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
   const [heroPhotoUrl, setHeroPhotoUrl] = useState(data.photo?.url ?? null);
   const [aboutPhotoOverrideUrl, setAboutPhotoOverrideUrl] = useState(data.aboutPhoto?.url ?? null);
   const [isPending, startTransition] = useTransition();
@@ -21,7 +31,10 @@ export default function BasicsForm({ data }: { data: ProfileData }) {
     startTransition(async () => {
       const result = await saveBasics(f);
       if (!result.ok) toast.error(result.error);
-      else toast.success("Profile saved");
+      else {
+        setSavedJson(JSON.stringify(f));
+        toast.success("Profile saved");
+      }
     });
   };
 
@@ -139,10 +152,11 @@ export default function BasicsForm({ data }: { data: ProfileData }) {
                 <div className="form-text">e.g. “Developer”, “Designer” — they cycle in the animation on your home page.</div>
               </div>
             </div>
-            <div className="mt-4">
-              <button type="submit" className="btn btn-primary" disabled={isPending || !f.displayName.trim()}>
+            <div className="mt-4 d-flex align-items-center gap-3">
+              <button type="submit" className="btn btn-primary" disabled={isPending || !f.displayName.trim() || !dirty}>
                 {isPending ? "Saving…" : "Save"}
               </button>
+              <span className="small text-muted" role="status">{dirty ? "Unsaved changes" : "All changes saved"}</span>
             </div>
           </div>
         </form>

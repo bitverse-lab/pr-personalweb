@@ -10,7 +10,7 @@ export default function WeightChart({ data, targetKg }: { data: WeightChartPoint
   return (
     <div style={{ width: "100%", height: 300 }} role="img" aria-label="Weight over time with 7-day average">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+        <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid stroke={chart.grid} vertical={false} />
           <XAxis
             dataKey="date"
@@ -28,7 +28,7 @@ export default function WeightChart({ data, targetKg }: { data: WeightChartPoint
             tick={{ fontSize: 11, fill: chart.muted }}
             axisLine={false}
             tickLine={false}
-            width={44}
+            width={52}
             unit=" kg"
           />
           <Tooltip labelFormatter={(d) => fmtDate(String(d), { weekday: "short", month: "short", day: "numeric", year: "numeric" })} formatter={(value) => [`${value} kg`]} />

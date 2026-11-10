@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { FiBook } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
@@ -12,13 +15,14 @@ export function MoodBadge({ mood }: { mood: number | null }) {
   if (!found) return null;
   const { Icon, label } = found;
   return (
-    <span className="badge bg-light text-dark d-inline-flex align-items-center gap-1" style={{ borderLeft: `4px solid ${MOOD_COLOR[found.value]}` }}>
+    <span className="badge bg-light text-dark d-inline-flex align-items-center gap-1">
+      <span className="mood-dot" style={{ background: MOOD_COLOR[found.value] }} aria-hidden />
       <Icon aria-hidden /> {label}
     </span>
   );
 }
 
-export default function JournalList({ entries, filtered, tagHref }: { entries: JournalSummary[]; filtered: boolean; tagHref: (tag: string) => string }) {
+export default function JournalList({ entries, filtered, tagHrefs }: { entries: JournalSummary[]; filtered: boolean; tagHrefs: Record<string, string> }) {
   if (entries.length === 0) {
     return (
       <EmptyState
@@ -28,28 +32,70 @@ export default function JournalList({ entries, filtered, tagHref }: { entries: J
       />
     );
   }
+  return <GroupedEntries entries={entries} tagHrefs={tagHrefs} />;
+}
+
+const PAGE = 15;
+
+/**
+ * Entries under month headings, the most recent page first: a year of daily writing otherwise
+ * becomes one endless column.
+ */
+function GroupedEntries({ entries, tagHrefs }: { entries: JournalSummary[]; tagHrefs: Record<string, string> }) {
+  const [shown, setShown] = useState(PAGE);
+  const months: { key: string; label: string; items: JournalSummary[] }[] = [];
+  for (const e of entries.slice(0, shown)) {
+    const key = e.date.slice(0, 7);
+    let month = months.find((m) => m.key === key);
+    if (!month) {
+      month = { key, label: new Date(`${key}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" }), items: [] };
+      months.push(month);
+    }
+    month.items.push(e);
+  }
+  const perMonth = (key: string) => entries.filter((e) => e.date.startsWith(key)).length;
+
   return (
-    <ul className="list-unstyled mb-0">
-      {entries.map((e) => (
-        <li key={e.id} className="py-3 border-top">
-          <Link href={`/me/journal/${e.id}`} className="text-decoration-none text-dark d-block">
-            <div className="d-flex flex-wrap align-items-center gap-2">
-              <strong>{e.title || fmt(e.date)}</strong>
-              {e.title && <span className="text-muted small">{fmt(e.date)}</span>}
-              <MoodBadge mood={e.mood} />
-            </div>
-            {e.snippet && <div className="text-muted small text-truncate">{e.snippet}</div>}
-          </Link>
-          <div className="d-flex flex-wrap gap-1 mt-1 align-items-center">
-            <span className="text-muted small me-1">{e.wordCount} words</span>
-            {e.tags.map((t) => (
-              <Link key={t} href={tagHref(t)} className="badge bg-soft-primary text-primary text-decoration-none">
-                {t}
-              </Link>
+    <>
+      {months.map((m) => (
+        <section key={m.key} className="jr-month" aria-label={m.label}>
+          <h3 className="jr-month-h">
+            {m.label} <span className="jr-month-n">{perMonth(m.key)} {perMonth(m.key) === 1 ? "entry" : "entries"}</span>
+          </h3>
+          <ul className="list-unstyled mb-0">
+            {m.items.map((e) => (
+              <li key={e.id} className="jr-row">
+                <Link href={`/me/journal/${e.id}`} className="jr-link">
+                  <span className="jr-date">
+                    <span className="jr-day">{new Date(`${e.date}T00:00:00Z`).getUTCDate()}</span>
+                    <span className="jr-wd">{new Date(`${e.date}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" })}</span>
+                  </span>
+                  <span className="jr-body">
+                    <span className="jr-title">
+                      <strong>{e.title || fmt(e.date, false)}</strong>
+                      <MoodBadge mood={e.mood} />
+                    </span>
+                    {e.snippet && <span className="jr-snippet">{e.snippet}</span>}
+                  </span>
+                </Link>
+                <div className="jr-meta">
+                  <span>{e.wordCount} words</span>
+                  {e.tags.map((t) => (
+                    <Link key={t} href={tagHrefs[t] ?? `/me/journal?tag=${encodeURIComponent(t)}`} className="task-tag">
+                      #{t}
+                    </Link>
+                  ))}
+                </div>
+              </li>
             ))}
-          </div>
-        </li>
+          </ul>
+        </section>
       ))}
-    </ul>
+      {entries.length > shown && (
+        <button type="button" className="btn btn-sm btn-outline-primary border-0 mt-2" onClick={() => setShown((n) => n + PAGE * 2)}>
+          Show older entries ({entries.length - shown} more)
+        </button>
+      )}
+    </>
   );
 }

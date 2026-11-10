@@ -9,6 +9,10 @@ export const taskService = {
     return taskRepository.findManyByUser(userId, filters);
   },
 
+  getDueBetween(userId: string, from: string, to: string) {
+    return taskRepository.findDueBetween(userId, from, to);
+  },
+
   create(userId: string, input: CreateTaskInput) {
     return taskRepository.create(userId, input);
   },
@@ -40,12 +44,13 @@ export const taskService = {
     });
   },
 
-  countOverdue(userId: string) {
-    return taskRepository.countOverdue(userId, new Date().toISOString().slice(0, 10));
+  /** `today` is the owner's calendar day, the same one the Tasks page groups by. */
+  countOverdue(userId: string, today: string) {
+    return taskRepository.countOverdue(userId, today);
   },
 
-  getCompletionActivity(userId: string) {
+  getCompletionActivity(userId: string, tz: string) {
     const since = new Date(Date.now() - NINETY_DAYS_MS);
-    return taskRepository.getCompletionActivity(userId, since);
+    return taskRepository.getCompletionActivity(userId, since, tz);
   },
 };

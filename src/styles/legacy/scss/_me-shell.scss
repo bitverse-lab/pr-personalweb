@@ -435,3 +435,1366 @@ a.card:hover,
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.4s linear infinite;
 }
+
+// ---------------------------------------------------------------------------
+// Calendar (FullCalendar 6). Out of the box it inherits the template's link colour, so every
+// weekday and date read as a blue link, today was FullCalendar's yellow, and the grid was boxed
+// in heavy lines. These rules make it read as part of the workspace: quiet grid, muted labels,
+// today as a primary disc, events as tinted labels with a colour edge.
+// ---------------------------------------------------------------------------
+.cal-title {
+    font-size: 20px !important;
+    font-weight: 600;
+    color: $dark;
+    margin: 0;
+    min-width: 11ch;
+}
+
+.cal-card .fc {
+    --fc-border-color: #{rgba($dark, 0.08)};
+    --fc-today-bg-color: transparent;
+    --fc-neutral-bg-color: #{$light};
+    --fc-page-bg-color: #{$white};
+    --fc-now-indicator-color: #{$danger};
+    --fc-highlight-color: #{rgba($primary, 0.08)};
+    --fc-list-event-hover-bg-color: #{rgba($primary, 0.05)};
+    font-size: 14px;
+
+    a { color: inherit; text-decoration: none; }
+
+    // Outer frame off: the card already frames the grid.
+    .fc-scrollgrid { border: 0; }
+    .fc-scrollgrid > tbody > tr > td, .fc-scrollgrid > thead > tr > th { border-right: 0; }
+    .fc-scrollgrid-section > td, .fc-scrollgrid-section > th { border-left: 0; }
+
+    .fc-col-header-cell {
+        border-left: 0;
+        border-right: 0;
+        padding: 10px 0 8px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: $muted;
+    }
+
+    .fc-daygrid-day { transition: background-color 0.15s ease; }
+    .fc-daygrid-day:hover { background: rgba($primary, 0.03); }
+    .fc-daygrid-day-top { flex-direction: row; padding: 6px 6px 0; }
+
+    .fc-daygrid-day-number {
+        display: inline-grid;
+        place-items: center;
+        min-width: 26px;
+        height: 26px;
+        padding: 0 4px;
+        border-radius: 13px;
+        font-size: 13px;
+        font-weight: 500;
+        color: $dark;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .fc-day-today .fc-daygrid-day-number {
+        background: $primary;
+        color: $white;
+        font-weight: 600;
+    }
+
+    // Weekends and days outside the month step back so the working month leads.
+    .fc-day-sat, .fc-day-sun { background: rgba($light, 0.6); }
+    .fc-day-other .fc-daygrid-day-top { opacity: 0.4; }
+
+    .fc-event {
+        border-width: 0 0 0 3px;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: $dark;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        &:hover { box-shadow: 0 2px 6px rgba($dark, 0.12); }
+    }
+    .fc-event-main { color: $dark; }
+    .fc-daygrid-block-event .fc-event-time { font-weight: 600; }
+    .fc-daygrid-event-harness { margin-top: 2px; }
+    .fc-daygrid-more-link { font-size: 12px; color: $primary; font-weight: 500; }
+
+    // Week / day grids.
+    .fc-timegrid-slot { height: 2.6em; }
+    .fc-timegrid-slot-minor { border-top-style: none; }
+    .fc-timegrid-slot-label, .fc-timegrid-axis { font-size: 11px; color: $muted; }
+    .fc-day-today.fc-col-header-cell { color: $primary; }
+    .fc-timegrid-event { box-shadow: none; }
+
+    // List view.
+    .fc-list { border: 0; }
+    .fc-list-day-cushion { background: $light; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: $muted; }
+    .fc-list-event td { border-color: var(--fc-border-color); }
+    .fc-list-event-dot { border-width: 4px; }
+
+    .fc-popover { border-radius: 8px; box-shadow: $shadow-lg; border: 0; }
+    .fc-popover-header { background: $light; font-size: 12px; font-weight: 600; }
+}
+
+.cal-card .fc .fc-timegrid-now-indicator-line { border-width: 2px 0 0; }
+
+// The template's `ul li { margin-inline-start: .25rem }` (with the first item exempt) is spacing
+// for inline lists; on the workspace's vertical lists it nudged every row but the first 4px right.
+.me-shell .list-unstyled > li { margin-inline-start: 0; }
+
+// Career board: a soft fade on the right edge says the columns continue past the card. Where
+// scroll timelines exist it fades out as the last column arrives; elsewhere it simply stays.
+.pipeline-wrap {
+    position: relative;
+    timeline-scope: --pipeline;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 8px;
+        width: 56px;
+        background: linear-gradient(to left, $white, rgba($white, 0));
+        pointer-events: none;
+    }
+}
+.pipeline-scroll { scroll-timeline: --pipeline inline; }
+// Hidden by default here: a board that fits has an inactive scroll timeline, so the fade would
+// otherwise sit over a last column that is fully visible. Only a scrollable board animates it in.
+@supports (animation-timeline: scroll()) {
+    .pipeline-wrap::after {
+        opacity: 0;
+        animation: pipeline-edge linear both;
+        animation-timeline: --pipeline;
+        animation-range: 85% 100%;
+    }
+}
+@keyframes pipeline-edge { from { opacity: 1; } to { opacity: 0; } }
+
+// =============================================================================================
+// Workspace softening. Same Fronter palette and type, gentler shapes: the template defaults
+// (6px corners, hard 1px grey lines, 10px letter-spaced buttons, solid alert slabs, a 2px
+// outline doubled on every input) are tuned for a marketing page and read harsh in a tool you sit
+// in all day. Everything is scoped to .me-shell so the public site is untouched.
+// =============================================================================================
+$soft-line: rgba($dark, 0.07);
+$soft-radius: 16px;
+$soft-radius-sm: 10px;
+$soft-shadow: 0 1px 2px rgba($dark, 0.04), 0 8px 24px -12px rgba($dark, 0.12);
+$soft-shadow-hover: 0 2px 4px rgba($dark, 0.05), 0 14px 32px -14px rgba($dark, 0.18);
+$soft-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+.me-shell {
+    --bs-border-color: #{$soft-line};
+    --bs-border-color-translucent: #{$soft-line};
+    --bs-border-radius: #{$soft-radius-sm};
+    --app-border: #{$soft-line};
+
+    // ---- Surfaces ----
+    .card {
+        border: 1px solid rgba($dark, 0.04);
+        border-radius: $soft-radius !important;
+        box-shadow: $soft-shadow !important;
+        transition: box-shadow 0.25s $soft-ease, transform 0.25s $soft-ease;
+    }
+    .card .card { box-shadow: none !important; border-color: $soft-line; }
+    .me-board-card {
+        border: 1px solid rgba($dark, 0.08) !important;
+        border-radius: 12px !important;
+        &:hover { box-shadow: $soft-shadow-hover !important; transform: translateY(-1px); }
+    }
+    .rounded { border-radius: $soft-radius-sm !important; }
+    .shadow { box-shadow: $soft-shadow !important; }
+
+    // ---- Sidebar: one quiet hairline instead of a shadow plus a border ----
+    .me-sidebar { box-shadow: none; border-right: 1px solid $soft-line; }
+    .me-topbar { box-shadow: none; border-bottom: 1px solid $soft-line; }
+    .me-nav-link {
+        border-radius: $soft-radius-sm;
+        color: rgba($dark, 0.85);
+        &:hover, &:focus { background: rgba($primary, 0.06); }
+        &.active { box-shadow: none; background: rgba($primary, 0.09); }
+    }
+
+    // ---- Buttons: readable size, no tracking, soft fills ----
+    .btn {
+        border-radius: $soft-radius-sm;
+        letter-spacing: 0;
+        font-weight: 500;
+        font-size: 14px;
+        &.btn-sm { font-size: 13px; padding: 6px 14px; }
+        &.btn-pills { border-radius: 999px; }
+    }
+    .btn-primary {
+        box-shadow: 0 4px 12px -6px rgba($primary, 0.6);
+        &:hover { box-shadow: 0 6px 16px -6px rgba($primary, 0.7); }
+    }
+    // Outline buttons become tinted: the 1px blue box around every secondary action was the
+    // single loudest thing on most pages.
+    .btn-outline-primary {
+        background: rgba($primary, 0.07);
+        border-color: transparent;
+        color: $primary;
+        &:hover, &:focus { background: rgba($primary, 0.13); border-color: transparent; color: $primary; }
+        &.active, &[aria-pressed="true"] { background: $primary; color: $white; }
+    }
+    .btn-outline-secondary, .btn-light {
+        background: rgba($dark, 0.05);
+        border-color: transparent;
+        color: $dark !important;
+        &:hover { background: rgba($dark, 0.09); border-color: transparent; }
+    }
+    .btn-outline-danger {
+        background: rgba($danger, 0.07);
+        border-color: transparent;
+        &:hover { color: $white; }
+    }
+    // `btn-outline-* border-0` is the house icon button (row actions); a tint on every one of
+    // them turned each list row into three coloured boxes, so they stay bare until hovered.
+    .btn-outline-primary.border-0, .btn-outline-danger.border-0 {
+        background: transparent;
+        &:hover, &:focus-visible { background: rgba($primary, 0.1); color: $primary; }
+    }
+    .btn-outline-danger.border-0:hover, .btn-outline-danger.border-0:focus-visible { background: rgba($danger, 0.1); color: $a11y-danger; }
+
+    // Button groups read as one segmented control: a soft track with the chosen option raised.
+    .btn-group:not(.dropdown) {
+        background: rgba($dark, 0.05);
+        border-radius: 12px;
+        padding: 3px;
+        gap: 2px;
+
+        > .btn {
+            border: 0;
+            border-radius: 9px !important;
+            background: transparent;
+            color: $a11y-muted;
+            box-shadow: none;
+            margin: 0 !important;
+            &:hover { background: rgba($white, 0.7); color: $dark; }
+        }
+        > .btn-primary, > .btn.active, > .btn[aria-pressed="true"], > .btn[aria-selected="true"] {
+            background: $white;
+            color: $primary;
+            box-shadow: 0 1px 3px rgba($dark, 0.12);
+        }
+    }
+
+    // Tab rows (Health sections) get the same segmented treatment.
+    .nav-pills {
+        display: flex;
+        width: fit-content;
+        max-width: 100%;
+        gap: 2px;
+        padding: 4px;
+        background: rgba($dark, 0.05);
+        border-radius: 12px;
+
+        .nav-link {
+            padding: 6px 14px;
+            border-radius: 9px;
+            font-size: 14px;
+            color: $a11y-muted !important;
+            transition: background-color 0.2s $soft-ease, color 0.2s $soft-ease, box-shadow 0.2s $soft-ease;
+            &:hover { color: $dark !important; background: rgba($white, 0.7); }
+            &.active { background: $white; color: $primary !important; box-shadow: 0 1px 3px rgba($dark, 0.12); }
+        }
+    }
+
+    // ---- Inputs: soft border, a halo on focus instead of a hard double outline ----
+    .form-control, .form-select {
+        border-radius: $soft-radius-sm;
+        border-color: rgba($dark, 0.12);
+        transition: border-color 0.2s $soft-ease, box-shadow 0.2s $soft-ease;
+        &:hover { border-color: rgba($dark, 0.2); }
+        &:focus, &:focus-visible {
+            border-color: rgba($primary, 0.55);
+            box-shadow: 0 0 0 4px rgba($primary, 0.12);
+            outline: none !important;
+        }
+    }
+    .form-check-input {
+        border-color: rgba($dark, 0.25);
+        &[type="checkbox"] { border-radius: 6px; }
+        &:focus { box-shadow: 0 0 0 4px rgba($primary, 0.12); }
+    }
+
+    // ---- Badges: pills, no tracking ----
+    .badge {
+        border-radius: 999px;
+        letter-spacing: 0;
+        font-weight: 500;
+        padding: 0.35em 0.75em;
+    }
+
+    // ---- Alerts: tinted notes, not solid slabs ----
+    .alert {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 16px;
+    }
+    .alert-primary { background: rgba($primary, 0.08); color: darken($primary, 18%); }
+    .alert-warning { background: rgba($a11y-warning, 0.08); color: $a11y-warning; }
+    .alert-danger { background: rgba($a11y-danger, 0.07); color: $a11y-danger; }
+    .alert-info { background: rgba($a11y-info, 0.08); color: $a11y-info; }
+
+    // ---- Tables and rows ----
+    .table {
+        --bs-table-border-color: #{$soft-line};
+        > thead th {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: $a11y-muted;
+            border-bottom-color: $soft-line;
+        }
+    }
+    .list-group-item { border-color: $soft-line; }
+
+    .progress {
+        background: rgba($dark, 0.06);
+        border-radius: 999px;
+        .progress-bar { border-radius: 999px; }
+    }
+
+    // ---- Dialogs: lighter scrim, soft rise ----
+    .me-dialog-backdrop {
+        background: rgba($dark, 0.28);
+        backdrop-filter: blur(3px);
+        animation: me-fade 0.18s ease-out;
+    }
+    .me-dialog-panel {
+        border-radius: 20px;
+        box-shadow: 0 24px 60px -20px rgba($dark, 0.35);
+        animation: me-rise 0.22s $soft-ease;
+    }
+    .me-toast { border-radius: 12px; }
+
+    // ---- Page entrance: content settles in instead of snapping ----
+    .me-main > .container-fluid { animation: me-settle 0.35s $soft-ease; }
+}
+
+@keyframes me-fade { from { opacity: 0; } }
+@keyframes me-rise { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes me-settle { from { opacity: 0; transform: translateY(6px); } }
+
+// Mood colour as a dot: a thick left border fought the pill corners and read as a bracket.
+.mood-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+// ---------------------------------------------------------------------------
+// Calendar extras: category chips, quick-add / peek popovers, agenda panel, phone week strip.
+// ---------------------------------------------------------------------------
+.cal-cat-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.cal-cat-dot--task { background: transparent; border: 1.5px solid $a11y-muted; border-radius: 2px; }
+
+// Category radio chips (forms) and filter chips (toolbar) share one shape.
+.cal-cats, .cal-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal-filters { margin-bottom: 14px; }
+.cal-cat, .cal-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid rgba($dark, 0.1);
+    border-radius: 999px;
+    background: $white;
+    color: $dark;
+    font-size: 12.5px;
+    line-height: 1.4;
+    transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    &:hover { border-color: rgba($dark, 0.22); }
+}
+.cal-cat.is-on { background: rgba($primary, 0.08); border-color: rgba($primary, 0.45); color: $primary; font-weight: 500; }
+// A hidden category keeps its chip, struck through, so it is obvious how to bring it back.
+.cal-filter.is-off { opacity: 0.55; text-decoration: line-through; .cal-cat-dot { filter: grayscale(1); } }
+
+.cal-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 8px 8px 14px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    background: rgba($primary, 0.06);
+    color: darken($primary, 18%);
+    font-size: 13.5px;
+}
+
+.cal-grid { transition: opacity 0.2s ease; }
+// Dim only when a load is actually slow, so quick ones never flash.
+.cal-grid.is-loading { opacity: 0.6; transition-delay: 0.25s; }
+
+// Dated tasks in the all-day row: an outline chip, so they never pass for events.
+.cal-card .fc .cal-task {
+    background: $white !important;
+    border: 1px dashed rgba($dark, 0.28) !important;
+    border-radius: 4px;
+}
+.cal-task-chip { display: inline-flex; align-items: center; gap: 5px; min-width: 0; color: $dark; font-size: 12px; }
+.cal-task-chip svg { flex-shrink: 0; color: $a11y-muted; }
+.cal-task-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-card .fc .cal-task.is-done .cal-task-title { text-decoration: line-through; color: $a11y-muted; }
+
+// ---- Popovers ----
+.cal-pop-scrim { position: fixed; inset: 0; z-index: 1060; }
+.cal-pop {
+    position: fixed;
+    width: min(320px, calc(100vw - 24px));
+    padding: 14px 10px 14px 16px;
+    background: $white;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba($dark, 0.06), 0 18px 48px -16px rgba($dark, 0.32);
+    border: 1px solid rgba($dark, 0.06);
+    animation: me-rise 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.cal-pop-close { padding: 2px 6px; margin: -4px -2px 0 0; }
+.cal-pop-cat { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 12px; font-weight: 500; color: $a11y-muted; }
+.cal-pop-title { font-size: 17px !important; font-weight: 600; margin: 0 0 4px; color: $dark; overflow-wrap: anywhere; }
+.cal-pop-when { margin: 0 0 8px; font-size: 13px; color: $a11y-muted; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cal-pop-meta { margin: 0 0 6px; font-size: 13px; color: $dark; display: flex; align-items: center; gap: 6px; }
+.cal-pop-desc { margin: 0; font-size: 13px; color: $dark; white-space: pre-line; max-height: 8.5em; overflow: auto; }
+.cal-rel { padding: 1px 8px; border-radius: 999px; background: rgba($primary, 0.08); color: $primary; font-size: 12px; font-weight: 500; }
+
+.cal-conflict {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba($a11y-warning, 0.08);
+    color: $a11y-warning;
+    font-size: 12.5px;
+    line-height: 1.45;
+    svg { flex-shrink: 0; margin-top: 2px; }
+}
+
+// ---- Agenda ----
+.cal-agenda { position: sticky; top: 24px; }
+.cal-agenda-h {
+    font-size: 11px !important;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $a11y-muted;
+    margin: 0 0 10px;
+}
+.cal-agenda-empty { font-size: 13px; color: $a11y-muted; margin: 0; }
+.cal-next {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--ev) 9%, white);
+    box-shadow: inset 3px 0 0 var(--ev);
+    transition: background-color 0.15s ease;
+    &:hover { background: color-mix(in srgb, var(--ev) 14%, white); }
+}
+.cal-next-rel { font-size: 12px; font-weight: 600; color: $primary; }
+.cal-next-title { font-size: 15px; font-weight: 600; color: $dark; }
+.cal-next-meta { font-size: 12.5px; color: $a11y-muted; display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.cal-agenda-list button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    font-size: 13.5px;
+    color: $dark;
+    &:hover { background: rgba($primary, 0.05); }
+    &.is-done .cal-agenda-title { text-decoration: line-through; color: $a11y-muted; }
+}
+.cal-agenda-time { flex: 0 0 62px; font-size: 12px; color: $a11y-muted; font-variant-numeric: tabular-nums; }
+.cal-agenda-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-agenda-icon { flex-shrink: 0; color: $a11y-muted; }
+.cal-agenda-day + .cal-agenda-day { margin-top: 10px; }
+.cal-agenda-dayname { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: $dark; }
+
+// ---- Phone week strip ----
+.cal-strip { display: flex; align-items: stretch; gap: 2px; margin-bottom: 12px; }
+.cal-strip-nav { flex: 0 0 28px; border: 0; background: transparent; color: $a11y-muted; border-radius: 8px; }
+.cal-strip-day {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: $dark;
+    &.is-today .cal-strip-num { color: $primary; }
+    &.is-sel { background: $primary; color: $white; .cal-strip-num, .cal-strip-wd { color: $white; } .cal-strip-dot.is-busy { background: $white; } }
+}
+.cal-strip-wd { font-size: 11px; color: $a11y-muted; }
+.cal-strip-num { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cal-strip-dot { width: 4px; height: 4px; border-radius: 50%; background: transparent; &.is-busy { background: $primary; } }
+
+// ---- Shortcuts list ----
+.cal-keys > div { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba($dark, 0.06); }
+.cal-keys > div:last-child { border-bottom: 0; }
+.cal-keys dt { display: flex; gap: 4px; }
+.cal-keys dd { margin: 0; font-size: 14px; color: $dark; }
+.cal-keys kbd {
+    min-width: 24px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: $light;
+    border: 1px solid rgba($dark, 0.12);
+    color: $dark;
+    font-size: 12px;
+    text-align: center;
+    box-shadow: 0 1px 0 rgba($dark, 0.12);
+}
+
+// Beside the grid only where there is room for it; below that the agenda lies under the
+// calendar as three short columns instead of one long strip.
+@media (max-width: 1399.98px) {
+    .cal-agenda { position: static; }
+    .cal-agenda > .card-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 32px; }
+    .cal-agenda .cal-agenda-sec + .cal-agenda-sec { margin-top: 0; }
+}
+
+// Task chips fill their cell and clip, instead of spilling into the next day.
+.cal-card .fc .cal-task .fc-event-main { overflow: hidden; }
+.cal-task-chip { display: flex; width: 100%; }
+
+// List views on a phone: let titles wrap inside the card instead of widening the page.
+.cal-card .fc .fc-list-table { table-layout: auto; width: 100%; }
+.cal-card .fc .fc-list-event-title { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 767.98px) {
+    .cal-title { font-size: 16px !important; min-width: 0; }
+    .cal-card > .card-body { padding: 16px; }
+    .cal-card .fc .fc-list-event-time { white-space: normal; width: 1%; font-size: 12px; }
+    .cal-card .fc .fc-list-event-graphic { padding-inline: 4px; }
+}
+.cal-agenda-sec + .cal-agenda-sec { margin-top: 24px; }
+// Dots and task boxes take the same 14px slot, so event and task titles line up.
+.cal-agenda-list .cal-cat-dot { margin-inline: 3px; }
+.cal-agenda-icon { width: 14px; height: 14px; }
+
+// ---------------------------------------------------------------------------
+// Calendar motion. Each movement answers "what just happened": where the period went, where an
+// event landed, what is running now. Short (150-350ms) so it never slows work, and the global
+// prefers-reduced-motion rule above switches all of it off.
+// ---------------------------------------------------------------------------
+$cal-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+// 1, 2, 11: period slides in from the side it came from; view changes and filters cross-fade.
+.cal-grid { overflow-x: clip; }
+.cal-anim.nav-next { animation: cal-from-right 0.28s $cal-ease; }
+.cal-anim.nav-prev { animation: cal-from-left 0.28s $cal-ease; }
+.cal-anim.nav-view { animation: cal-view-in 0.24s $cal-ease; }
+.cal-anim.nav-filter .fc-event { animation: cal-fade-in 0.22s ease-out; }
+@keyframes cal-from-right { from { opacity: 0.25; transform: translateX(24px); } }
+@keyframes cal-from-left { from { opacity: 0.25; transform: translateX(-24px); } }
+@keyframes cal-view-in { from { opacity: 0; transform: scale(0.985); } }
+@keyframes cal-fade-in { from { opacity: 0; } }
+
+// 4: today announces itself once after "Today".
+.cal-anim.nav-today .fc-day-today .fc-daygrid-day-number,
+.cal-anim.nav-today .fc-col-header-cell.fc-day-today { animation: cal-pulse 0.7s ease-out; }
+@keyframes cal-pulse {
+    0% { box-shadow: 0 0 0 0 rgba($primary, 0.45); }
+    100% { box-shadow: 0 0 0 12px rgba($primary, 0); }
+}
+
+// 3: the view switcher highlight slides between options.
+.me-shell .cal-seg { position: relative; isolation: isolate; }
+.me-shell .cal-seg > .btn { position: relative; z-index: 1; }
+.me-shell .cal-seg > .btn-primary { background: transparent; box-shadow: none; }
+.cal-seg-pill {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 0;
+    z-index: 0;
+    border-radius: 9px;
+    background: $white;
+    box-shadow: 0 1px 3px rgba($dark, 0.12);
+    transition: transform 0.28s $cal-ease, width 0.28s $cal-ease;
+}
+
+// 5: whatever was just created, moved or restored pops in and rings once.
+.cal-card .fc .fc-event.is-landed { animation: cal-land 0.9s $cal-ease; z-index: 3; }
+@keyframes cal-land {
+    0% { transform: scale(0.85); opacity: 0; box-shadow: 0 0 0 0 rgba($primary, 0.5); }
+    35% { transform: scale(1.04); opacity: 1; }
+    60% { transform: scale(1); box-shadow: 0 0 0 6px rgba($primary, 0); }
+    100% { transform: scale(1); }
+}
+
+// 6: a dragged event lifts off the grid; the drop cell shows where it will go.
+.cal-card .fc .fc-event-dragging,
+.cal-card .fc .fc-event-resizing {
+    transform: rotate(-1.2deg) scale(1.03);
+    box-shadow: 0 10px 24px -8px rgba($dark, 0.35) !important;
+    opacity: 0.95;
+    z-index: 10;
+}
+.cal-card .fc .fc-event-mirror { box-shadow: 0 10px 24px -8px rgba($dark, 0.3); }
+.cal-card .fc .fc-highlight { background: rgba($primary, 0.08); }
+.cal-card .fc .fc-event { transition: transform 0.15s $cal-ease, box-shadow 0.15s $cal-ease; }
+
+// 7: popovers grow from the point that was clicked (origin set inline).
+.cal-pop { animation: cal-pop-in 0.2s $cal-ease; }
+@keyframes cal-pop-in { from { opacity: 0; transform: scale(0.9); } }
+
+// 8: a task just finished: the box pops and a line is drawn through its title.
+.cal-agenda-list button.is-ticked .cal-agenda-icon { animation: cal-tick 0.4s $cal-ease; color: $primary; }
+.cal-agenda-list button.is-ticked .cal-agenda-title {
+    text-decoration: none;
+    background: linear-gradient(currentColor, currentColor) 0 55% / 100% 1px no-repeat;
+    animation: cal-strike 0.45s 0.1s $cal-ease both;
+}
+@keyframes cal-tick { 0% { transform: scale(0.6); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes cal-strike { from { background-size: 0 1px; } }
+
+// 9: the running event breathes and fills as time passes.
+.cal-live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: $a11y-danger;
+    vertical-align: 1px;
+    animation: cal-live 1.6s ease-in-out infinite;
+}
+@keyframes cal-live {
+    0%, 100% { box-shadow: 0 0 0 0 rgba($a11y-danger, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba($a11y-danger, 0); }
+}
+.cal-next-progress {
+    display: block;
+    height: 4px;
+    margin-top: 8px;
+    border-radius: 999px;
+    background: rgba($dark, 0.08);
+    overflow: hidden;
+    > span { display: block; height: 100%; border-radius: inherit; background: var(--ev); transition: width 1s linear; }
+}
+
+// 10: skeleton grid while FullCalendar loads.
+.cal-skeleton { display: grid; gap: 1px; }
+.cal-skeleton-head, .cal-skeleton-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.cal-skeleton-head { padding: 10px 0; .skeleton { height: 10px; width: 40%; margin: 0 auto; } }
+.cal-skeleton-row > div { height: 96px; padding: 8px; background: rgba($dark, 0.015); }
+.cal-skeleton-num { width: 18px; height: 14px; margin-bottom: 10px; }
+.cal-skeleton-ev { width: 85%; height: 16px; }
+
+// ---------------------------------------------------------------------------
+// Tasks: summary tiles, smart capture, grouped list, due menu, board.
+// ---------------------------------------------------------------------------
+$task-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+// ---- Summary ----
+.task-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+    @media (max-width: 767.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.task-summary-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: $white;
+    border: 1px solid rgba($dark, 0.05);
+    box-shadow: 0 1px 2px rgba($dark, 0.04);
+    color: $dark;
+    text-decoration: none;
+    transition: transform 0.18s $task-ease, box-shadow 0.18s $task-ease;
+    &:is(a):hover { transform: translateY(-1px); box-shadow: 0 8px 20px -12px rgba($dark, 0.25); color: $dark; }
+}
+.task-summary-n { font-size: 26px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.task-summary-l { font-size: 13px; color: $a11y-muted; }
+.task-summary-tile--overdue:not(.is-zero) .task-summary-n { color: $a11y-danger; }
+.task-summary-tile--today:not(.is-zero) .task-summary-n { color: $primary; }
+.task-summary-tile--done:not(.is-zero) .task-summary-n { color: $a11y-success; }
+.task-summary-tile.is-zero .task-summary-n { color: rgba($dark, 0.35); }
+
+// ---- Capture ----
+.task-capture-row { display: flex; align-items: center; gap: 8px; position: relative; }
+.task-capture-row .form-control { padding-left: 38px; height: 44px; font-size: 15px; }
+.task-capture-icon { position: absolute; left: 14px; color: $a11y-muted; pointer-events: none; }
+.task-capture-row .btn { height: 44px; padding-inline: 18px; }
+.task-capture-under { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: 32px; flex-wrap: wrap; }
+.task-capture-hint { margin: 0; font-size: 12.5px; color: $a11y-muted; }
+.task-capture-hint kbd, .task-capture kbd {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: $light;
+    border: 1px solid rgba($dark, 0.12);
+    color: $dark;
+    font-size: 11.5px;
+    box-shadow: none;
+}
+.task-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.task-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px 3px 10px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba($primary, 0.08);
+    color: $primary;
+    font-size: 12.5px;
+    font-weight: 500;
+    animation: task-chip-in 0.2s $task-ease;
+    &:hover { background: rgba($primary, 0.14); }
+    &:hover .task-chip-x { opacity: 1; }
+}
+.task-chip-x { opacity: 0.5; }
+@keyframes task-chip-in { from { opacity: 0; transform: translateY(-3px) scale(0.95); } }
+.task-capture-more {
+    display: grid;
+    grid-template-columns: 170px 150px 1fr;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    background: $light;
+    animation: task-chip-in 0.2s $task-ease;
+    @media (max-width: 767.98px) { grid-template-columns: 1fr 1fr; .task-capture-notes { grid-column: 1 / -1; } }
+}
+
+.task-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 16px; }
+.task-filter-note { margin: 12px 0 0; font-size: 13px; color: $a11y-muted; }
+
+// ---- Groups ----
+.task-group { margin-top: 22px; scroll-margin-top: 24px; }
+.task-group-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba($dark, 0.07);
+    font-size: 12px !important;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $a11y-muted;
+}
+.task-group--overdue .task-group-h { color: $a11y-danger; }
+.task-group--today .task-group-h { color: $primary; }
+.task-group-count {
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba($dark, 0.06);
+    color: $a11y-muted;
+    font-size: 11px;
+    letter-spacing: 0;
+    line-height: 1.6;
+}
+.task-group-fold { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.task-group:target .task-group-h { animation: task-target 1.2s ease-out; }
+@keyframes task-target { 0% { background: rgba($primary, 0.12); } 100% { background: transparent; } }
+
+// ---- Row ----
+.task-row { border-bottom: 1px solid rgba($dark, 0.05); }
+.task-row:last-child { border-bottom: 0; }
+.task-row-main { display: flex; align-items: flex-start; gap: 12px; padding: 10px 4px; border-radius: 10px; transition: background-color 0.15s ease; }
+.task-row-main:hover { background: rgba($primary, 0.03); }
+.task-row-body { flex: 1 1 auto; min-width: 0; }
+.task-title { display: block; color: $dark; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; background: linear-gradient(currentColor, currentColor) 0 55% / 0 1px no-repeat; transition: color 0.25s ease, background-size 0.3s $task-ease; }
+.task-row.is-done .task-title { color: $a11y-muted; background-size: 100% 1px; }
+.task-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 3px; font-size: 12.5px; }
+.task-row-subs { padding: 0 4px 10px 40px; }
+.task-row-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s ease; }
+.task-row-main:hover .task-row-actions,
+.task-row-main:focus-within .task-row-actions { opacity: 1; }
+// Touch screens have no hover: keep the actions visible there.
+@media (hover: none) { .task-row-actions { opacity: 1; } }
+.task-row-actions .btn { padding: 4px 8px; }
+
+// Round check that fills and pops.
+.me-shell .form-check-input.task-check {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    border-radius: 50% !important;
+    border: 1.5px solid rgba($dark, 0.3);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s $task-ease;
+    &:hover { border-color: $primary; }
+    &:checked { background-color: $a11y-success; border-color: $a11y-success; animation: task-pop 0.35s $task-ease; }
+}
+@keyframes task-pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+.task-flag { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+.task-flag--high { color: $a11y-danger; }
+.task-flag--medium { color: $a11y-warning; }
+.task-flag--low { color: $a11y-muted; }
+.task-tag { color: $a11y-muted; text-decoration: none; &:is(a):hover { color: $primary; } }
+.task-has-notes { color: $a11y-muted; display: inline-flex; }
+.task-sub-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: $a11y-muted; font-size: 12.5px; }
+
+// ---- Due ----
+.task-due, .task-due-btn { font-weight: 500; }
+.task-due--overdue { color: $a11y-danger; }
+.task-due--today { color: $primary; }
+.task-due--soon { color: $dark; }
+.task-due--later, .task-due--none, .task-due--done { color: $a11y-muted; }
+.task-due-wrap { position: relative; }
+.task-due-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    margin-left: -6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 12.5px;
+    &:hover { background: rgba($dark, 0.06); }
+}
+.task-due-add { font-weight: 400; opacity: 0; transition: opacity 0.15s ease; }
+.task-row-main:hover .task-due-add, .task-due-btn:focus-visible .task-due-add { opacity: 1; }
+@media (hover: none) { .task-due-add { opacity: 1; } }
+.task-due-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: -6px;
+    z-index: 20;
+    min-width: 260px;
+    padding: 6px;
+    border-radius: 12px;
+    background: $white;
+    border: 1px solid rgba($dark, 0.08);
+    box-shadow: 0 16px 40px -16px rgba($dark, 0.35);
+    animation: task-chip-in 0.16s $task-ease;
+    > button, > label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        margin: 0;
+        padding: 7px 10px;
+        border: 0;
+        border-radius: 8px;
+        background: none;
+        color: $dark;
+        font-size: 13.5px;
+        text-align: left;
+        cursor: pointer;
+        &:hover, &:focus-within, &:focus-visible { background: rgba($primary, 0.06); }
+    }
+    input[type="date"] { border: 0; background: transparent; font-size: 12.5px; color: $a11y-muted; max-width: 130px; }
+}
+.task-due-menu-hint { color: $a11y-muted; font-size: 12px; }
+.task-due-menu .task-due-clear { color: $a11y-danger; border-top: 1px solid rgba($dark, 0.06); border-radius: 0 0 8px 8px; margin-top: 4px; }
+
+// ---- Board ----
+.task-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; @media (max-width: 767.98px) { grid-template-columns: 1fr; } }
+.task-col {
+    min-height: 220px;
+    padding: 12px;
+    border-radius: 14px;
+    background: $light;
+    border: 1.5px dashed transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    &.is-over { background: rgba($primary, 0.05); border-color: rgba($primary, 0.35); }
+}
+.task-col-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 0 2px; }
+.task-col-dot { width: 8px; height: 8px; border-radius: 50%; background: $a11y-muted; }
+.task-col--in_progress .task-col-dot { background: $primary; }
+.task-col--done .task-col-dot { background: $a11y-success; }
+.task-col-title { margin: 0; font-size: 14px !important; font-weight: 600; color: $dark; }
+.task-col-count { margin-left: auto; font-size: 12px; color: $a11y-muted; font-variant-numeric: tabular-nums; }
+.task-col-empty { margin: 24px 8px; text-align: center; font-size: 13px; color: $a11y-muted; }
+
+.task-card {
+    position: relative;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: $white;
+    border: 1px solid rgba($dark, 0.06);
+    box-shadow: 0 1px 2px rgba($dark, 0.04);
+    transition: box-shadow 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+    &:hover { box-shadow: 0 8px 20px -12px rgba($dark, 0.25); }
+    &.is-placeholder { opacity: 0.35; }
+    &.is-done .task-card-title { color: $a11y-muted; text-decoration: line-through; }
+    &.is-lifted { transform: rotate(-1.5deg) scale(1.03); box-shadow: 0 18px 36px -14px rgba($dark, 0.4); cursor: grabbing; padding: 12px 14px; }
+}
+.task-card-grip { padding: 12px 14px; cursor: grab; touch-action: none; user-select: none; }
+.task-card-title { margin: 0 0 4px; padding-right: 4px; color: $dark; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+// Actions float over the card's corner on hover instead of reserving an empty row on every card.
+.task-card-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: $white; box-shadow: 0 2px 8px -2px rgba($dark, 0.18); opacity: 0; transition: opacity 0.15s ease; }
+.task-card-actions .btn { padding: 3px 7px; }
+.task-card:hover .task-card-actions, .task-card:focus-within .task-card-actions { opacity: 1; }
+@media (hover: none) { .task-card-actions { opacity: 1; } }
+
+// Phones: the title gets the width. Actions stay visible (no hover on touch) but compact, and
+// "view" is dropped there since Edit shows the same task.
+@media (max-width: 575.98px) {
+    .task-row-main { gap: 10px; padding-inline: 0; }
+    .task-row-actions { opacity: 1; gap: 0; }
+    .task-row-actions .btn { padding: 4px 6px; }
+    .task-row-actions [aria-label="View task details"] { display: none; }
+    .task-row-subs { padding-left: 30px; }
+}
+
+// ---------------------------------------------------------------------------
+// Career: tiles, follow-ups, pipeline board, stage stepper, applications list.
+// ---------------------------------------------------------------------------
+$career-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+.career-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 4px 0 16px;
+    @media (max-width: 767.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.career-tile {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: $white;
+    border: 1px solid rgba($dark, 0.05);
+    box-shadow: 0 1px 2px rgba($dark, 0.04);
+}
+.career-tile-n { font-size: 26px; font-weight: 600; line-height: 1.1; color: $dark; font-variant-numeric: tabular-nums; }
+.career-tile-l { margin-top: 2px; font-size: 13.5px; font-weight: 500; color: $dark; }
+.career-tile-h { font-size: 12.5px; color: $a11y-muted; }
+.career-tile--primary .career-tile-n { color: $primary; }
+.career-tile--success .career-tile-n { color: $a11y-success; }
+
+.career-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 15px !important;
+    font-weight: 600;
+    color: $dark;
+    svg { color: $a11y-muted; }
+}
+.career-board-hint { margin: -6px 0 14px; font-size: 13px; color: $a11y-muted; }
+.career-list li + li { border-top: 1px solid rgba($dark, 0.06); }
+.career-list a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 8px;
+    margin: 0 -8px;
+    border-radius: 10px;
+    color: $dark;
+    text-decoration: none;
+    &:hover { background: rgba($primary, 0.04); .career-go { opacity: 1; transform: translateX(2px); } }
+}
+.career-when { flex: 0 0 86px; font-size: 12.5px; font-weight: 600; color: $primary; }
+.career-when--nudge { flex-basis: 40px; color: $a11y-warning; }
+.career-what { flex: 1 1 auto; min-width: 0; font-size: 14px; }
+.career-sub { display: block; font-size: 12.5px; color: $a11y-muted; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.career-go { flex-shrink: 0; color: $a11y-muted; opacity: 0; transition: opacity 0.15s ease, transform 0.15s ease; }
+.career-tip { margin: 10px 0 0; font-size: 12.5px; color: $a11y-muted; }
+
+// ---- Pipeline ----
+// Columns share the width (no sideways scroll for the five open stages); below ~200px they scroll.
+.pl-board { display: flex; gap: 12px; padding-bottom: 8px; }
+.pl-col {
+    flex: 1 0 180px;
+    min-height: 200px;
+    padding: 10px;
+    border-radius: 14px;
+    background: $light;
+    border: 1.5px dashed transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    &.is-over { background: color-mix(in srgb, var(--accent) 7%, white); border-color: color-mix(in srgb, var(--accent) 45%, white); }
+}
+.pl-col-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 2px 4px; }
+.pl-col-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.pl-col-title { margin: 0; font-size: 13.5px !important; font-weight: 600; color: $dark; }
+.pl-col-count { margin-left: auto; font-size: 12px; color: $a11y-muted; font-variant-numeric: tabular-nums; }
+.pl-col-empty { margin: 18px 6px; text-align: center; font-size: 12.5px; color: $a11y-muted; }
+
+.pl-card {
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    background: $white;
+    border: 1px solid rgba($dark, 0.06);
+    box-shadow: 0 1px 2px rgba($dark, 0.04);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    transition: box-shadow 0.18s ease, opacity 0.18s ease;
+    &:hover { box-shadow: 0 8px 20px -12px rgba($dark, 0.25); }
+    &.is-placeholder { opacity: 0.35; }
+    &.is-lifted { transform: rotate(-1.5deg) scale(1.03); box-shadow: 0 18px 36px -14px rgba($dark, 0.4); cursor: grabbing; }
+}
+.pl-card-head { display: flex; gap: 10px; align-items: flex-start; }
+.pl-avatar {
+    flex: 0 0 32px;
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba($primary, 0.09);
+    color: $primary;
+    font-size: 13px;
+    font-weight: 600;
+}
+.pl-company { font-size: 14px; font-weight: 600; color: $dark; line-height: 1.3; }
+.pl-role { display: block; font-size: 13px; color: $dark; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; &:hover { color: $primary; text-decoration: underline; } }
+.pl-meta { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; color: $a11y-muted; }
+.pl-foot { margin-top: 8px; }
+.pl-age { font-size: 12px; color: $a11y-muted; }
+.pl-pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.pl-pill--interview { background: rgba($primary, 0.08); color: $primary; }
+.pl-pill--nudge { background: rgba($a11y-warning, 0.09); color: $a11y-warning; }
+.pl-closed-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: $a11y-muted;
+    font-size: 13px;
+    &:hover { background: rgba($dark, 0.05); color: $dark; }
+}
+
+// ---- Detail: stage stepper ----
+.stepper {
+    display: flex;
+    margin: 20px 0 6px;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+}
+.stepper-step {
+    position: relative;
+    flex: 1 0 84px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 0 !important;
+    text-align: center;
+    // The connector runs from this dot to the previous one.
+    &:not(:first-child)::before {
+        content: "";
+        position: absolute;
+        top: 13px;
+        right: 50%;
+        width: 100%;
+        height: 2px;
+        background: rgba($dark, 0.1);
+        z-index: 0;
+    }
+    &.is-done:not(:first-child)::before, &.is-current:not(:first-child)::before { background: $primary; }
+}
+.stepper-dot {
+    position: relative;
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $white;
+    border: 2px solid rgba($dark, 0.15);
+    color: $a11y-muted;
+    font-size: 12px;
+    font-weight: 600;
+}
+.stepper-step.is-done .stepper-dot { background: $primary; border-color: $primary; color: $white; }
+.stepper-step.is-current .stepper-dot { border-color: $primary; color: $primary; box-shadow: 0 0 0 4px rgba($primary, 0.12); }
+.stepper-step.is-ended .stepper-dot { background: $a11y-danger; border-color: $a11y-danger; color: $white; }
+.stepper.is-closed .stepper-step.is-ended::before { background: rgba($a11y-danger, 0.4); }
+.stepper-label { font-size: 12.5px; font-weight: 500; color: $dark; }
+.stepper-step.is-todo .stepper-label { color: $a11y-muted; }
+.stepper-date { font-size: 11.5px; color: $a11y-muted; min-height: 1em; }
+.career-stage-age { margin: 4px 0 0; font-size: 13px; color: $a11y-muted; text-align: center; }
+.career-nudge {
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba($a11y-warning, 0.08);
+    color: $a11y-warning;
+    font-size: 13px;
+}
+
+// ---- Applications list ----
+.app-stage-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.app-stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid rgba($dark, 0.1);
+    border-radius: 999px;
+    background: $white;
+    color: $dark;
+    font-size: 12.5px;
+    text-decoration: none;
+    &:hover { border-color: rgba($dark, 0.22); color: $dark; }
+    &.is-on { background: color-mix(in srgb, var(--accent) 10%, white); border-color: var(--accent); font-weight: 500; }
+    &.is-empty { opacity: 0.55; }
+}
+.app-stage-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.app-stage-n { color: $a11y-muted; font-variant-numeric: tabular-nums; }
+.app-list li + li { border-top: 1px solid rgba($dark, 0.06); }
+.app-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 8px;
+    border-radius: 10px;
+    color: $dark;
+    text-decoration: none;
+    &:hover { background: rgba($primary, 0.03); color: $dark; }
+}
+.app-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.app-row-role { font-weight: 600; font-size: 14.5px; }
+.app-row-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: $a11y-muted; }
+.app-row-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+@media (max-width: 575.98px) {
+    .app-row { flex-wrap: wrap; }
+    .app-row-side { width: 100%; padding-left: 46px; }
+}
+
+// ---------------------------------------------------------------------------
+// Health: stat cards with a progress ring.
+// ---------------------------------------------------------------------------
+.health-stat { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.health-stat-text { min-width: 0; }
+.health-stat-label { font-size: 13px; color: $a11y-muted; margin-bottom: 2px; }
+.health-stat-value { font-size: 22px; font-weight: 600; color: $dark; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.health-stat-hint { font-size: 12.5px; color: $a11y-muted; }
+.health-ring { flex-shrink: 0; transform: rotate(-90deg); }
+.health-ring-track { fill: none; stroke: rgba($dark, 0.08); stroke-width: 5; }
+.health-ring-fill {
+    fill: none;
+    stroke: $primary;
+    stroke-width: 5;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+    animation: health-ring-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.health-ring.is-done .health-ring-fill { stroke: $a11y-success; }
+.health-ring.is-over .health-ring-fill { stroke: $a11y-warning; }
+.health-ring-text { transform: rotate(90deg); transform-origin: 26px 26px; font-size: 11px; font-weight: 600; fill: $dark; }
+@keyframes health-ring-in { from { stroke-dashoffset: 138.2; } }
+
+// Workout history, week by week.
+.wk-week + .wk-week { margin-top: 20px; }
+.wk-week-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba($dark, 0.07);
+}
+.wk-week-range { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: $a11y-muted; }
+.wk-week-totals { font-size: 12.5px; color: $dark; font-variant-numeric: tabular-nums; }
+.wk-row { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba($dark, 0.05); }
+.wk-row:last-child { border-bottom: 0; }
+.wk-row-link {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    color: $dark;
+    text-decoration: none;
+    &:hover { background: rgba($primary, 0.03); color: $dark; }
+}
+.wk-day { flex: 0 0 34px; font-size: 12.5px; font-weight: 600; color: $a11y-muted; }
+.wk-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.wk-row-title { display: flex; gap: 8px; align-items: center; }
+.wk-row-sub { font-size: 12.5px; color: $a11y-muted; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk-row-stats { flex-shrink: 0; font-size: 12.5px; color: $a11y-muted; font-variant-numeric: tabular-nums; }
+@media (max-width: 575.98px) {
+    .wk-row-link { flex-wrap: wrap; }
+    .wk-row-stats { width: 100%; padding-left: 48px; }
+}
+
+// Journal entries under month headings.
+.jr-month + .jr-month { margin-top: 18px; }
+.jr-month-h {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 8px 0 2px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba($dark, 0.07);
+    font-size: 12px !important;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $a11y-muted;
+}
+.jr-month-n { letter-spacing: 0; text-transform: none; font-weight: 400; }
+.jr-row { padding: 6px 0 10px; border-bottom: 1px solid rgba($dark, 0.05); }
+.jr-row:last-child { border-bottom: 0; }
+.jr-link { display: flex; gap: 14px; padding: 6px; margin: 0 -6px; border-radius: 10px; color: $dark; text-decoration: none; &:hover { background: rgba($primary, 0.03); color: $dark; } }
+.jr-date { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.jr-day { font-size: 18px; font-weight: 600; color: $dark; font-variant-numeric: tabular-nums; }
+.jr-wd { font-size: 11px; color: $a11y-muted; text-transform: uppercase; letter-spacing: 0.04em; }
+.jr-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.jr-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.jr-snippet { font-size: 13.5px; color: $a11y-muted; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jr-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; padding-left: 52px; font-size: 12.5px; color: $a11y-muted; }
+
+// Inbox: sender initials; unread shows as a dot on the avatar's corner.
+.inbox-avatar {
+    position: relative;
+    flex: 0 0 36px;
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba($dark, 0.06);
+    color: $a11y-muted;
+    font-size: 13px;
+    font-weight: 600;
+    &.is-unread { background: rgba($primary, 0.1); color: $primary; }
+    &.is-unread::after {
+        content: "";
+        position: absolute;
+        top: -1px;
+        right: -1px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: $primary;
+        border: 2px solid $white;
+    }
+}
+
+// ---- Article editor ----
+// The formatting bar stays reachable in a long article; under the phone top bar below lg.
+.rich-editor .rich-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: $white;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+
+    @media (max-width: 991.98px) { top: 64px; }
+}
+
+.art-title-input {
+    border-color: transparent;
+    background: transparent;
+    font-size: 1.6rem;
+    padding-inline: 0.25rem;
+
+    &:hover { border-color: var(--bs-border-color); }
+}
+
+.art-checklist {
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.2rem 0;
+        color: $a11y-muted;
+
+        svg { flex: none; margin-top: 0.2rem; }
+    }
+    li.is-done {
+        color: var(--bs-body-color);
+
+        svg { color: $a11y-success; }
+    }
+}
+
+.art-preview .reading-col { max-width: none; }
+
+.art-row-cover {
+    flex: none;
+    width: 72px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--app-primary-soft);
+}
+
+// The template forces white text on every outline button's hover/focus (`color: $white !important`),
+// which on the soft tinted fills above left the label invisible. Keep it readable.
+.me-shell {
+    .btn-outline-primary:hover, .btn-outline-primary:focus { color: $primary !important; }
+    .btn-outline-primary.active, .btn-outline-primary[aria-pressed="true"] { color: $white !important; }
+    .btn-group:not(.dropdown) > .btn-outline-primary:hover,
+    .btn-group:not(.dropdown) > .btn-outline-primary:focus { color: $dark !important; }
+}
+
+// The writing area: no hard box around the text while typing, a soft halo on the whole editor instead.
+.rich-editor {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+    .rich-content:focus, .rich-content:focus-visible { outline: none !important; }
+    &:focus-within {
+        border-color: rgba($primary, 0.45) !important;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+    }
+}
+
+// Phones: one scrollable row of formatting buttons instead of three wrapped rows.
+@media (max-width: 767.98px) {
+    .rich-editor .rich-toolbar {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+        top: 72px;
+        > * { flex: none; }
+    }
+}
+
+// Used across the workspace for flex children that must shrink (and truncate) instead of pushing
+// row actions off-screen; Bootstrap 5 has no such utility, so the class silently did nothing.
+.min-w-0 { min-width: 0 !important; }
+
+// Phones: segmented filters and tab rows scroll sideways instead of widening the page.
+@media (max-width: 575.98px) {
+    .me-shell .btn-group:not(.dropdown), .me-shell .nav-pills {
+        max-width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        > .btn, .nav-link { flex: none; }
+    }
+}

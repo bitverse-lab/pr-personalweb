@@ -23,6 +23,10 @@ export const calendarService = {
     return calendarEventRepository.update(id, userId, input);
   },
 
+  conflicts(userId: string, start: string, end: string, excludeId?: string) {
+    return calendarEventRepository.findOverlapping(userId, start, end, excludeId);
+  },
+
   delete(userId: string, id: string) {
     return calendarEventRepository.delete(id, userId);
   },

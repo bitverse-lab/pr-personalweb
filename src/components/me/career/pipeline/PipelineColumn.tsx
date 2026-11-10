@@ -6,41 +6,48 @@ import { STATUS_ACCENT, STATUS_META } from "@/features/career/status";
 import type { ApplicationStatus } from "@/db/schema/career";
 import type { ApplicationDto } from "@/features/career/types";
 
+const EMPTY_HINT: Partial<Record<ApplicationStatus, string>> = {
+  wishlist: "Roles you might apply to",
+  applied: "Drag here once you've sent it",
+  screening: "First call or recruiter screen",
+  interview: "Interviews in progress",
+  offer: "Offers to decide on",
+  rejected: "Closed by the company",
+  withdrawn: "Closed by you",
+};
+
 export default function PipelineColumn({
   status,
   applications,
   nextInterviews,
+  now,
 }: {
   status: ApplicationStatus;
   applications: ApplicationDto[];
   nextInterviews: Record<string, string>;
+  now: Date;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div
+    <section
       ref={setNodeRef}
-      className="rounded p-2"
-      style={{
-        background: isOver ? "var(--app-primary-soft)" : "var(--app-surface)",
-        borderTop: `3px solid ${STATUS_ACCENT[status]}`,
-        minHeight: 180,
-        minWidth: 230,
-        width: 230,
-        flex: "0 0 230px",
-      }}
+      className={`pl-col${isOver ? " is-over" : ""}`}
+      style={{ ["--accent" as string]: STATUS_ACCENT[status] }}
+      aria-label={`${STATUS_META[status].label}, ${applications.length}`}
     >
-      <div className="d-flex align-items-center justify-content-between mb-2 px-1">
-        <h6 className="mb-0">{STATUS_META[status].label}</h6>
-        <span className="badge bg-light text-dark">{applications.length}</span>
-      </div>
+      <header className="pl-col-head">
+        <span className="pl-col-dot" aria-hidden />
+        <h2 className="pl-col-title">{STATUS_META[status].label}</h2>
+        <span className="pl-col-count">{applications.length}</span>
+      </header>
       {applications.length === 0 ? (
-        <p className="text-muted small px-1 mb-0">Drop a card here</p>
+        <p className="pl-col-empty">{EMPTY_HINT[status]}</p>
       ) : (
         applications.map((application) => (
-          <PipelineCard key={application.id} application={application} nextInterview={nextInterviews[application.id]} />
+          <PipelineCard key={application.id} application={application} nextInterview={nextInterviews[application.id]} now={now} />
         ))
       )}
-    </div>
+    </section>
   );
 }
