@@ -3,9 +3,16 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 const rows: unknown[][] = [];
 vi.mock("@/db", () => {
-  const chain = { from: () => chain, where: () => chain, limit: () => Promise.resolve(rows.shift() ?? []) };
+  // Thenable: awaiting the outer select resolves the next queued result.
+  const chain: Record<string, unknown> = {
+    from: () => chain,
+    where: () => chain,
+    then: (ok: (r: unknown[]) => unknown) => Promise.resolve(rows.shift() ?? []).then(ok),
+  };
   return { db: { select: () => chain } };
 });
+// The real module wraps reads in React's cache(), which only Next's bundled React provides.
+vi.mock("@/server/repositories/health-profile-repository", () => ({ healthProfileRepository: { find: async () => undefined } }));
 vi.mock("@/server/storage/client", () => ({ isStorageConfigured: () => false }));
 
 import { projects } from "@/db/schema";
@@ -21,11 +28,11 @@ test("the demo probe is scoped to the owner and the demo id prefix", () => {
 });
 
 test("hasDemoData is false when no table has demo rows", async () => {
-  rows.push([], [], []);
+  rows.push([{ found: false }]);
   expect(await setupService.hasDemoData("owner-1")).toBe(false);
 });
 
 test("hasDemoData is true when any table has a demo row", async () => {
-  rows.push([], [{ one: 1 }], []);
+  rows.push([{ found: true }]);
   expect(await setupService.hasDemoData("owner-1")).toBe(true);
 });

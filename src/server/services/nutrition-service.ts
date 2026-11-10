@@ -5,6 +5,9 @@ import { addDays, round1, sumMacros, type Macros } from "@/features/health/calc"
 import { STARTER_FOODS } from "./seed-foods";
 import type { MealType } from "@/db/schema/health";
 
+// Users whose starter foods are known to exist: the count is checked once per server process, not per request.
+const seeded = new Set<string>();
+
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
 
 export interface MealItemDto extends Macros {
@@ -49,7 +52,8 @@ const scale = (n: number, factor: number) => round1(n * factor);
 export const nutritionService = {
   // Seeds the starter catalog once (only while the user has no foods at all).
   async ensureSeeded(userId: string) {
-    if ((await nutritionRepository.countFoods(userId)) > 0) return;
+    if (seeded.has(userId)) return;
+    if ((await nutritionRepository.countFoods(userId)) > 0) return void seeded.add(userId);
     await nutritionRepository.insertFoodsIgnoreDuplicates(
       userId,
       STARTER_FOODS.map((f) => ({

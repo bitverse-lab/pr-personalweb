@@ -1,6 +1,7 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { articles, educations, experiences, healthProfiles, profiles, projects, tasks, weightEntries } from "@/db/schema";
+import { articles, educations, experiences, profiles, projects, tasks, weightEntries } from "@/db/schema";
+import { healthProfileRepository } from "@/server/repositories/health-profile-repository";
 import { DEMO_PREFIX } from "@/lib/demo";
 import { isStorageConfigured } from "@/server/storage/client";
 
@@ -23,22 +24,38 @@ export function demoRowsOf(table: typeof projects | typeof articles | typeof tas
 export const setupService = {
   /** Demo data is loaded if any of these always-seeded tables holds a demo row. */
   async hasDemoData(userId: string): Promise<boolean> {
-    const found = await Promise.all(
-      [projects, articles, tasks].map((t) => db.select({ one: sql<number>`1` }).from(t).where(demoRowsOf(t, userId)).limit(1)),
-    );
-    return found.some((r) => r.length > 0);
+    // One round trip: the database is far away, and the Overview already has a dozen reads in flight.
+    const [row] = await db
+      .select({
+        found: sql<boolean>`exists(${db.select({ one: sql`1` }).from(projects).where(demoRowsOf(projects, userId))})
+          or exists(${db.select({ one: sql`1` }).from(articles).where(demoRowsOf(articles, userId))})
+          or exists(${db.select({ one: sql`1` }).from(tasks).where(demoRowsOf(tasks, userId))})`,
+      })
+      .from(sql`(select 1) as one`);
+    return !!row?.found;
   },
 
   async checklist(userId: string): Promise<SetupItem[]> {
-    const [profile, exp, edu, healthGoals, weight, publishedProjects, publishedArticles] = await Promise.all([
+    const n = (q: SQL) => sql<number>`(${q})::int`;
+    const [profile, healthGoals, [counts]] = await Promise.all([
       db.query.profiles.findFirst({ where: eq(profiles.userId, userId) }),
-      db.select({ n: sql<number>`count(*)::int` }).from(experiences).where(eq(experiences.userId, userId)),
-      db.select({ n: sql<number>`count(*)::int` }).from(educations).where(eq(educations.userId, userId)),
-      db.query.healthProfiles.findFirst({ where: eq(healthProfiles.userId, userId) }),
-      db.select({ n: sql<number>`count(*)::int` }).from(weightEntries).where(eq(weightEntries.userId, userId)),
-      db.select({ n: sql<number>`count(*)::int` }).from(projects).where(and(eq(projects.userId, userId), eq(projects.status, "published"))),
-      db.select({ n: sql<number>`count(*)::int` }).from(articles).where(and(eq(articles.userId, userId), eq(articles.status, "published"))),
+      healthProfileRepository.find(userId),
+      // All counts in one round trip rather than five.
+      db
+        .select({
+          exp: n(sql`select count(*) from ${experiences} where ${eq(experiences.userId, userId)}`),
+          edu: n(sql`select count(*) from ${educations} where ${eq(educations.userId, userId)}`),
+          weight: n(sql`select count(*) from ${weightEntries} where ${eq(weightEntries.userId, userId)}`),
+          projects: n(sql`select count(*) from ${projects} where ${and(eq(projects.userId, userId), eq(projects.status, "published"))}`),
+          articles: n(sql`select count(*) from ${articles} where ${and(eq(articles.userId, userId), eq(articles.status, "published"))}`),
+        })
+        .from(sql`(select 1) as one`),
     ]);
+    const exp = [{ n: counts.exp }];
+    const edu = [{ n: counts.edu }];
+    const weight = [{ n: counts.weight }];
+    const publishedProjects = [{ n: counts.projects }];
+    const publishedArticles = [{ n: counts.articles }];
 
     return [
       { key: "name", label: "Add your name and headline", hint: "Replaces the template's sample content on every public page.", href: "/me/settings/profile", done: !!profile?.displayName?.trim() },
