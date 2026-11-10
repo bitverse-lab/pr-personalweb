@@ -1,8 +1,8 @@
 "use client";
 
-import { FiFlag } from "react-icons/fi";
-import { dueInfo } from "@/features/tasks/dates";
-import type { TaskPriority } from "@/db/schema/productivity";
+import { FiFlag, FiRepeat } from "react-icons/fi";
+import { dueInfo, recurrenceLabel } from "@/features/tasks/dates";
+import type { TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
 
 const PRIORITY_LABEL: Record<TaskPriority, string> = { high: "High", medium: "Medium", low: "Low" };
 
@@ -11,6 +11,15 @@ export function PriorityFlag({ priority }: { priority: TaskPriority }) {
   return (
     <span className={`task-flag task-flag--${priority}`}>
       <FiFlag aria-hidden /> {PRIORITY_LABEL[priority]}
+    </span>
+  );
+}
+
+/** "Every Mon", "Every weekday": the task comes back after it is ticked off. */
+export function RepeatBadge({ rule, due }: { rule: TaskRecurrence; due: string | null }) {
+  return (
+    <span className="task-repeat" title="Repeats: ticking it off schedules the next one">
+      <FiRepeat aria-hidden /> {recurrenceLabel(rule, due)}
     </span>
   );
 }

@@ -1,14 +1,15 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { FiCalendar, FiFlag, FiHash, FiX, FiPlus } from "react-icons/fi";
+import { FiCalendar, FiFlag, FiHash, FiX, FiPlus, FiRepeat } from "react-icons/fi";
 import { createTask } from "@/features/tasks/actions";
-import { dueInfo, parseQuickTask } from "@/features/tasks/dates";
+import { RECURRENCES, dueInfo, parseQuickTask, recurrenceLabel } from "@/features/tasks/dates";
 import { useToast } from "@/components/shared/ToastProvider";
-import type { TaskPriority } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
 
 /**
- * One line does it all: "Call mom tomorrow #family !high". What the line was understood as shows
+ * One line does it all: "Call mom tomorrow #family !high", "Stretch daily", "Sync every fri".
+ * What the line was understood as shows
  * underneath as chips; clicking a chip drops that reading. "More" opens the explicit fields,
  * which win over anything typed.
  */
@@ -18,7 +19,8 @@ export default function TaskQuickCapture({ today }: { today: string }) {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState<TaskPriority | "">("");
-  const [ignored, setIgnored] = useState<{ due?: boolean; priority?: boolean; tags: string[] }>({ tags: [] });
+  const [recurrence, setRecurrence] = useState<TaskRecurrence | "">("");
+  const [ignored, setIgnored] = useState<{ due?: boolean; priority?: boolean; repeat?: boolean; tags: string[] }>({ tags: [] });
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
@@ -28,6 +30,7 @@ export default function TaskQuickCapture({ today }: { today: string }) {
   const readDue = parsed.dueDate;
   const readPriority = parsed.priority;
   const readTags = parsed.tags;
+  const readRepeat = parsed.recurrence;
   const finalTitle = parsed.title;
 
   const reset = () => {
@@ -35,6 +38,7 @@ export default function TaskQuickCapture({ today }: { today: string }) {
     setDescription("");
     setDueDate("");
     setPriority("");
+    setRecurrence("");
     setIgnored({ tags: [] });
     setMore(false);
     setError(null);
@@ -44,25 +48,28 @@ export default function TaskQuickCapture({ today }: { today: string }) {
     event.preventDefault();
     if (!finalTitle) return;
     setError(null);
-    const due = dueDate || readDue;
+    const repeat = recurrence || readRepeat;
+    // A repeating task picked from "More options" without a date starts today.
+    const due = dueDate || readDue || (repeat ? today : undefined);
     startTransition(async () => {
       const result = await createTask({
         title: finalTitle,
         description: description || undefined,
         dueDate: due || undefined,
         priority: priority || readPriority || undefined,
+        recurrence: repeat || undefined,
         tags: readTags.length > 0 ? readTags : undefined,
       });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      toast.success(due ? `Added · due ${dueInfo(due, today).label.toLowerCase()}` : "Task added");
+      toast.success(repeat ? `Added · ${recurrenceLabel(repeat, due ?? null).toLowerCase()}` : due ? `Added · due ${dueInfo(due, today).label.toLowerCase()}` : "Task added");
       reset();
     });
   };
 
-  const hasReading = Boolean(readDue || readPriority || readTags.length);
+  const hasReading = Boolean(readDue || readPriority || readRepeat || readTags.length);
 
   return (
     <form onSubmit={handleSubmit} className="task-capture">
@@ -100,6 +107,12 @@ export default function TaskQuickCapture({ today }: { today: string }) {
                   <span className="visually-hidden">(remove)</span>
                 </button>
               )}
+              {readRepeat && !recurrence && (
+                <button type="button" className="task-chip" onClick={() => setIgnored((v) => ({ ...v, repeat: true }))} title="Does not repeat — keep as text">
+                  <FiRepeat aria-hidden /> {recurrenceLabel(readRepeat, dueDate || readDue || null)} <FiX aria-hidden className="task-chip-x" />
+                  <span className="visually-hidden">(remove)</span>
+                </button>
+              )}
               {readPriority && !priority && (
                 <button type="button" className="task-chip" onClick={() => setIgnored((v) => ({ ...v, priority: true }))} title="Not a priority — keep as text">
                   <FiFlag aria-hidden /> {readPriority} <FiX aria-hidden className="task-chip-x" />
@@ -116,7 +129,7 @@ export default function TaskQuickCapture({ today }: { today: string }) {
             </div>
           ) : (
             <p className="task-capture-hint">
-              Shorthand: <kbd>tomorrow</kbd> <kbd>fri</kbd> <kbd>next week</kbd> for a date, <kbd>#tag</kbd>, <kbd>!high</kbd>
+              Shorthand: <kbd>tomorrow</kbd> <kbd>fri</kbd> <kbd>next week</kbd> for a date, <kbd>daily</kbd> <kbd>every mon</kbd> to repeat, <kbd>#tag</kbd>, <kbd>!high</kbd>
             </p>
           )}
           <button type="button" className="btn btn-sm btn-outline-primary border-0 ms-auto" aria-expanded={more} onClick={() => setMore((v) => !v)}>
@@ -138,6 +151,15 @@ export default function TaskQuickCapture({ today }: { today: string }) {
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label small" htmlFor="tq-repeat">Repeat</label>
+            <select id="tq-repeat" className="form-select form-select-sm" value={recurrence} onChange={(e) => setRecurrence(e.target.value as TaskRecurrence | "")}>
+              <option value="">Does not repeat</option>
+              {RECURRENCES.map((r) => (
+                <option key={r} value={r}>{recurrenceLabel(r, dueDate || readDue || null)}</option>
+              ))}
             </select>
           </div>
           <div className="task-capture-notes">

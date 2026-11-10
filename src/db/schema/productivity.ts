@@ -4,6 +4,7 @@ import { users } from "./auth";
 
 export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
+export type TaskRecurrence = "daily" | "weekdays" | "weekly" | "monthly";
 
 export const tasks = pgTable("task", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -22,6 +23,10 @@ export const tasks = pgTable("task", {
     .notNull()
     .default(sql`'{}'::text[]`),
   completedAt: timestamp("completed_at", { withTimezone: true }),
+  // Repeating tasks: ticking one off creates the next occurrence, which points back here so
+  // un-ticking can take it away again. No FK: the chain is a convenience, not an invariant.
+  recurrence: text("recurrence").$type<TaskRecurrence | null>(),
+  spawnedFromId: uuid("spawned_from_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

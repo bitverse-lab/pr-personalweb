@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { updateTask } from "@/features/tasks/actions";
 import type { SubtaskDto } from "@/features/tasks/subtask-actions";
 import SubtaskChecklist from "./SubtaskChecklist";
-import type { TaskPriority } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
+import { RECURRENCES, recurrenceLabel } from "@/features/tasks/dates";
 import DialogShell from "@/components/shared/DialogShell";
 
 export interface TaskEditValues {
@@ -13,6 +14,7 @@ export interface TaskEditValues {
   description?: string | null;
   dueDate?: string | null;
   priority?: TaskPriority | null;
+  recurrence?: TaskRecurrence | null;
   tags?: string[];
   subtasks?: SubtaskDto[];
 }
@@ -27,6 +29,7 @@ export default function TaskEditDialog({ initialValues, onClose }: TaskEditDialo
   const [description, setDescription] = useState(initialValues.description ?? "");
   const [dueDate, setDueDate] = useState(initialValues.dueDate ?? "");
   const [priority, setPriority] = useState<TaskPriority | "">(initialValues.priority ?? "");
+  const [recurrence, setRecurrence] = useState<TaskRecurrence | "">(initialValues.recurrence ?? "");
   const [tagsInput, setTagsInput] = useState((initialValues.tags ?? []).join(", "));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -46,6 +49,7 @@ export default function TaskEditDialog({ initialValues, onClose }: TaskEditDialo
         description: description.trim() || null,
         dueDate: dueDate || null,
         priority: priority || null,
+        recurrence: recurrence || null,
         tags,
       });
       if (!result.ok) {
@@ -104,6 +108,16 @@ export default function TaskEditDialog({ initialValues, onClose }: TaskEditDialo
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
+          </div>
+          <div className="col-12 mb-3">
+            <label className="form-label" htmlFor="te-repeat">Repeat</label>
+            <select id="te-repeat" className="form-select" value={recurrence} onChange={(e) => setRecurrence(e.target.value as TaskRecurrence | "")} aria-describedby="te-repeat-help">
+              <option value="">Does not repeat</option>
+              {RECURRENCES.map((r) => (
+                <option key={r} value={r}>{recurrenceLabel(r, dueDate || null)}</option>
+              ))}
+            </select>
+            <div id="te-repeat-help" className="form-text">Ticking it off schedules the next one.</div>
           </div>
         </div>
         <div className="mb-3">

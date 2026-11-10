@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { completeTask, reopenTask } from "@/features/tasks/actions";
+import { recurrenceNextLabel } from "@/features/tasks/dates";
 import { useToast } from "@/components/shared/ToastProvider";
 import type { TaskStatus } from "@/db/schema/productivity";
 
@@ -39,7 +40,10 @@ export default function TaskCheckbox({
         toast.error(result.error);
         return;
       }
-      toast.success(next ? "Task done" : "Task reopened", { action: { label: "Undo", onClick: () => apply(!next) } });
+      // A repeating task says when it comes back; Undo also takes that next one away.
+      const upcoming = (result.data as { next?: { dueDate: string | null } | null } | null)?.next;
+      const message = next ? (upcoming?.dueDate ? `Done. Next one ${recurrenceNextLabel(upcoming.dueDate)}` : "Task done") : "Task reopened";
+      toast.success(message, { action: { label: "Undo", onClick: () => apply(!next) } });
     });
   };
 

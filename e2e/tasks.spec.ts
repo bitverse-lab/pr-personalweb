@@ -95,3 +95,30 @@ test("board: drag a card to In progress, then undo", async ({ ownerPage: page })
     await expect(page.locator(".task-col--todo").getByText(title, { exact: true })).toBeVisible({ timeout: 5_000 });
   }).toPass(SLOW);
 });
+
+test("a repeating task comes back on its next day when ticked off, and Undo takes that back", async ({ ownerPage: page }) => {
+  const habit = `E2E · Stretch ${tag}`;
+  await page.goto("/me/tasks");
+  const input = page.getByLabel("New task");
+  await input.fill(`${habit} daily`);
+  await expect(page.locator(".task-chips").getByRole("button", { name: /Every day/ })).toBeVisible();
+  await input.press("Enter");
+  const today = page.locator("#group-today");
+  await expect(today.locator(".task-row").filter({ hasText: habit }).getByText("Every day")).toBeVisible(SLOW);
+
+  await row(page, habit).first().getByRole("checkbox").check();
+  const toast = page.getByText(/Done\. Next one on/);
+  await expect(toast).toBeVisible(SLOW);
+  await page.reload();
+  await expect(page.locator("#group-tomorrow").getByText(habit, { exact: true })).toBeVisible(SLOW);
+  // Done folds away by default.
+  await page.locator("#group-done .task-group-fold").click();
+  await expect(page.locator("#group-done").getByText(habit, { exact: true })).toBeVisible();
+
+  // Un-ticking the finished one removes the occurrence it created.
+  await page.locator("#group-done .task-row").filter({ hasText: habit }).getByRole("checkbox").uncheck();
+  await page.waitForTimeout(1500);
+  await page.reload();
+  await expect(page.locator("#group-tomorrow").getByText(habit, { exact: true })).toHaveCount(0, SLOW);
+  await expect(page.locator("#group-today").getByText(habit, { exact: true })).toBeVisible();
+});

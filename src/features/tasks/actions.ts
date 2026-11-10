@@ -1,5 +1,6 @@
 "use server";
 
+import { todayInUserTz } from "@/lib/timezone";
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/server/auth";
 import { taskService } from "@/server/services/task-service";
@@ -57,7 +58,7 @@ export async function completeTask(id: string): Promise<ActionResult<unknown>> {
   const userId = await requireUserId();
   const parsed = taskIdSchema.safeParse({ id });
   if (!parsed.success) return { ok: false, error: "Invalid task" };
-  const task = await taskService.complete(userId, parsed.data.id);
+  const task = await taskService.complete(userId, parsed.data.id, await todayInUserTz());
   if (!task) return { ok: false, error: "Task not found" };
   revalidateTasks();
   return { ok: true, data: task };
@@ -67,7 +68,7 @@ export async function reopenTask(id: string): Promise<ActionResult<unknown>> {
   const userId = await requireUserId();
   const parsed = taskIdSchema.safeParse({ id });
   if (!parsed.success) return { ok: false, error: "Invalid task" };
-  const task = await taskService.reopen(userId, parsed.data.id);
+  const task = await taskService.reopen(userId, parsed.data.id, await todayInUserTz());
   if (!task) return { ok: false, error: "Task not found" };
   revalidateTasks();
   return { ok: true, data: task };
@@ -77,7 +78,7 @@ export async function updateTaskStatus(input: unknown): Promise<ActionResult<unk
   const userId = await requireUserId();
   const parsed = updateTaskStatusSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Invalid status" };
-  const task = await taskService.updateStatus(userId, parsed.data.id, parsed.data.status);
+  const task = await taskService.updateStatus(userId, parsed.data.id, parsed.data.status, await todayInUserTz());
   if (!task) return { ok: false, error: "Task not found" };
   revalidateTasks();
   return { ok: true, data: task };

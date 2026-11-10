@@ -3,9 +3,9 @@
 import { useDraggable } from "@dnd-kit/core";
 import TaskActions from "@/components/me/tasks/TaskActions";
 import SubtaskProgress from "@/components/me/tasks/SubtaskProgress";
-import { DueText, PriorityFlag } from "@/components/me/tasks/TaskMeta";
+import { DueText, PriorityFlag, RepeatBadge } from "@/components/me/tasks/TaskMeta";
 import type { SubtaskDto } from "@/features/tasks/subtask-actions";
-import type { TaskPriority, TaskStatus } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence, TaskStatus } from "@/db/schema/productivity";
 
 export interface BoardTask {
   id: string;
@@ -13,6 +13,7 @@ export interface BoardTask {
   description: string | null;
   dueDate: string | null;
   priority: TaskPriority | null;
+  recurrence: TaskRecurrence | null;
   tags: string[];
   status: TaskStatus;
   completedAt: Date | null;
@@ -27,6 +28,7 @@ export function TaskBoardCardBody({ task, today }: { task: BoardTask; today: str
       {(task.dueDate || task.priority || task.tags.length > 0) && (
         <div className="task-meta">
           {task.dueDate && <DueText due={task.dueDate} today={today} done={task.status === "done"} />}
+          {task.recurrence && <RepeatBadge rule={task.recurrence} due={task.dueDate} />}
           {task.priority && <PriorityFlag priority={task.priority} />}
           {task.tags.map((tag) => (
             <span key={tag} className="task-tag">

@@ -1174,7 +1174,7 @@ $task-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 @keyframes task-chip-in { from { opacity: 0; transform: translateY(-3px) scale(0.95); } }
 .task-capture-more {
     display: grid;
-    grid-template-columns: 170px 150px 1fr;
+    grid-template-columns: 170px 150px 190px 1fr;
     gap: 12px;
     margin-top: 8px;
     padding: 12px;
@@ -1797,4 +1797,14 @@ $career-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
         scrollbar-width: none;
         > .btn, .nav-link { flex: none; }
     }
+}
+
+// Repeating task: a quiet "Every Mon" next to the due date.
+.task-repeat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: $a11y-muted;
+    svg { width: 12px; height: 12px; }
 }

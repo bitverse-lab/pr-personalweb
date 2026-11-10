@@ -1,6 +1,6 @@
 // Pure helpers for task due dates. Dates are plain "YYYY-MM-DD" strings (the column is DATE), so
 // all arithmetic is done in UTC on those strings: no timezone can shift a day here.
-import type { TaskPriority } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
 
 const DAY = 86_400_000;
 const toUtc = (d: string) => {
@@ -27,6 +27,54 @@ const weekdayOf = (date: string) => new Date(toUtc(date)).getUTCDay();
 export function nextWeekday(today: string, weekday: number): string {
   const diff = (weekday - weekdayOf(today) + 7) % 7 || 7;
   return addDaysTo(today, diff);
+}
+
+export const RECURRENCES: TaskRecurrence[] = ["daily", "weekdays", "weekly", "monthly"];
+
+/** "Every day", "Every weekday", "Every Mon", "Every month on the 15th". */
+export function recurrenceLabel(rule: TaskRecurrence, due: string | null): string {
+  if (rule === "daily") return "Every day";
+  if (rule === "weekdays") return "Every weekday";
+  if (rule === "weekly") return due ? `Every ${new Date(toUtc(due)).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" })}` : "Every week";
+  if (!due) return "Every month";
+  const d = Number(due.slice(8, 10));
+  const suffix = d % 10 === 1 && d !== 11 ? "st" : d % 10 === 2 && d !== 12 ? "nd" : d % 10 === 3 && d !== 13 ? "rd" : "th";
+  return `Every month on the ${d}${suffix}`;
+}
+
+/** Same day of month `months` later, clamped to the month's length (Jan 31 → Feb 28, then Mar 31). */
+function addMonthsAnchored(date: string, months: number, anchorDay: number): string {
+  const [y, m] = date.split("-").map(Number);
+  const target = new Date(Date.UTC(y, m - 1 + months, 1));
+  const last = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  return fromUtc(Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), Math.min(anchorDay, last)));
+}
+
+function stepOnce(date: string, rule: TaskRecurrence, anchorDay: number): string {
+  if (rule === "daily") return addDaysTo(date, 1);
+  if (rule === "weekly") return addDaysTo(date, 7);
+  if (rule === "monthly") return addMonthsAnchored(date, 1, anchorDay);
+  let next = addDaysTo(date, 1);
+  while (weekdayOf(next) === 0 || weekdayOf(next) === 6) next = addDaysTo(next, 1);
+  return next;
+}
+
+/**
+ * The due date of the next occurrence after one is ticked off: one step on from its due date (or
+ * from today when it had none), and never in the past, so a habit missed for a week comes back
+ * once, on its next day, instead of as seven overdue copies.
+ */
+export function nextOccurrence(due: string | null, rule: TaskRecurrence, today: string): string {
+  const start = due ?? today;
+  const anchor = Number(start.slice(8, 10));
+  let next = stepOnce(start, rule, anchor);
+  while (daysBetween(today, next) <= 0) next = stepOnce(next, rule, anchor);
+  return next;
+}
+
+/** "on Fri, Nov 13" for the toast after a repeating task is ticked off. */
+export function recurrenceNextLabel(due: string): string {
+  return `on ${new Date(toUtc(due)).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}`;
 }
 
 export type DueTone = "overdue" | "today" | "soon" | "later";
@@ -94,8 +142,12 @@ export interface ParsedTask {
   title: string;
   dueDate?: string;
   priority?: TaskPriority;
+  recurrence?: TaskRecurrence;
   tags: string[];
 }
+
+const REPEAT_WORDS: Record<string, TaskRecurrence> = { daily: "daily", weekdays: "weekdays", weekly: "weekly", monthly: "monthly" };
+const EVERY_WORDS: Record<string, TaskRecurrence> = { day: "daily", weekday: "weekdays", week: "weekly", month: "monthly" };
 
 const PRIORITY_TOKENS: Record<string, TaskPriority> = {
   "!high": "high", "!h": "high", "!1": "high", "!!!": "high",
@@ -106,6 +158,7 @@ const PRIORITY_TOKENS: Record<string, TaskPriority> = {
 export interface ParseIgnore {
   due?: boolean;
   priority?: boolean;
+  repeat?: boolean;
   tags?: string[];
 }
 
@@ -121,6 +174,7 @@ export function parseQuickTask(input: string, today: string, ignore: ParseIgnore
   const tags: string[] = [];
   let dueDate: string | undefined;
   let priority: TaskPriority | undefined;
+  let recurrence: TaskRecurrence | undefined;
 
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
@@ -136,6 +190,27 @@ export function parseQuickTask(input: string, today: string, ignore: ParseIgnore
     if (PRIORITY_TOKENS[lower] && !ignore.priority) {
       priority = PRIORITY_TOKENS[lower];
       continue;
+    }
+    // "daily", "every day", "every weekday", "every monday" (weekly, starting that day)
+    if (!recurrence && !ignore.repeat) {
+      if (REPEAT_WORDS[lower]) {
+        recurrence = REPEAT_WORDS[lower];
+        continue;
+      }
+      if (lower === "every" && next) {
+        const everyWd = WEEKDAYS.includes(next) ? WEEKDAYS.indexOf(next) : (WEEKDAY_SHORT[next] ?? -1);
+        if (EVERY_WORDS[next]) {
+          recurrence = EVERY_WORDS[next];
+          i++;
+          continue;
+        }
+        if (everyWd >= 0) {
+          recurrence = "weekly";
+          if (!dueDate && !ignore.due) dueDate = weekdayOf(today) === everyWd ? today : nextWeekday(today, everyWd);
+          i++;
+          continue;
+        }
+      }
     }
     if (!dueDate && !ignore.due) {
       if (lower === "today" || lower === "tod") {
@@ -162,5 +237,7 @@ export function parseQuickTask(input: string, today: string, ignore: ParseIgnore
 
   const title = keep.join(" ");
   if (!title) return { title: input.trim(), tags: [] };
-  return { title, dueDate, priority, tags };
+  // A repeating task needs a first date to count from; without one it starts today.
+  if (recurrence && !dueDate && !ignore.due) dueDate = recurrence === "weekdays" && (weekdayOf(today) === 0 || weekdayOf(today) === 6) ? nextWeekday(today, 1) : today;
+  return { title, dueDate, priority, recurrence, tags };
 }

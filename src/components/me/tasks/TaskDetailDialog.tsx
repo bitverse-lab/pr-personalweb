@@ -3,9 +3,9 @@
 import SubtaskProgress from "./SubtaskProgress";
 import SubtaskToggleList, { useSubtaskItems } from "./SubtaskToggleList";
 import type { SubtaskDto } from "@/features/tasks/subtask-actions";
-import type { TaskPriority } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
 import DialogShell from "@/components/shared/DialogShell";
-import { DueText, PriorityFlag } from "./TaskMeta";
+import { DueText, PriorityFlag, RepeatBadge } from "./TaskMeta";
 import { dayKey } from "@/features/calendar/format";
 
 export interface TaskDetailValues {
@@ -14,6 +14,7 @@ export interface TaskDetailValues {
   description: string | null;
   dueDate: string | null;
   priority: TaskPriority | null;
+  recurrence: TaskRecurrence | null;
   tags: string[];
   subtasks: SubtaskDto[];
 }
@@ -33,6 +34,7 @@ export default function TaskDetailDialog({
     <DialogShell title={task.title} onClose={onClose}>
       {(task.priority || task.tags.length > 0) && (
         <div className="task-meta mb-3">
+          {task.recurrence && <RepeatBadge rule={task.recurrence} due={task.dueDate} />}
           {task.priority && <PriorityFlag priority={task.priority} />}
           {task.tags.map((tag) => (
             <span key={tag} className="task-tag">

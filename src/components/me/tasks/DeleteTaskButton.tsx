@@ -5,7 +5,7 @@ import { FiTrash2 } from "react-icons/fi";
 import { deleteTask, restoreTask } from "@/features/tasks/actions";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { useToast } from "@/components/shared/ToastProvider";
-import type { TaskPriority, TaskStatus } from "@/db/schema/productivity";
+import type { TaskPriority, TaskRecurrence, TaskStatus } from "@/db/schema/productivity";
 
 export interface DeletableTask {
   id: string;
@@ -13,6 +13,7 @@ export interface DeletableTask {
   description: string | null;
   dueDate: string | null;
   priority: TaskPriority | null;
+  recurrence: TaskRecurrence | null;
   tags: string[];
   status: TaskStatus;
   completedAt: Date | null;
@@ -31,6 +32,7 @@ export default function DeleteTaskButton({ task }: { task: DeletableTask }) {
         description: task.description,
         dueDate: task.dueDate,
         priority: task.priority,
+        recurrence: task.recurrence,
         tags: task.tags,
         status: task.status,
         completedAt: task.completedAt ? task.completedAt.toISOString() : null,

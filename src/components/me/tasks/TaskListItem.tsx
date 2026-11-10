@@ -8,7 +8,7 @@ import TaskActions, { type TaskActionsTask } from "./TaskActions";
 import SubtaskProgress from "./SubtaskProgress";
 import SubtaskToggleList, { useSubtaskItems } from "./SubtaskToggleList";
 import DueMenu from "./DueMenu";
-import { PriorityFlag } from "./TaskMeta";
+import { PriorityFlag, RepeatBadge } from "./TaskMeta";
 import type { TaskStatus } from "@/db/schema/productivity";
 
 /**
@@ -29,6 +29,7 @@ export default function TaskListItem({ task, today }: { task: TaskActionsTask & 
           <span className="task-title">{task.title}</span>
           <div className="task-meta">
             <DueMenu taskId={task.id} due={task.dueDate} today={today} done={done} />
+            {task.recurrence && <RepeatBadge rule={task.recurrence} due={task.dueDate} />}
             {task.priority && <PriorityFlag priority={task.priority} />}
             {task.tags.map((tag) => (
               <Link key={tag} href={`/me/tasks?q=${encodeURIComponent(tag)}`} className="task-tag" title={`Show tasks tagged ${tag}`}>
