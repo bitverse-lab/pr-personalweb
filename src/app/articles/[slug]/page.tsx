@@ -13,6 +13,7 @@ import ShareButtons from "@/components/shared/ShareButtons";
 import { extractHeadings } from "@/features/content/richtext";
 import { siteUrl } from "@/lib/site";
 import { getAdjacentArticles, getArticleBySlug, getArticles, getRelatedArticles } from "@/lib/data/articles";
+import { vt } from "@/lib/view-transition";
 
 export const revalidate = 300;
 
@@ -63,7 +64,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
             <p className="mono-meta mb-3">
               <Link href="/articles" className="path-label">← ~/writing</Link> · {article.date} · {article.readMinutes} min read
             </p>
-            <h1 className="page-head-title article-title">{article.title}</h1>
+            <h1 className="page-head-title article-title" style={vt("atitle", article.slug)}>{article.title}</h1>
             {article.excerpt && <p className="page-head-lede">{article.excerpt}</p>}
           </div>
         </section>
@@ -74,7 +75,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
               <article id="article-body" className="article-main">
                 {article.detail.coverUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={article.detail.coverUrl} className="img-fluid rounded mb-5" alt="" />
+                  <img src={article.detail.coverUrl} className="img-fluid rounded mb-5" alt="" style={vt("acover", article.slug)} />
                 )}
                 <div className="reading-col">
                   <RichTextRenderer doc={article.detail.content} />

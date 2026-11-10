@@ -7,6 +7,7 @@ import SmallFooter from "@/components/layout/SmallFooter";
 import ArticleListSkeleton from "@/components/shared/ArticleListSkeleton";
 import CoverBlock from "@/components/shared/CoverBlock";
 import { getArticles, type Article } from "@/lib/data/articles";
+import { vt } from "@/lib/view-transition";
 
 export const metadata: Metadata = {
   title: "Writing",
@@ -100,10 +101,10 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
               {!filtered && latest && (
                 <div className="writing-grid">
                   <article className="writing-latest" data-latest>
-                    <Link href={`/articles/${latest.slug}`} className="writing-latest-link">
-                      <CoverBlock src={latest.image} title={latest.title} ratio="16/10" />
+                    <Link href={`/articles/${latest.slug}`} className="writing-latest-link" data-vt>
+                      <CoverBlock src={latest.image} title={latest.title} ratio="16/10" vtStyle={vt("acover", latest.slug)} />
                       <p className="mono-meta mt-3 mb-1">Latest · {latest.date} · {latest.readMinutes} min</p>
-                      <h2 className="writing-latest-title">{latest.title}</h2>
+                      <h2 className="writing-latest-title" style={vt("atitle", latest.slug)}>{latest.title}</h2>
                       {latest.excerpt && <p className="writing-excerpt">{latest.excerpt}</p>}
                     </Link>
                   </article>
@@ -113,7 +114,7 @@ async function ArticlesContent({ searchParams }: ArticlesPageProps) {
                       <ul className="list-unstyled mb-0">
                         {earlier.map((a) => (
                           <li key={a.id} className="writing-earlier-item">
-                            <Link href={`/articles/${a.slug}`} className="writing-earlier-link">{a.title}</Link>
+                            <Link href={`/articles/${a.slug}`} className="writing-earlier-link" data-vt style={vt("atitle", a.slug)}>{a.title}</Link>
                             <p className="mono-meta mb-0 mt-1">{a.date}{a.tag ? ` · ${a.tag.toLowerCase()}` : ""}</p>
                           </li>
                         ))}

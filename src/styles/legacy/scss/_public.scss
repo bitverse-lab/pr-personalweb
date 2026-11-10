@@ -1486,3 +1486,14 @@ h3.mono-meta {
 @media (prefers-reduced-motion: reduce) {
     .hero-cloud { animation: none; opacity: 1; }
 }
+
+// Page transitions (ViewTransitionLinks): shared covers and titles glide; the rest of the page
+// cross-fades quickly so the motion stays on what you clicked.
+::view-transition-group(*) {
+    animation-duration: 0.42s;
+    animation-timing-function: $ease-out;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.22s;
+}

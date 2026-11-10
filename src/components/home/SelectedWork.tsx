@@ -2,6 +2,7 @@ import Link from "next/link";
 import CoverBlock from "@/components/shared/CoverBlock";
 import { layersOf, type LayerSkill } from "@/features/projects/layers";
 import type { Project } from "@/features/projects/format";
+import { vt } from "@/lib/view-transition";
 
 /**
  * One featured case study large, the rest smaller — never a uniform grid. Each card carries its
@@ -32,7 +33,7 @@ export default function SelectedWork({ projects, skills, title = "Selected work"
             const layers = layersOf(p.technologies, skills);
             return (
               <article key={p.id} id={`case-${p.slug}`} data-case data-featured={p.featured ? "" : undefined} data-layers={layers.join(" ")} className={`case ${i === 0 ? "case--featured" : ""}`}>
-                <CoverBlock src={p.image} title={p.name} ratio={i === 0 ? "16/10" : "16/9"} compact={i !== 0} />
+                <CoverBlock src={p.image} title={p.name} ratio={i === 0 ? "16/10" : "16/9"} compact={i !== 0} vtStyle={vt("cover", p.slug)} />
                 <div className="case-body">
                   {layers.length > 0 && (
                     <div className="case-layers" aria-label="Layers I built">
@@ -41,8 +42,8 @@ export default function SelectedWork({ projects, skills, title = "Selected work"
                       ))}
                     </div>
                   )}
-                  <h3 className="case-title" tabIndex={-1}>
-                    <Link href={`/projects/${p.slug}`} className="stretched-link">{p.name}</Link>
+                  <h3 className="case-title" tabIndex={-1} style={vt("title", p.slug)}>
+                    <Link href={`/projects/${p.slug}`} className="stretched-link" data-vt>{p.name}</Link>
                   </h3>
                   {p.summary && <p className="case-summary">{p.summary}</p>}
                   {p.outcome && <p className="case-outcome">{p.outcome}</p>}

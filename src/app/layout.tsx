@@ -9,6 +9,7 @@ import { getProfile } from "@/lib/data/profile";
 import { getSiteInfo } from "@/lib/data/site";
 import { siteUrl } from "@/lib/site";
 import { SiteProvider } from "@/lib/site-context";
+import ViewTransitionLinks from "@/components/shared/ViewTransitionLinks";
 
 // The site name comes from the profile, so pages refresh at most every 5 minutes (and instantly when the profile is saved).
 export const revalidate = 300;
@@ -44,6 +45,7 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <NavigationProgress />
+        <ViewTransitionLinks />
         <SiteProvider value={site}>
           {children}
           <ScrollTop />

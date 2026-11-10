@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import CoverBlock from "@/components/shared/CoverBlock";
+import { vt } from "@/lib/view-transition";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import RichTextRenderer from "@/components/shared/RichTextRenderer";
@@ -37,6 +38,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { prev, next } = getAdjacentProjects(all, project.slug);
   const { detail } = project;
   const hasStory = docToPlainText(detail.content).length > 0;
+  // Only an image that is the card's cover morphs from it; otherwise just the title moves.
+  const coverIndex = project.gallery.findIndex((g) => g.url === project.image);
   const layers = layersOf(project.technologies, profile.skills.map((s) => ({ name: s.label, category: s.category })));
   const meta = [project.period, detail.client, detail.role].filter(Boolean).join(" · ");
 
@@ -69,7 +72,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <Link href="/projects" className="path-label">← ~/work</Link>
               {meta && <span> · {meta}</span>}
             </p>
-            <h1 className="page-head-title">{project.name}</h1>
+            <h1 className="page-head-title" style={vt("title", project.slug)}>{project.name}</h1>
             {project.summary && <p className="page-head-lede">{project.summary}</p>}
             {layers.length > 0 && (
               <div className="case-layers mt-3" data-testid="project-layers" aria-label="Layers I built">
@@ -88,14 +91,14 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <div className="project-main">
                 {project.gallery.length > 0 ? (
                   project.gallery.map((image, index) => (
-                    <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.url}>
+                    <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.url} style={index === coverIndex ? vt("cover", project.slug) : undefined}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={image.url} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="img-fluid rounded" alt={image.caption || `${project.name} — image ${index + 1}`} />
                       {image.caption && <figcaption className="mono-meta mt-2">{image.caption}</figcaption>}
                     </figure>
                   ))
                 ) : (
-                  <CoverBlock src={project.image} title={project.name} />
+                  <CoverBlock src={project.image} title={project.name} vtStyle={vt("cover", project.slug)} />
                 )}
 
                 {hasStory && (
