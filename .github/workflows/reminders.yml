@@ -1,0 +1,32 @@
+name: Reminders
+
+# Morning digest on Telegram: interviews and events today, tasks due today, overdue tasks.
+# Setup: docs/REMINDERS.md. Scheduled workflows only run from the default branch (main), and
+# GitHub may start a scheduled run some minutes late.
+
+on:
+  schedule:
+    - cron: "55 22 * * *" # 05:55 in Jakarta
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      OWNER_EMAIL: ${{ secrets.REMINDER_OWNER_EMAIL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/reminders/digest.mjs
