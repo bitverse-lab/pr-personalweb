@@ -32,3 +32,11 @@ describe("formatDigest", () => {
     expect(formatDigest({ ...base, tasks })).toContain("… and 3 more");
   });
 });
+
+describe("formatDigest open workouts", () => {
+  it("points out a session left running", () => {
+    const text: string = formatDigest({ ...base, openWorkouts: [{ name: "Push day", since: "Mon 18:05" }] });
+    expect(text).toContain("Push day</b> is still open since Mon 18:05");
+    expect(text).not.toContain("Nothing due");
+  });
+});
