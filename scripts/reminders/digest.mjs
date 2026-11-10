@@ -31,7 +31,7 @@ try {
   const time = (d) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit" }).format(d);
   const dateLabel = new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
-  const [tasks, interviews, events] = await Promise.all([
+  const [tasks, interviews, events, openWorkouts] = await Promise.all([
     sql`
       select title, due_date::text as "dueDate", priority, recurrence is not null as recurring
       from task
@@ -54,7 +54,13 @@ try {
         and (e.end_at at time zone ${tz})::date >= ${today}::date
         and not exists (select 1 from interview i where i.calendar_event_id = e.id)
       order by e.all_day desc, e.start_at`,
+    // A session left running for more than six hours was almost certainly forgotten.
+    sql`
+      select name, started_at from workout
+      where user_id = ${owner.id} and ended_at is null and started_at < now() - interval '6 hours'
+      order by started_at`,
   ]);
+  const since = (d) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit" }).format(d);
 
   const text = formatDigest({
     today,
@@ -63,6 +69,7 @@ try {
     tasks: tasks.map((t) => ({ title: t.title, dueDate: t.dueDate, priority: t.priority, recurring: t.recurring })),
     interviews: interviews.map((i) => ({ time: time(i.start_at), role: i.role, company: i.company, kind: i.kind, where: i.where })),
     events: events.map((e) => ({ time: e.all_day ? null : time(e.start_at), title: e.title, location: e.location })),
+    openWorkouts: openWorkouts.map((w) => ({ name: w.name, since: since(w.started_at) })),
   });
 
   if (dryRun) {
