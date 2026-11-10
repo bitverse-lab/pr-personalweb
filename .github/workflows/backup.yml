@@ -1,0 +1,84 @@
+name: Backup
+
+# Daily, encrypted backup of the database (pg_dump) and every Storage file, kept as a workflow
+# artifact for 90 days. Supabase's free tier keeps no backups the owner can restore, and pauses a
+# project after about a week without activity; this daily connection also counts as activity.
+# Restore steps: docs/BACKUP.md.
+#
+# Scheduled workflows only run from the default branch (main).
+
+on:
+  schedule:
+    - cron: "30 19 * * *" # 02:30 in Jakarta
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      SUPABASE_URL: ${{ secrets.BACKUP_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.BACKUP_SUPABASE_SERVICE_ROLE_KEY }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        run: |
+          missing=""
+          for name in DATABASE_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY BACKUP_PASSPHRASE; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then echo "::error::Missing repository secrets (BACKUP_ prefix):$missing"; exit 1; fi
+
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # pg_dump must be at least the server's major version (Supabase runs Postgres 17).
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump the database
+        run: |
+          mkdir -p backup
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --schema=public --no-owner --no-privileges --format=custom --file=backup/database.dump
+          # Row counts, to check a restore against.
+          /usr/lib/postgresql/17/bin/psql "$DATABASE_URL" -At -c "select table_name || ' ' || (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', table_name), false, true, '')))[1]::text from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE' order by 1" > backup/row-counts.txt
+          echo "tables: $(wc -l < backup/row-counts.txt), dump: $(du -h backup/database.dump | cut -f1)"
+
+      - name: Download Storage files
+        run: node scripts/backup/storage.mjs backup/storage
+
+      - name: Encrypt
+        id: pack
+        run: |
+          name="personal-os-backup-$(date -u +%Y-%m-%d)"
+          date -u +%FT%TZ > backup/created-at.txt
+          tar -czf - -C backup . | gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" --symmetric --cipher-algo AES256 -o "$name.tar.gz.gpg"
+          rm -rf backup
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          ls -lh "$name.tar.gz.gpg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.name }}
+          path: ${{ steps.pack.outputs.name }}.tar.gz.gpg
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
