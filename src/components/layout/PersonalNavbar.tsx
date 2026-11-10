@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FiDownload } from "react-icons/fi";
 import SocialIcon from "@/components/shared/SocialIcon";
+import { OPEN_TERMINAL_EVENT } from "@/components/shared/PublicTerminal";
 import { useSite } from "@/lib/site-context";
 
 export default function PersonalNavbar() {
   const site = useSite();
   const [scroll, setScroll] = useState(false);
   const [isMenu, setIsMenu] = useState(false);
+  // The shortcut is named the way this keyboard says it; decided after mount to keep SSR stable.
+  const [mac, setMac] = useState(false);
+  useEffect(() => setMac(/Mac|iPhone|iPad/.test(navigator.platform)), []);
 
   useEffect(() => {
     const onScroll = () => setScroll(window.scrollY > 50);
@@ -77,6 +81,12 @@ export default function PersonalNavbar() {
                 </a>
               </li>
             ))}
+            <li className="list-inline-item ms-1 d-none d-lg-inline-block">
+              <button type="button" className="btn btn-sm btn-pills term-trigger" onClick={() => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT))} aria-label={`${mac ? "⌘K" : "Ctrl K"}: open the site terminal`} title="Jump anywhere">
+                {/* The visible shortcut starts the accessible name, so voice users can say what they see. */}
+                {mac ? "⌘K" : "Ctrl K"}
+              </button>
+            </li>
             {/* Hidden below lg: next to a long name it wrapped onto a second header row and covered page titles; the menu carries it instead. */}
             {!site.isPlaceholder && (
               <li className="list-inline-item ms-1 d-none d-lg-inline-block">

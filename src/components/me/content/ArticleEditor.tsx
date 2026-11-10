@@ -16,6 +16,7 @@ import RichEditor from "./RichEditor";
 import TagInput from "./TagInput";
 import type { RichDoc } from "@/db/schema/content";
 import type { ArticleDetail } from "@/server/services/article-service";
+import NumberFlow from "@number-flow/react";
 
 export function SaveIndicator({ status, error, onRetry, savedAt }: { status: SaveStatus; error: string | null; onRetry?: () => void; savedAt?: Date | null }) {
   if (status === "error") {
@@ -217,7 +218,7 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
             <RichEditor initial={article.content} onChange={setDoc} placeholder="Tell your story…" minHeight={420} />
           </div>
           <p className="text-muted small mt-2 mb-0">
-            {words} words · {readingMinutes(words)} min read
+            <NumberFlow value={words} /> words · {readingMinutes(words)} min read
           </p>
         </div>
 

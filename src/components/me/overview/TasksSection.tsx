@@ -2,6 +2,7 @@ import { FiCheckSquare } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
 import DraggableTaskRow from "./DraggableTaskRow";
 import OverviewCard from "./OverviewCard";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 export interface TaskPreview {
   id: string;
@@ -22,11 +23,11 @@ export default function TasksSection({ tasks = [] }: { tasks?: TaskPreview[] }) 
           actionHref="/me/tasks"
         />
       ) : (
-        <ul className="list-unstyled mb-0">
+        <AnimatedList as="ul" className="list-unstyled mb-0">
           {tasks.map((task) => (
             <DraggableTaskRow key={task.id} task={task} />
           ))}
-        </ul>
+        </AnimatedList>
       )}
     </OverviewCard>
   );

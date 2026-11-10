@@ -10,6 +10,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import ArticleStatusBadge from "./ArticleStatusBadge";
 import type { ArticleListItem } from "@/server/services/article-service";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -51,7 +52,7 @@ export default function ArticleList({ items, filtered }: { items: ArticleListIte
 
   return (
     <>
-      <ul className="list-unstyled mb-0">
+      <AnimatedList as="ul" className="list-unstyled mb-0">
         {items.map((a) => (
           <li key={a.id} className="d-flex align-items-center gap-2 py-3 border-top">
             {a.coverUrl ? (
@@ -98,7 +99,7 @@ export default function ArticleList({ items, filtered }: { items: ArticleListIte
             </div>
           </li>
         ))}
-      </ul>
+      </AnimatedList>
       {target && (
         <ConfirmDialog
           title="Delete article?"

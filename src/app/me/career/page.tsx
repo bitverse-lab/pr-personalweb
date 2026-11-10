@@ -8,11 +8,12 @@ import { getApplications, getCompanyNames, getInterviews } from "@/features/care
 import { CLOSED_STATUSES, INTERVIEW_KIND_LABEL, STATUS_META } from "@/features/career/status";
 import { followUpDue, responseRate, untilLabel } from "@/features/career/insights";
 import type { ApplicationDto } from "@/features/career/types";
+import NumberFlow from "@number-flow/react";
 
 function Tile({ label, value, hint, tone }: { label: string; value: string | number; hint: string; tone?: string }) {
   return (
     <div className={`career-tile${tone ? ` career-tile--${tone}` : ""}`}>
-      <span className="career-tile-n">{value}</span>
+      <span className="career-tile-n">{typeof value === "number" ? <NumberFlow value={value} /> : value}</span>
       <span className="career-tile-l">{label}</span>
       <span className="career-tile-h">{hint}</span>
     </div>

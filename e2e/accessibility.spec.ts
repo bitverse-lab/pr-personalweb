@@ -5,10 +5,14 @@ const routes = ["/", "/about", "/cv", "/projects", "/articles", "/contact", "/pr
 
 for (const route of routes) {
   test(`${route} has no automatically detectable WCAG 2.1 A/AA violations`, async ({ page }) => {
+    // Contrast is judged at rest. With reduced motion the home console shows its result at once and
+    // nothing fades in, so axe never samples a row mid-animation (timing-based waits stayed flaky).
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(route, { waitUntil: "domcontentloaded" });
-    // Contrast is judged at rest: entrance animations (e.g. the home console rows) fade in briefly.
-    // Scroll-driven animations (the experience rail) follow the scroll position, not time, so they
-    // are always "running" and never finish; only time-based animations are waited for.
+    if ((await page.getByTestId("console-footer").count()) > 0) {
+      await expect(page.getByTestId("console-footer")).toContainText(/row/, { timeout: 15_000 });
+    }
+    // Scroll-driven animations follow the scroll position and never finish; only time-based ones are waited for.
     await page.waitForFunction(
       () => document.getAnimations().every((a) => a.timeline !== document.timeline || a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
       null,

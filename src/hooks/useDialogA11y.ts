@@ -18,7 +18,8 @@ export function useDialogA11y<T extends HTMLElement>(onClose: () => void) {
     openDialogs.push(id);
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
-    panel?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    // A dialog can name its starting field with data-autofocus (e.g. a search box); otherwise the first focusable.
+    (panel?.querySelector<HTMLElement>("[data-autofocus]") ?? panel?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
 
     // Stop the page behind the dialog from scrolling once the panel reaches its end,
     // which on a phone otherwise carries the reader away from the dialog they are filling in.

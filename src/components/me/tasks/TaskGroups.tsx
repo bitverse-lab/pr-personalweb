@@ -6,6 +6,7 @@ import TaskListItem from "./TaskListItem";
 import type { TaskActionsTask } from "./TaskActions";
 import type { TaskGroupKey } from "@/features/tasks/dates";
 import type { TaskStatus } from "@/db/schema/productivity";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 type Row = TaskActionsTask & { status: TaskStatus };
 
@@ -43,11 +44,11 @@ export default function TaskGroups({
               )}
             </h2>
             {open && (
-              <ul className="list-unstyled mb-0">
+              <AnimatedList as="ul" className="list-unstyled mb-0">
                 {group.tasks.map((task) => (
                   <TaskListItem key={task.id} task={task} today={today} />
                 ))}
-              </ul>
+              </AnimatedList>
             )}
           </section>
         );

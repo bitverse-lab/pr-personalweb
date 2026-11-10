@@ -15,6 +15,7 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import DialogShell from "@/components/shared/DialogShell";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 function TestimonialDialog({ item, onClose }: { item?: TestimonialDto; onClose: () => void }) {
   const [f, setF] = useState({
@@ -135,7 +136,7 @@ export default function TestimonialManager({ items }: { items: TestimonialDto[] 
         {list.length === 0 ? (
           <EmptyState icon={FiMessageSquare} title="No testimonials yet" description="Add kind words from colleagues or clients. They only appear on your public home page once you publish them." />
         ) : (
-          <ul className="list-unstyled mb-0">
+          <AnimatedList as="ul" className="list-unstyled mb-0">
             {list.map((t, i) => (
               <li key={t.id} className="d-flex align-items-start gap-2 py-3 border-top">
                 <div className="flex-grow-1 min-w-0">
@@ -157,7 +158,7 @@ export default function TestimonialManager({ items }: { items: TestimonialDto[] 
                 </div>
               </li>
             ))}
-          </ul>
+          </AnimatedList>
         )}
       </div>
       {editing && <TestimonialDialog item={editing === "new" ? undefined : editing} onClose={() => setEditing(null)} />}

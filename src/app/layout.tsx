@@ -10,6 +10,8 @@ import { getSiteInfo } from "@/lib/data/site";
 import { siteUrl } from "@/lib/site";
 import { SiteProvider } from "@/lib/site-context";
 import ViewTransitionLinks from "@/components/shared/ViewTransitionLinks";
+import PublicTerminal from "@/components/shared/PublicTerminal";
+import { getTerminalIndex } from "@/lib/data/terminal";
 
 // The site name comes from the profile, so pages refresh at most every 5 minutes (and instantly when the profile is saved).
 export const revalidate = 300;
@@ -39,7 +41,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const site = await getSiteInfo();
+  const [site, terminal] = await Promise.all([getSiteInfo(), getTerminalIndex()]);
 
   return (
     <html lang="en">
@@ -48,6 +50,7 @@ export default async function RootLayout({
         <ViewTransitionLinks />
         <SiteProvider value={site}>
           {children}
+          <PublicTerminal index={terminal} />
           <ScrollTop />
           <Analytics />
         </SiteProvider>

@@ -6,6 +6,7 @@ import { FiBook } from "react-icons/fi";
 import EmptyState from "@/components/shared/EmptyState";
 import { MOODS, MOOD_COLOR } from "@/features/content/journal-meta";
 import type { JournalSummary } from "@/server/services/journal-service";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 const fmt = (d: string, withYear = true) =>
   new Date(`${d}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC" });
@@ -62,7 +63,7 @@ function GroupedEntries({ entries, tagHrefs }: { entries: JournalSummary[]; tagH
           <h3 className="jr-month-h">
             {m.label} <span className="jr-month-n">{perMonth(m.key)} {perMonth(m.key) === 1 ? "entry" : "entries"}</span>
           </h3>
-          <ul className="list-unstyled mb-0">
+          <AnimatedList as="ul" className="list-unstyled mb-0">
             {m.items.map((e) => (
               <li key={e.id} className="jr-row">
                 <Link href={`/me/journal/${e.id}`} className="jr-link">
@@ -88,7 +89,7 @@ function GroupedEntries({ entries, tagHrefs }: { entries: JournalSummary[]; tagH
                 </div>
               </li>
             ))}
-          </ul>
+          </AnimatedList>
         </section>
       ))}
       {entries.length > shown && (

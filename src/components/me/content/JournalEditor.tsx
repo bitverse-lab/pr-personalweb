@@ -17,6 +17,7 @@ import RichEditor from "./RichEditor";
 import TagInput from "./TagInput";
 import type { RichDoc } from "@/db/schema/content";
 import type { JournalEntryDto } from "@/server/services/journal-service";
+import NumberFlow from "@number-flow/react";
 
 const longDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
@@ -138,7 +139,7 @@ export default function JournalEditor({
 
           <RichEditor initial={entry.content} onChange={setDoc} onReady={(e) => (editorRef.current = e)} placeholder="How was your day?" minHeight={380} />
           <p className="text-muted small mt-2 mb-0">
-            {words} words · {readingMinutes(words)} min read
+            <NumberFlow value={words} /> words · {readingMinutes(words)} min read
           </p>
         </div>
 

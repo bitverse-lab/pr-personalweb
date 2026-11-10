@@ -4,6 +4,7 @@ import { FiCheckSquare, FiMapPin, FiSquare } from "react-icons/fi";
 import { eventColorHex } from "@/features/calendar/colors";
 import { addDays, dayKey, relativeStart, startOfDay, type CalendarTask } from "@/features/calendar/format";
 import type { CalendarEventInput, ScreenPoint } from "./CalendarView";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
@@ -92,7 +93,7 @@ export default function AgendaPanel({
         {todayEvents.length === 0 && todayTasks.length === 0 ? (
           <p className="cal-agenda-empty">Nothing else today.</p>
         ) : (
-          <ul className="list-unstyled cal-agenda-list mb-0">
+          <AnimatedList as="ul" className="list-unstyled cal-agenda-list mb-0">
             {todayEvents.map((e) => (
               <li key={e.id}>
                 <button type="button" onClick={(ev) => onEventClick(e.id, pointOf(ev))}>
@@ -115,7 +116,7 @@ export default function AgendaPanel({
                 </button>
               </li>
             ))}
-          </ul>
+          </AnimatedList>
         )}
         </section>
 
@@ -129,7 +130,7 @@ export default function AgendaPanel({
             .map((d) => (
               <div key={dayKey(d.date)} className="cal-agenda-day">
                 <p className="cal-agenda-dayname">{d.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
-                <ul className="list-unstyled cal-agenda-list mb-0">
+                <AnimatedList as="ul" className="list-unstyled cal-agenda-list mb-0">
                   {d.events.map((e) => (
                     <li key={e.id}>
                       <button type="button" onClick={(ev) => onEventClick(e.id, pointOf(ev))}>
@@ -148,7 +149,7 @@ export default function AgendaPanel({
                       </button>
                     </li>
                   ))}
-                </ul>
+                </AnimatedList>
               </div>
             ))
         )}

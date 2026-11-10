@@ -8,6 +8,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import PaginationControls from "@/components/shared/PaginationControls";
 import { useToast } from "@/components/shared/ToastProvider";
 import { paginate } from "@/lib/pagination";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 const initials = (name: string) =>
   name
@@ -112,7 +113,7 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
           onAction={() => setQuery("")}
         />
       ) : (
-      <ul className="list-unstyled mb-0">
+      <AnimatedList as="ul" className="list-unstyled mb-0">
         {pageData.items.map((m) => {
           const unread = !m.readAt;
           const isOpen = openId === m.id;
@@ -158,7 +159,7 @@ export default function InboxList({ messages }: { messages: InboxMessage[] }) {
             </li>
           );
         })}
-      </ul>
+      </AnimatedList>
       )}
       <PaginationControls
         page={pageData.page}

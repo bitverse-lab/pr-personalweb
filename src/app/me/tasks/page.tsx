@@ -12,6 +12,7 @@ import { getTasks } from "@/features/tasks/actions";
 import { getSubtasksForTasks, type SubtaskDto } from "@/features/tasks/subtask-actions";
 import { daysBetween, groupTasks } from "@/features/tasks/dates";
 import { todayInUserTz } from "@/lib/timezone";
+import NumberFlow from "@number-flow/react";
 
 const STATUS_TABS = [
   { value: "all", label: "All" },
@@ -91,7 +92,7 @@ export default async function TasksPage({
           const target = view === "list" ? anchorFor(s.key) : undefined;
           const body = (
             <>
-              <span className="task-summary-n">{s.count}</span>
+              <span className="task-summary-n"><NumberFlow value={s.count} /></span>
               <span className="task-summary-l">{s.label}</span>
             </>
           );
