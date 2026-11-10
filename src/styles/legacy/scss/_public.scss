@@ -863,11 +863,22 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     }
 }
 
-// The featured case study fills its two rows instead of leaving empty space under the text.
-.case--featured .cover-block-frame {
-    flex: 1 1 auto;
-    min-height: 280px;
-    aspect-ratio: auto !important;
+// The featured case study runs the full width, cover beside the story, so neither a stretched
+// cover nor an empty column fills the space; the other two sit side by side underneath.
+.cases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 920px) { grid-template-columns: minmax(0, 1fr); }
+}
+.case--featured {
+    grid-row: auto !important;
+    grid-column: 1 / -1;
+    @media (min-width: 921px) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        .cover-block-frame { aspect-ratio: auto !important; height: 100%; min-height: 300px; }
+        .case-body { display: flex; flex-direction: column; justify-content: center; padding: 28px 32px; }
+        .case-title { font-size: 26px !important; }
+    }
 }
 
 // ============================================================ inner pages: shared head
@@ -1497,3 +1508,301 @@ h3.mono-meta {
 ::view-transition-new(root) {
     animation-duration: 0.22s;
 }
+
+// ============================================================ project pipeline (SelectedWork)
+.pipe {
+    position: relative;
+    margin: 2px 0 14px;
+    --pipe-dot: 9px;
+}
+.pipe-track {
+    position: absolute;
+    left: calc(var(--pipe-dot) / 2);
+    right: calc(var(--pipe-dot) / 2);
+    top: calc(var(--pipe-dot) / 2 - 1px);
+    height: 2px;
+    background: $gray-200;
+    overflow: hidden;
+}
+// A pulse runs along the line while the card is pointed at: data flowing through the layers.
+.pipe-flow {
+    position: absolute;
+    top: 0;
+    left: -30%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba($primary, 0.9), transparent);
+    opacity: 0;
+}
+.case:hover .pipe-flow,
+.case:focus-within .pipe-flow {
+    opacity: 1;
+    animation: pipe-flow 1.4s linear infinite;
+}
+@keyframes pipe-flow { to { left: 100%; } }
+.pipe-nodes {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.pipe-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    flex: 1 1 0;
+    &:first-child { align-items: flex-start; }
+    &:last-child { align-items: flex-end; }
+}
+.pipe-dot {
+    width: var(--pipe-dot);
+    height: var(--pipe-dot);
+    border-radius: 50%;
+    background: $white;
+    border: 2px solid $gray-300;
+    transition: transform 0.25s $ease-out;
+}
+.pipe-name {
+    font-family: $font-mono;
+    font-size: 11px;
+    color: $text-meta;
+    line-height: 1;
+}
+.pipe-node.is-on {
+    .pipe-dot { background: $primary; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.14); }
+    .pipe-name { color: $primary; font-weight: 600; }
+}
+.pipe-node--ml.is-on {
+    .pipe-dot { background: $ml-ink; border-color: $ml-ink; box-shadow: 0 0 0 3px rgba($ml-ink, 0.14); }
+    .pipe-name { color: $ml-ink; }
+}
+.case:hover .pipe-node.is-on .pipe-dot { transform: scale(1.25); }
+.pipe-tools {
+    font-family: $font-family-secondary;
+    font-size: 12.5px;
+    color: $text-meta;
+    text-align: center;
+    line-height: 1.35;
+    max-width: 14ch;
+}
+.pipe-node:first-child .pipe-tools { text-align: left; }
+.pipe-node:last-child .pipe-tools { text-align: right; }
+.pipe--lg {
+    --pipe-dot: 12px;
+    padding: 16px 0 6px;
+    .pipe-name { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .case:hover .pipe-flow { animation: none; opacity: 0; }
+}
+
+// ============================================================ experience as git log (home)
+.glog {
+    position: relative;
+    padding-left: 30px;
+    // The branch line, drawn as the section scrolls into view where supported.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 6px;
+        bottom: 6px;
+        width: 2px;
+        background: linear-gradient($primary, rgba($primary, 0.15));
+        transform-origin: top;
+    }
+}
+@supports (animation-timeline: view()) {
+    .glog::before {
+        animation: glog-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 55%;
+    }
+}
+@keyframes glog-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.glog-commit {
+    position: relative;
+    padding-bottom: 34px;
+    &:last-child { padding-bottom: 0; }
+}
+.glog-node {
+    position: absolute;
+    left: -30px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $white;
+    border: 3px solid $primary;
+}
+.glog-commit.is-head .glog-node {
+    background: $primary;
+    box-shadow: 0 0 0 0 rgba($primary, 0.45);
+    animation: glog-pulse 2.2s $ease-out infinite;
+}
+@keyframes glog-pulse { 70% { box-shadow: 0 0 0 10px rgba($primary, 0); } 100% { box-shadow: 0 0 0 0 rgba($primary, 0); } }
+.glog-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.glog-hash { color: #8a5a10; } // amber, as git prints hashes; 5:1 on white
+.glog-ref {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba($primary, 0.1);
+    color: $primary;
+    font-weight: 600;
+}
+.glog-role {
+    font-size: 20px !important; // the template sizes h3 with !important
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: $dark;
+}
+.glog-at { font-weight: 500; color: $primary; font-size: 17px; }
+.glog-meta { font-size: 13.5px; color: $text-meta; margin-bottom: 6px; }
+.glog-desc { font-family: $font-family-secondary; font-size: 15px; color: $text-meta; margin-bottom: 8px; max-width: 64ch; }
+.glog-diff {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+    border-radius: 8px;
+    background: $ml-soft;
+    max-width: 68ch;
+    li {
+        font-family: $font-family-secondary;
+        font-size: 14.5px;
+        color: $dark;
+        padding: 2px 12px 2px 26px;
+        text-indent: -14px; // wrapped lines line up with the text, not under the "+"
+        span { font-family: $font-mono; color: $ml-ink; font-weight: 700; }
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .glog-commit.is-head .glog-node { animation: none; }
+}
+
+// ============================================================ testimonials as review approvals
+.review-count {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+.reviews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 18px;
+}
+.review {
+    margin: 0;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.review-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    background: $surface-soft;
+    border-bottom: 1px solid $gray-200;
+}
+.review-avatar {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: $primary;
+    color: $white;
+    font-size: 13px;
+    font-weight: 700;
+}
+.review-who { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.review-name { font-weight: 700; color: $dark; font-size: 14.5px; }
+.review-role { font-size: 12.5px; color: $text-meta; }
+.review-badge {
+    margin-left: auto;
+    flex: none;
+    font-family: $font-mono;
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: $ml-ink;
+    background: $ml-soft;
+    border: 1px solid rgba($ml-ink, 0.25);
+}
+.review-body {
+    margin: 0;
+    padding: 18px 20px 20px;
+    flex: 1 1 auto;
+}
+.review-source { padding: 0 20px 16px; }
+
+// ============================================================ contact: the message as an INSERT
+.cf-sql {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.cf-sql-kw { color: $console-key; }
+.cf-sql-str { color: #9fe0c6; }
+.cf-sql-empty { color: $console-dim; }
+.cf-sql-ok {
+    font-family: $font-mono;
+    font-size: 13px;
+    color: $ml-ink;
+}
+
+// ============================================================ the page as a query plan (wide screens)
+.qplan {
+    position: fixed;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: none;
+    font-family: $font-mono;
+    font-size: 11px;
+    padding: 10px 10px 10px 8px;
+    border-radius: 10px;
+    @media (min-width: 1400px) { display: block; }
+    // Collapsed to a column of dots; the labels show while you point at it or tab through it.
+    .qplan-head, .qplan-op { opacity: 0; transition: opacity 0.2s $ease-out; white-space: nowrap; }
+    &:hover, &:focus-within {
+        background: rgba($white, 0.95);
+        box-shadow: 0 8px 30px rgba($dark, 0.12);
+        .qplan-head, .qplan-op { opacity: 1; }
+    }
+    li { margin: 2px 0; }
+    a { display: flex; align-items: center; gap: 8px; color: $text-meta; text-decoration: none; padding: 3px 4px; }
+    li.is-on a { color: $primary; font-weight: 600; }
+}
+.qplan-head { margin: 0 0 6px 4px; color: $text-meta; letter-spacing: 0.08em; }
+.qplan-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $gray-300;
+    transition: transform 0.2s $ease-out, background 0.2s;
+}
+.qplan li.is-on .qplan-dot { background: $primary; transform: scale(1.5); box-shadow: 0 0 0 3px rgba($primary, 0.15); }

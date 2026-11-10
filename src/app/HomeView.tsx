@@ -2,7 +2,8 @@ import Link from "next/link";
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import ContactSection from "@/components/shared/ContactSection";
-import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
+import GitLog from "@/components/home/GitLog";
+import QueryPlan from "@/components/home/QueryPlan";
 import JsonLd from "@/components/shared/JsonLd";
 import TestimonialsSection from "@/components/shared/TestimonialsSection";
 import HeroC from "@/components/home/HeroC";
@@ -23,6 +24,16 @@ interface HomeViewProps {
   testimonials: PublicTestimonial[];
   console: ConsoleData | null;
 }
+
+// The sections, as the plan of the query that builds the page.
+const PLAN = [
+  { id: "intro", op: "Result" },
+  { id: "work", op: "Seq Scan on project" },
+  { id: "writing", op: "Index Scan on article" },
+  { id: "experience", op: "Sort on experience" },
+  { id: "testimonials", op: "Seq Scan on review" },
+  { id: "contact", op: "Insert on message" },
+];
 
 export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData }: HomeViewProps) {
   const real = !profile.isPlaceholder;
@@ -75,11 +86,12 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
                 <div className="col-lg-4">
                   <div className="xp-head">
                     <h2 id="experience-title" className="selected-work-title">Experience</h2>
+                    <p className="section-query mb-3"><code className="section-query-sql">git log --graph main</code></p>
                     <Link href="/cv" className="writing-all d-inline-block">Full CV <span className="link-arrow" aria-hidden="true">→</span></Link>
                   </div>
                 </div>
                 <div className="col-lg-8">
-                  <ExperienceTimeline entries={profile.experience} />
+                  <GitLog entries={profile.experience} />
                 </div>
               </div>
             </div>
@@ -90,6 +102,7 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
 
         <ContactSection dark />
       </main>
+      <QueryPlan nodes={PLAN} />
       <SmallFooter />
     </>
   );

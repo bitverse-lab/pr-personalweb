@@ -24,7 +24,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
   const availability = profile.availableForWork ? ["Open to full-time roles", profile.location].filter(Boolean).join(", ") : profile.location;
 
   return (
-    <section className="hero-c" aria-labelledby="hero-title">
+    <section className="hero-c" id="intro" aria-labelledby="hero-title">
       {cloud.layers.length > 0 && <EmbeddingCloud layers={cloud.layers} projects={cloud.projects} />}
       <div className="container">
         <div className="hero-c-grid">

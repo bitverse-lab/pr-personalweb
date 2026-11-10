@@ -7,10 +7,31 @@ import { sendContactMessage } from "@/features/contact/actions";
 
 const MAX = 4000;
 
+const sqlString = (v: string, max: number) => {
+  const flat = v.replace(/\s+/g, " ").trim();
+  return `'${(flat.length > max ? `${flat.slice(0, max - 1)}…` : flat).replace(/'/g, "''")}'`;
+};
+
+/**
+ * The message as the statement that will store it, typed as the visitor types. Decorative (the
+ * form fields carry the content), so hidden from assistive tech.
+ */
+function InsertPreview({ f }: { f: { name: string; email: string; subject: string; message: string } }) {
+  const val = (v: string, max: number) => <span className={v.trim() ? "cf-sql-str" : "cf-sql-empty"}>{sqlString(v, max)}</span>;
+  return (
+    <pre className="cf-sql" aria-hidden="true">
+      <span className="cf-sql-kw">INSERT INTO</span> message (name, email, subject, body){"\n"}
+      <span className="cf-sql-kw">VALUES</span> ({val(f.name, 24)}, {val(f.email, 28)},{"\n"}
+      {"        "}
+      {f.subject.trim() ? val(f.subject, 32) : <span className="cf-sql-kw">NULL</span>}, {val(f.message, 40)});
+    </pre>
+  );
+}
+
 export default function ContactForm() {
   const [f, setF] = useState({ name: "", email: "", subject: "", message: "", website: "" });
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<number | false>(false);
   const [isPending, startTransition] = useTransition();
   const startedAt = useRef<number>(0);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((c) => ({ ...c, [k]: e.target.value }));
@@ -24,9 +45,11 @@ export default function ContactForm() {
     setError(null);
     startTransition(async () => {
       try {
+        const t0 = performance.now();
         const result = await sendContactMessage({ ...f, startedAt: startedAt.current });
         if (!result.ok) return setError(result.error);
-        setSent(true);
+        // The real round trip, shown the way psql reports a successful insert.
+        setSent(Math.max(1, Math.round(performance.now() - t0)));
       } catch {
         // Offline, or the server could not be reached: say so instead of letting the click look ignored.
         setError("Your message could not be sent. Please check your connection and try again.");
@@ -34,10 +57,11 @@ export default function ContactForm() {
     });
   };
 
-  if (sent) {
+  if (sent !== false) {
     return (
       <div className="text-center py-4" role="status">
         <FiCheckCircle className="text-success mb-3" size={40} aria-hidden />
+        <p className="cf-sql-ok mb-2" aria-hidden="true">INSERT 0 1 · {sent} ms</p>
         <h5 className="mb-2">Thank you, your message is on its way</h5>
         <p className="text-muted mb-4">I will get back to you as soon as I can.</p>
         <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => { setSent(false); setF({ name: "", email: "", subject: "", message: "", website: "" }); startedAt.current = Date.now(); }}>
@@ -49,6 +73,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={submit} noValidate={false}>
+      <InsertPreview f={f} />
       {error && (
         <div className="alert alert-danger py-2 small" role="alert">
           {error}

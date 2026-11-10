@@ -8,7 +8,7 @@ export default function LatestWriting({ articles }: { articles: Article[] }) {
   if (articles.length === 0) return null;
   const [latest, ...earlier] = articles;
   return (
-    <section className="section latest-writing" aria-labelledby="writing-title">
+    <section className="section latest-writing" id="writing" aria-labelledby="writing-title">
       <div className="container">
         <h2 id="writing-title" className="selected-work-title">Latest writing</h2>
         <div className="writing-grid">

@@ -37,3 +37,19 @@ export function skillsByLayer(skills: LayerSkill[]): [string, string[]][] {
   }
   return Array.from(groups);
 }
+
+/** Every layer the owner has skills in, in skill order: the full pipeline a project is drawn against. */
+export function allLayers(skills: LayerSkill[]): string[] {
+  return layersOf(skills.map((s) => s.name), skills);
+}
+
+/** A project's technologies grouped under their layers ("ml" → ["PyTorch"]), in the project's own order. */
+export function toolsByLayer(technologies: string[], skills: LayerSkill[]): Record<string, string[]> {
+  const layerOf = new Map(skills.filter((s) => s.category?.trim()).map((s) => [s.name.trim().toLowerCase(), s.category!.trim().toLowerCase()]));
+  const out: Record<string, string[]> = {};
+  for (const t of technologies) {
+    const layer = layerOf.get(t.trim().toLowerCase());
+    if (layer) (out[layer] ??= []).push(t.trim());
+  }
+  return out;
+}
