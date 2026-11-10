@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConsoleData, ConsoleRow } from "@/lib/data/console";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { CLOUD_FOCUS_EVENT, type CloudFocus } from "@/components/home/EmbeddingCloud";
 
 // Hero C v3: the owner's CV as the result of real, read-only queries over this site's database.
 // Every motion explains something (spec, "The five motions"); reduced motion keeps the states, drops the travel.
@@ -19,8 +20,12 @@ function ageOf(iso: string): string {
   return minutes < 1 ? "just now" : `${minutes} min ago`;
 }
 
+// Tells the hero's embedding cloud what the visitor is pointing at.
+const focusCloud = (detail: CloudFocus) => window.dispatchEvent(new CustomEvent(CLOUD_FOCUS_EVENT, { detail }));
+
 /** Lights the Selected-work cards that use `layer` and dims the rest; null clears. */
 function crossHighlight(layer: string | null) {
+  focusCloud(layer ? { layer } : null);
   const work = document.getElementById("work");
   if (!work) return;
   for (const card of Array.from(work.querySelectorAll<HTMLElement>("[data-case]"))) {
@@ -34,6 +39,7 @@ function crossHighlight(layer: string | null) {
 
 /** Lights the one Selected-work card for `slug` and dims the rest; null clears. */
 function highlightCase(slug: string | null) {
+  focusCloud(slug ? { slug } : null);
   const work = document.getElementById("work");
   if (!work) return;
   for (const card of Array.from(work.querySelectorAll<HTMLElement>("[data-case]"))) {
