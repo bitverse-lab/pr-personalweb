@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -20,6 +20,8 @@ import {
 import UploadDropzone from "@/components/me/media/UploadDropzone";
 import type { RichDoc } from "@/db/schema/content";
 import DialogShell from "@/components/shared/DialogShell";
+import { useToast } from "@/components/shared/ToastProvider";
+import { useUpload } from "@/hooks/useUpload";
 
 type DialogKind = "link" | "image" | null;
 
@@ -126,6 +128,35 @@ export default function RichEditor({
   minHeight?: number;
 }) {
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const toast = useToast();
+  const { upload, uploading, progress, error: uploadError, clearError } = useUpload("editor");
+  // The editor's handlers are created once; refs keep them pointing at the current upload and editor.
+  const uploadRef = useRef(upload);
+  uploadRef.current = upload;
+  const editorRef = useRef<Editor | null>(null);
+
+  /** Pasted or dropped image files are uploaded, then placed where they landed. */
+  const insertImages = (files: File[], at?: number) => {
+    void (async () => {
+      let pos = at;
+      for (const file of files) {
+        const media = await uploadRef.current(file);
+        const ed = editorRef.current;
+        // The reason (too large, wrong type, storage not set up) shows under the toolbar.
+        if (!media?.url || !ed) {
+          toast.error(`Could not add ${file.name || "the image"}`);
+          continue;
+        }
+        const node = { type: "image", attrs: { src: media.url, alt: "" } };
+        if (pos === undefined) ed.chain().focus().insertContent(node).run();
+        else {
+          ed.chain().focus().insertContentAt(pos, node).run();
+          pos += 1;
+        }
+      }
+    })();
+  };
+  const imageFiles = (list: FileList | null | undefined) => Array.from(list ?? []).filter((f) => f.type.startsWith("image/"));
 
   const editor = useEditor({
     immediatelyRender: false, // avoid SSR hydration mismatch
@@ -138,6 +169,22 @@ export default function RichEditor({
     content: initial as JSONContent,
     editorProps: {
       attributes: { class: "rich-content", role: "textbox", "aria-multiline": "true", "aria-label": "Editor" },
+      // A screenshot pasted from the clipboard, or an image file dragged in, goes straight in.
+      handlePaste: (_view, event) => {
+        const files = imageFiles(event.clipboardData?.files);
+        if (!files.length) return false;
+        event.preventDefault();
+        insertImages(files);
+        return true;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        const files = moved ? [] : imageFiles(event.dataTransfer?.files);
+        if (!files.length) return false;
+        event.preventDefault();
+        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+        insertImages(files, pos);
+        return true;
+      },
       // Ctrl/Cmd+K: the usual "insert link" shortcut.
       handleKeyDown: (_view, event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
@@ -148,7 +195,10 @@ export default function RichEditor({
         return false;
       },
     },
-    onCreate: ({ editor: e }) => onReady?.(e),
+    onCreate: ({ editor: e }) => {
+      editorRef.current = e;
+      onReady?.(e);
+    },
     // ProseMirror builds mark/node attrs with Object.create(null) (e.g. a pasted link), which Server
     // Actions refuse to serialise; structuredClone yields plain objects.
     onUpdate: ({ editor: e }) => onChange(structuredClone(e.getJSON()) as RichDoc),
@@ -169,6 +219,17 @@ export default function RichEditor({
   return (
     <div className="border rounded bg-white rich-editor">
       <Toolbar editor={editor} openDialog={setDialog} />
+      {uploading && (
+        <div className="rich-uploading small text-muted px-3 py-1" role="status">
+          Uploading image… {progress}%
+        </div>
+      )}
+      {uploadError && !uploading && (
+        <div className="alert alert-danger small py-1 px-3 mb-0 rounded-0 d-flex justify-content-between align-items-center" role="alert">
+          {uploadError}
+          <button type="button" className="btn-close btn-sm" aria-label="Dismiss" onClick={clearError} />
+        </div>
+      )}
       <div role="presentation" className="p-3" style={{ minHeight }} onClick={() => editor.chain().focus().run()}>
         <EditorContent editor={editor} />
       </div>

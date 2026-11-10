@@ -117,3 +117,41 @@ test("Publish waits for a title and writing; Ctrl+S saves at once", async ({ own
     await remove(page, url);
   }
 });
+
+test("an image pasted into the editor is uploaded and stays in the article", async ({ ownerPage: page }) => {
+  const url = await newDraft(page, `E2E · Paste image ${tag()}`);
+  const fileName = `e2e-paste-${tag()}.png`;
+  try {
+    const editor = page.getByRole("textbox", { name: "Editor" });
+    await editor.fill("Screenshot below.");
+    await editor.press("End");
+    // A small generated PNG, pasted the way a screenshot arrives from the clipboard.
+    await editor.evaluate(async (el, name) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 120;
+      canvas.height = 80;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#2a52c3";
+      ctx.fillRect(0, 0, 120, 80);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], name, { type: "image/png" }));
+      el.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+    }, fileName);
+    const img = editor.locator('img[src*="/storage/v1/object/public/"]');
+    await expect(img).toHaveCount(1, SLOW);
+    await saved(page);
+    await page.reload();
+    await expect(page.getByRole("textbox", { name: "Editor" }).locator('img[src*="/storage/v1/object/public/"]')).toHaveCount(1, SLOW);
+  } finally {
+    await remove(page, url);
+    // Leave no test image behind in Storage.
+    await page.goto("/me/media");
+    const del = page.getByRole("button", { name: `Delete ${fileName}` });
+    if (await del.count()) {
+      await del.click();
+      await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
+      await expect(page.getByRole("button", { name: `Delete ${fileName}` })).toHaveCount(0, SLOW);
+    }
+  }
+});
