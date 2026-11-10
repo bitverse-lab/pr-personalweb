@@ -119,7 +119,8 @@ export const updateSetSchema = z.object({
   done: z.boolean().optional(),
 });
 export const updateWorkoutSchema = z.object({ id: z.uuid(), name: z.string().trim().min(1).max(80).optional(), notes: z.string().max(2000).nullish() });
-export const finishWorkoutSchema = z.object({ id: z.uuid(), notes: z.string().max(2000).nullish() });
+// durationMin: for a session left open by mistake, how long it really lasted (ends it at start + that).
+export const finishWorkoutSchema = z.object({ id: z.uuid(), notes: z.string().max(2000).nullish(), durationMin: z.number().int().min(1).max(360).optional() });
 
 const snapshotSet = z.object({
   exerciseId: z.uuid(),

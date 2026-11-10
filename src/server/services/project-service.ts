@@ -165,6 +165,8 @@ export const projectService = {
   },
 
   async createDraft(userId: string) {
+    // "New project" opened and then left behind used to pile up as empty "Untitled project" drafts.
+    await projectRepository.deleteEmptyDrafts(userId);
     const slug = await uniqueSlug(userId, `draft-${Math.random().toString(36).slice(2, 8)}`);
     return projectRepository.insert(userId, {
       title: "",

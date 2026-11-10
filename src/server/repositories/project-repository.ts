@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, notExists, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { media, projectLinks, projectMedia, projects } from "@/db/schema";
 import type { RichDoc } from "@/db/schema/content";
@@ -24,6 +24,29 @@ export interface ProjectValues {
 }
 
 export const projectRepository = {
+  /**
+   * Drafts with nothing in them (no title, summary, story, images, links or technologies), untouched
+   * for ten minutes so one just opened in another tab is never pulled away.
+   */
+  deleteEmptyDrafts(userId: string) {
+    return db
+      .delete(projects)
+      .where(
+        and(
+          eq(projects.userId, userId),
+          eq(projects.status, "draft"),
+          eq(projects.title, ""),
+          eq(projects.plainText, ""),
+          isNull(projects.summary),
+          isNull(projects.coverMediaId),
+          sql`cardinality(${projects.technologies}) = 0`,
+          sql`${projects.updatedAt} < now() - interval '10 minutes'`,
+          notExists(db.select({ one: sql`1` }).from(projectMedia).where(eq(projectMedia.projectId, projects.id))),
+          notExists(db.select({ one: sql`1` }).from(projectLinks).where(eq(projectLinks.projectId, projects.id)))
+        )
+      );
+  },
+
   list(userId: string, opts: { status?: ProjectStatus; q?: string } = {}) {
     const q = opts.q?.trim().replace(/[%_]/g, "");
     return db

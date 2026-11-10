@@ -320,13 +320,14 @@ export const workoutService = {
     return toSet(row);
   },
 
-  async finish(userId: string, id: string, notes?: string | null) {
+  async finish(userId: string, id: string, notes?: string | null, lastedMin?: number) {
     const workout = await workoutRepository.findWorkout(userId, id);
     if (!workout) return null;
     await workoutRepository.deleteEmptyUndoneSets(userId, id);
     const updated = await workoutRepository.updateWorkout(userId, id, {
       status: "completed",
-      endedAt: workout.endedAt ?? new Date(),
+      // A forgotten session is closed at the length the owner says it ran, not at "now".
+      endedAt: lastedMin ? new Date(workout.startedAt.getTime() + lastedMin * 60_000) : (workout.endedAt ?? new Date()),
       ...(notes !== undefined ? { notes: notes || null } : {}),
     });
     const sets = await workoutRepository.setsForWorkouts(userId, [id]);

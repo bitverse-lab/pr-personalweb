@@ -79,7 +79,7 @@ export async function finishWorkout(input: unknown): Promise<ActionResult<{ volu
   const userId = await requireUserId();
   const parsed = finishWorkoutSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
-  const result = await workoutService.finish(userId, parsed.data.id, parsed.data.notes);
+  const result = await workoutService.finish(userId, parsed.data.id, parsed.data.notes, parsed.data.durationMin);
   if (!result) return { ok: false, error: "Workout not found" };
   revalidateWorkouts();
   return { ok: true, data: { volumeKg: result.volumeKg, sets: result.sets, minutes: result.minutes } };
