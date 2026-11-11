@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@/styles/legacy/scss/style.scss";
 import "@/styles/legacy/css/materialdesignicons.min.css";
@@ -12,6 +12,9 @@ import { SiteProvider } from "@/lib/site-context";
 import ViewTransitionLinks from "@/components/shared/ViewTransitionLinks";
 import PublicTerminal from "@/components/shared/PublicTerminal";
 import { getTerminalIndex } from "@/lib/data/terminal";
+import ServiceWorker from "@/components/shared/ServiceWorker";
+
+export const viewport: Viewport = { themeColor: "#2a52c3" };
 
 // The site name comes from the profile, so pages refresh at most every 5 minutes (and instantly when the profile is saved).
 export const revalidate = 300;
@@ -53,6 +56,7 @@ export default async function RootLayout({
           <PublicTerminal index={terminal} />
           <ScrollTop />
           <Analytics />
+          <ServiceWorker />
         </SiteProvider>
       </body>
     </html>

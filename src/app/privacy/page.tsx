@@ -59,6 +59,7 @@ export default async function PrivacyPage() {
 
                 <h2 className="privacy-h">Cookies</h2>
                 <p className="text-muted">Visitors do not receive any cookies. A cookie is only used when the site owner signs in to the private workspace.</p>
+                <p className="text-muted">So you can read offline, your browser keeps a copy of the public pages you open, on your device only. Nothing about it is sent to me. Clearing this site&apos;s data in your browser removes it.</p>
 
                 <h2 className="privacy-h">Who can see it</h2>
                 <p className="text-muted">
