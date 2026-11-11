@@ -52,6 +52,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
                 <FiDownload aria-hidden /> Download CV
               </a>
             </div>
+            <Link href="/match" className="hero-c-match d-block">Hiring? Match your job description against my work →</Link>
             {data && !live && (
               <button type="button" className="hero-c-live" onClick={() => setLive(true)}>
                 <span aria-hidden="true">▶</span> Make it live <span className="hero-c-live-note">real Postgres in your browser · 5.5 MB</span>
