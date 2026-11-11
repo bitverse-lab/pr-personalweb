@@ -46,6 +46,7 @@ export default function RequestTrace({ nodes }: { nodes: Node[] }) {
       // Next to skip its data cache, so the cache hop would always measure a miss. The response is
       // already no-store.
       const res = await fetch("/api/trace");
+      if (!res.ok) throw new Error(`trace ${res.status}`); // 429 when sent too often
       const trace = (await res.json()) as Trace;
       const roundTrip = performance.now() - started;
       const measured = hopsOf(trace, roundTrip);

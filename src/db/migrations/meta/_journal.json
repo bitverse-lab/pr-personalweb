@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1792834811045,
-      "tag": "0000_faulty_malice",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1792842840099,
-      "tag": "0001_kind_machine_man",
+      "when": 1794396861777,
+      "tag": "0000_baseline",
       "breakpoints": true
     }
   ]

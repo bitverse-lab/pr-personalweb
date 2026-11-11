@@ -69,6 +69,7 @@ CREATE TABLE "education" (
 	"start_date" date,
 	"end_date" date,
 	"description" text,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"position" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
@@ -82,6 +83,17 @@ CREATE TABLE "experience" (
 	"end_date" date,
 	"description" text,
 	"achievements" text[] DEFAULT '{}'::text[] NOT NULL,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"position" integer DEFAULT 0 NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "profile_highlight" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"metric" text NOT NULL,
+	"value" text NOT NULL,
+	"note" text,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"position" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
@@ -98,6 +110,8 @@ CREATE TABLE "profile" (
 	"available_for_work" boolean DEFAULT false NOT NULL,
 	"availability_note" text,
 	"photo_media_id" uuid,
+	"about_photo_media_id" uuid,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "profile_user_id_unique" UNIQUE("user_id")
@@ -153,6 +167,8 @@ CREATE TABLE "task" (
 	"priority" text,
 	"tags" text[] DEFAULT '{}'::text[] NOT NULL,
 	"completed_at" timestamp with time zone,
+	"recurrence" text,
+	"spawned_from_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -388,6 +404,7 @@ CREATE TABLE "article" (
 	"excerpt" text,
 	"content" jsonb DEFAULT '{"type":"doc","content":[]}'::jsonb NOT NULL,
 	"plain_text" text DEFAULT '' NOT NULL,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"word_count" integer DEFAULT 0 NOT NULL,
 	"cover_url" text,
 	"status" text DEFAULT 'draft' NOT NULL,
@@ -441,6 +458,7 @@ CREATE TABLE "project" (
 	"title" text DEFAULT '' NOT NULL,
 	"slug" text NOT NULL,
 	"summary" text,
+	"outcome" text,
 	"category" text,
 	"client" text,
 	"role" text,
@@ -450,6 +468,7 @@ CREATE TABLE "project" (
 	"technologies" text[] DEFAULT '{}'::text[] NOT NULL,
 	"content" jsonb DEFAULT '{"type":"doc","content":[]}'::jsonb NOT NULL,
 	"plain_text" text DEFAULT '' NOT NULL,
+	"translations" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"cover_media_id" uuid,
 	"status" text DEFAULT 'draft' NOT NULL,
 	"featured" boolean DEFAULT false NOT NULL,
@@ -484,6 +503,13 @@ CREATE TABLE "testimonial" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "site_metric" (
+	"key" text PRIMARY KEY NOT NULL,
+	"value" jsonb NOT NULL,
+	"source_url" text,
+	"measured_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "application_document" ADD CONSTRAINT "application_document_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -492,8 +518,10 @@ ALTER TABLE "application_document" ADD CONSTRAINT "application_document_media_id
 ALTER TABLE "media" ADD CONSTRAINT "media_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "education" ADD CONSTRAINT "education_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "experience" ADD CONSTRAINT "experience_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "profile_highlight" ADD CONSTRAINT "profile_highlight_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "profile" ADD CONSTRAINT "profile_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "profile" ADD CONSTRAINT "profile_photo_media_id_media_id_fk" FOREIGN KEY ("photo_media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "profile" ADD CONSTRAINT "profile_about_photo_media_id_media_id_fk" FOREIGN KEY ("about_photo_media_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "skill" ADD CONSTRAINT "skill_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_link" ADD CONSTRAINT "social_link_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "calendar_event" ADD CONSTRAINT "calendar_event_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
