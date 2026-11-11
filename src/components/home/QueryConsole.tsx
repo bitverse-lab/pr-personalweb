@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConsoleData, ConsoleRow } from "@/lib/data/console";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useDict } from "@/lib/i18n/context";
 import { CLOUD_FOCUS_EVENT, type CloudFocus } from "@/components/home/EmbeddingCloud";
 
 // Hero C v3: the owner's CV as the result of real, read-only queries over this site's database.
@@ -52,6 +53,7 @@ function highlightCase(slug: string | null) {
 }
 
 export default function QueryConsole({ data, human }: { data: ConsoleData; human: boolean }) {
+  const tx = useDict().console;
   const reduce = usePrefersReducedMotion();
   const [tab, setTab] = useState(0);
   const [phase, setPhase] = useState<"idle" | "typing" | "executing" | "done">("done");
@@ -214,18 +216,18 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
         <div className="qc-conn">
           <span aria-hidden="true">●</span>
           <span className="qc-host">{data.host} / postgres</span>
-          <span className="qc-ro">read-only</span>
+          <span className="qc-ro">{tx.readOnly}</span>
         </div>
         <div className="qc-tabs">
-          <div className="qc-tablist" role="tablist" aria-label="Queries">
+          <div className="qc-tablist" role="tablist" aria-label={tx.queries}>
             {data.tables.map((t, i) => (
               <button key={t.name} type="button" role="tab" aria-selected={i === tab} className="qc-tab" onClick={() => switchTab(i)}>
                 {t.name}
               </button>
             ))}
           </div>
-          <button type="button" className="qc-run" onClick={() => run(false)} aria-label="Run again">
-            <span aria-hidden="true">▶</span><span className="qc-run-label"> Run again</span>
+          <button type="button" className="qc-run" onClick={() => run(false)} aria-label={tx.runAgain}>
+            <span aria-hidden="true">▶</span><span className="qc-run-label"> {tx.runAgain}</span>
           </button>
         </div>
         <div className="qc-query" data-testid="console-query">
@@ -267,7 +269,7 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
           <span className="qc-ok">{phase === "done" && age ? `✓ ${data.ms} ms · ${age}` : ""}</span>
         </div>
       </div>
-      <p className="qc-why">This panel queries this site&apos;s own database each time the page is rebuilt.</p>
+      <p className="qc-why">{tx.why}</p>
     </div>
   );
 }

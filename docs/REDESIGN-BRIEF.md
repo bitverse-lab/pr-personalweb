@@ -131,7 +131,7 @@ vectors); fallback to keyword matching when WebGPU/WASM unavailable.
 
 ---
 
-### Idea 3 — The owner's models run on their own case studies
+### Idea 3 — The owner's models run on their own case studies (dropped by the owner, 11 Nov 2026)
 
 **Rice yield.** Sliders for rainfall, planted area, month; the forecast line with its interval
 updates live. Export the trained model in a browser-friendly form (small tree ensemble → JSON
@@ -149,7 +149,7 @@ without loading the model (precomputed results); numbers on the page match the p
 
 ## 4. Backlog (after 1–4)
 
-5. **Case study as an interactive postmortem.** One real incident (e.g. the Laravel queue dropping
+5. *(Dropped by the owner, 11 Nov 2026.)* **Case study as an interactive postmortem.** One real incident (e.g. the Laravel queue dropping
    jobs) told as a replayable timeline: the error graph rising, the wrong hypotheses, the query that
    proved it, the fix, before/after numbers. Scroll or step controls; reduced motion = static steps.
 6. **Architecture you can send a request through.** Each case study's system diagram (SVG) with a

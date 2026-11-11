@@ -3,16 +3,18 @@ import CoverBlock from "@/components/shared/CoverBlock";
 import { allLayers, layersOf, toolsByLayer, type LayerSkill } from "@/features/projects/layers";
 import type { Project } from "@/features/projects/format";
 import { vt } from "@/lib/view-transition";
+import { dict } from "@/lib/i18n/dict";
+import { localize, type Locale } from "@/lib/i18n/locale";
 
 /**
  * The owner's full stack as one pipeline (data → api → ui → ml → ops), with the layers this
  * project touched lit. The featured card also names the tools used at each layer. On hover a pulse
  * runs along the lit path. Every value comes from the project's technologies and the skill list.
  */
-function Pipeline({ layers, used, tools }: { layers: string[]; used: string[]; tools?: Record<string, string[]> }) {
+function Pipeline({ layers, used, tools, label }: { layers: string[]; used: string[]; tools?: Record<string, string[]>; label: string }) {
   if (layers.length < 2 || used.length === 0) return null;
   return (
-    <div className={`pipe ${tools ? "pipe--lg" : ""}`} aria-label={`Layers I built: ${used.join(", ")}`} role="img">
+    <div className={`pipe ${tools ? "pipe--lg" : ""}`} aria-label={label} role="img">
       <div className="pipe-track" aria-hidden="true">
         <span className="pipe-flow" />
       </div>
@@ -36,15 +38,16 @@ function Pipeline({ layers, used, tools }: { layers: string[]; used: string[]; t
  * One featured case study large, the rest smaller — never a uniform grid. Each card carries its
  * derived layers (data-layers) so the hero console can light the projects that use a layer.
  */
-export default function SelectedWork({ projects, skills, title = "Selected work", query, children }: { projects: Project[]; skills: LayerSkill[]; title?: string; query?: { sql: string; ms: number }; children?: React.ReactNode }) {
+export default function SelectedWork({ projects, skills, title, query, children, locale = "en" }: { projects: Project[]; skills: LayerSkill[]; title?: string; query?: { sql: string; ms: number }; children?: React.ReactNode; locale?: Locale }) {
   if (projects.length === 0) return null;
+  const t = dict(locale).work;
   const stack = allLayers(skills);
   return (
     <section className="section selected-work" id="work" aria-labelledby="work-title">
       <div className="container">
         <header className="selected-work-head">
           <h2 id="work-title" className="selected-work-title">
-            {title} <span className="selected-work-filter path-label" data-filter-label aria-live="polite" />
+            {title ?? t.selected} <span className="selected-work-filter path-label" data-filter-label aria-live="polite" />
           </h2>
           {/* The read that produced this section: real SQL shape, real row count, real time. */}
           {query && (
@@ -65,9 +68,9 @@ export default function SelectedWork({ projects, skills, title = "Selected work"
               <article key={p.id} id={`case-${p.slug}`} data-case data-featured={p.featured ? "" : undefined} data-layers={layers.join(" ")} className={`case ${featured ? "case--featured" : ""}`}>
                 <CoverBlock src={p.image} title={p.name} ratio={featured ? "16/9" : "16/9"} compact={!featured} vtStyle={vt("cover", p.slug)} />
                 <div className="case-body">
-                  <Pipeline layers={stack} used={layers} tools={featured ? toolsByLayer(p.technologies, skills) : undefined} />
+                  <Pipeline layers={stack} used={layers} tools={featured ? toolsByLayer(p.technologies, skills) : undefined} label={t.layersAria(layers.join(", "))} />
                   <h3 className="case-title" tabIndex={-1} style={vt("title", p.slug)}>
-                    <Link href={`/projects/${p.slug}`} className="stretched-link" data-vt>{p.name}</Link>
+                    <Link href={localize(locale, `/projects/${p.slug}`)} className="stretched-link" data-vt>{p.name}</Link>
                   </h3>
                   {p.summary && <p className="case-summary">{p.summary}</p>}
                   {p.outcome && <p className="case-outcome">{p.outcome}</p>}

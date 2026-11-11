@@ -1824,7 +1824,7 @@ h3.mono-meta {
 .qplan li.is-on .qplan-dot { background: $primary; transform: scale(1.5); box-shadow: 0 0 0 3px rgba($primary, 0.15); }
 
 // ============================================================ public terminal (cmdk in DialogShell)
-.term-trigger, .theme-toggle {
+.term-trigger, .theme-toggle, .lang-switch {
     font-family: $font-mono;
     font-size: 12px;
     color: var(--pub-meta);
@@ -2218,3 +2218,14 @@ h3.mono-meta {
     .arch-node, .arch-stop::after { transition: none; }
 }
 .proof-notes a { text-decoration: underline !important; } // links inside prose must not rely on colour alone
+
+// The header carries six links and five controls (socials, language, theme, terminal, CV); the
+// template's 40px per link pushed the last one onto a second row, worse with Indonesian labels.
+@media (min-width: 992px) {
+    #topnav .navigation-menu.personal-menu > li { margin: 0 2px; }
+    #topnav .navigation-menu.personal-menu > li > a { padding-left: 9px; padding-right: 9px; }
+}
+// On the narrowest phones a long name beside the theme switch and the menu button wrapped the header.
+@media (max-width: 400px) {
+    #topnav .logo .h5 { font-size: 15px !important; }
+}

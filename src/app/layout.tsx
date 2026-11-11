@@ -53,6 +53,8 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Indonesian pages live under /id; set the document language before anything reads it. */}
+        <script dangerouslySetInnerHTML={{ __html: '(function(){var p=location.pathname;if(p==="/id"||p.indexOf("/id/")===0)document.documentElement.lang="id"})()' }} />
       </head>
       <body>
         <NavigationProgress />

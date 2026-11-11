@@ -198,8 +198,13 @@ Built in brief order, each on its own stacked branch and PR:
   `/api/trace`, which times a cached read and a Postgres round trip; the browser adds the network.
   Each stop shows its decision and a code excerpt read from the repo at build time
   (`src/features/architecture/`); a unit test fails if a quoted marker disappears.
-- Skipped for now: idea 3 (needs the owner's trained models), idea 5 (needs a real incident;
-  the queue article is demo data), bilingual copy (must be written by the owner).
+- **Bilingual EN/ID, part 1** (interface): Indonesian pages under `/id` for home, about, CV,
+  projects, articles and contact; `/match`, `/proof`, `/architecture`, `/privacy` stay English and
+  the switch leads to `/id` from them. Interface text lives in `src/lib/i18n/dict.ts` (TypeScript
+  fails if a key is missing in Indonesian). Shared page bodies are in `src/app/_views/`; the page
+  files under `/` and `/id` only pick the locale. hreflang alternates on both, both in the sitemap.
+  Part 2 adds Indonesian content fields edited in `/me`.
+- Dropped by the owner (11 November 2026): idea 3 (ML demos) and idea 5 (postmortem).
 
 ## 6. Open issues
 

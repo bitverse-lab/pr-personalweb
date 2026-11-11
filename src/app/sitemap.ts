@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { articleService } from "@/server/services/article-service";
 import { projectService } from "@/server/services/project-service";
 import { siteUrl } from "@/lib/site";
+import { hasIndonesian, localize } from "@/lib/i18n/locale";
 
 export const revalidate = 3600;
 
@@ -35,5 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     // same: never fail the sitemap
   }
-  return [...staticPages, ...articles, ...projects];
+  // Pages with an Indonesian version are listed in both languages, each pointing at the other.
+  return [...staticPages, ...articles, ...projects].flatMap((entry) => {
+    const path = entry.url.slice(base.length) || "/";
+    if (!hasIndonesian(path)) return [entry];
+    const languages = { en: `${base}${path === "/" ? "" : path}`, id: `${base}${localize("id", path)}` };
+    return [
+      { ...entry, alternates: { languages } },
+      { ...entry, url: languages.id, priority: (entry.priority ?? 0.6) - 0.1, alternates: { languages } },
+    ];
+  });
 }

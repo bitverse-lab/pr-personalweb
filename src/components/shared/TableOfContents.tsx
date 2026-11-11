@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { HeadingInfo } from "@/features/content/richtext";
+import { useDict } from "@/lib/i18n/context";
 
 // "On this page", kept beside the reading column; the section in view is marked aria-current.
 // Plain anchors underneath, so it works without JavaScript.
 export default function TableOfContents({ headings }: { headings: HeadingInfo[] }) {
+  const onThisPage = useDict().writing.onThisPage;
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,8 +34,8 @@ export default function TableOfContents({ headings }: { headings: HeadingInfo[] 
 
   if (headings.length < 2) return null;
   return (
-    <nav aria-label="On this page" className="toc">
-      <p className="mono-meta mb-2">On this page</p>
+    <nav aria-label={onThisPage} className="toc">
+      <p className="mono-meta mb-2">{onThisPage}</p>
       <ol className="list-unstyled mb-0">
         {headings.map((h) => (
           <li key={h.id} className={h.level === 3 ? "toc-sub" : undefined}>

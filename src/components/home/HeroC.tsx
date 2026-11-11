@@ -9,12 +9,14 @@ import EmbeddingCloud from "@/components/home/EmbeddingCloud";
 import CareerScrubber from "@/components/home/CareerScrubber";
 import type { ConsoleData } from "@/lib/data/console";
 import type { Profile } from "@/lib/data/profile";
+import { useDict } from "@/lib/i18n/context";
 
 // Loaded only when a visitor asks for it: it brings a WebAssembly Postgres with it.
 const LiveConsole = dynamic(() => import("@/components/home/LiveConsole"), { ssr: false });
 
 /** The home hero: the owner's name, one positioning line, and their CV as a live query. */
 export default function HeroC({ profile, console: data }: { profile: Profile; console: ConsoleData | null }) {
+  const t = useDict().hero;
   const [human, setHuman] = useState(false);
   const [live, setLive] = useState(false);
   const words = profile.fullName.split(/\s+/).filter(Boolean);
@@ -27,7 +29,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
       projects: (projects?.rows ?? []).filter((r) => r.slug).map((r) => ({ slug: r.slug!, title: r.key, layers: r.layers ?? [] })),
     };
   }, [data]);
-  const availability = profile.availableForWork ? ["Open to full-time roles", profile.location].filter(Boolean).join(", ") : profile.location;
+  const availability = profile.availableForWork ? [t.openToWork, profile.location].filter(Boolean).join(", ") : profile.location;
 
   return (
     <section className="hero-c" id="intro" aria-labelledby="hero-title">
@@ -48,21 +50,21 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
             {profile.tagline && <p className="hero-c-role">{profile.tagline}</p>}
             {availability && <p className="hero-c-availability mono-meta">{availability}</p>}
             <div className="hero-c-cta">
-              <Link href="#work" className="btn btn-primary">See my work</Link>
+              <Link href="#work" className="btn btn-primary">{t.seeWork}</Link>
               <a href="/cv/download" className="btn btn-outline-dark d-inline-flex align-items-center gap-2">
-                <FiDownload aria-hidden /> Download CV
+                <FiDownload aria-hidden /> {t.downloadCv}
               </a>
             </div>
-            <Link href="/match" className="hero-c-match d-block">Hiring? Match your job description against my work →</Link>
+            <Link href="/match" className="hero-c-match d-block">{t.match}</Link>
             {data && !live && (
               <button type="button" className="hero-c-live" onClick={() => setLive(true)}>
-                <span aria-hidden="true">▶</span> Make it live <span className="hero-c-live-note">real Postgres in your browser · 5.5 MB</span>
+                <span aria-hidden="true">▶</span> {t.live} <span className="hero-c-live-note">{t.liveNote}</span>
               </button>
             )}
             {data && !live && (
               <div className="hero-c-plain">
                 <button type="button" role="switch" aria-checked={human} aria-labelledby="plain-label" className="hero-c-switch" onClick={() => setHuman((h) => !h)} />
-                <span id="plain-label">Show in plain language</span>
+                <span id="plain-label">{t.plain}</span>
               </div>
             )}
             {data?.timeline && cloud.layers.length > 0 && <CareerScrubber timeline={data.timeline} />}

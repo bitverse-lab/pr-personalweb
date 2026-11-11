@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const routes = ["/", "/about", "/cv", "/projects", "/articles", "/contact", "/match", "/proof", "/architecture", "/privacy", "/offline", "/login", "/for/data-engineer"];
+const routes = ["/", "/about", "/cv", "/projects", "/articles", "/contact", "/match", "/proof", "/architecture", "/privacy", "/offline", "/login", "/for/data-engineer", "/id", "/id/about", "/id/cv", "/id/projects", "/id/articles", "/id/contact"];
 
 // Both themes: the dark one follows the system setting, which is how most visitors get it.
 for (const colorScheme of ["light", "dark"] as const)

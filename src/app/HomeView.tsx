@@ -15,6 +15,8 @@ import type { Profile } from "@/lib/data/profile";
 import type { Article } from "@/lib/data/articles";
 import type { Project } from "@/features/projects/format";
 import type { Role } from "@/features/roles/roles";
+import { dict } from "@/lib/i18n/dict";
+import { localize, type Locale } from "@/lib/i18n/locale";
 
 interface HomeViewProps {
   profile: Profile;
@@ -26,6 +28,7 @@ interface HomeViewProps {
   console: ConsoleData | null;
   /** Set on /for/<role>: projects arrive ranked for that role, and the page says so. */
   role?: Role;
+  locale?: Locale;
 }
 
 // The sections, as the plan of the query that builds the page.
@@ -38,7 +41,8 @@ const PLAN = [
   { id: "contact", op: "Insert on message" },
 ];
 
-export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData, role }: HomeViewProps) {
+export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData, role, locale = "en" }: HomeViewProps) {
+  const t = dict(locale);
   const real = !profile.isPlaceholder;
   const skills = profile.skills.map((s) => ({ name: s.label, category: s.category }));
 
@@ -76,6 +80,7 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
         <SelectedWork
           projects={projects.slice(0, 3)}
           skills={skills}
+          locale={locale}
           query={{
             sql: role
               ? `SELECT title, layers, outcome FROM project WHERE published ORDER BY role_fit('${role.layers.join("', '")}') DESC, featured DESC LIMIT 3;`
@@ -91,7 +96,7 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
           )}
         </SelectedWork>
 
-        <LatestWriting articles={articles} />
+        <LatestWriting articles={articles} locale={locale} />
 
         {real && profile.experience.length > 0 && (
           <section className="section home-experience" id="experience" aria-labelledby="experience-title">
@@ -100,20 +105,20 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
               <div className="row">
                 <div className="col-lg-4">
                   <div className="xp-head">
-                    <h2 id="experience-title" className="selected-work-title">Experience</h2>
+                    <h2 id="experience-title" className="selected-work-title">{t.experience.title}</h2>
                     <p className="section-query mb-3"><code className="section-query-sql">git log --graph main</code></p>
-                    <Link href="/cv" className="writing-all d-inline-block">Full CV <span className="link-arrow" aria-hidden="true">→</span></Link>
+                    <Link href={localize(locale, "/cv")} className="writing-all d-inline-block">{t.experience.fullCv} <span className="link-arrow" aria-hidden="true">→</span></Link>
                   </div>
                 </div>
                 <div className="col-lg-8">
-                  <GitLog entries={profile.experience} />
+                  <GitLog entries={profile.experience} locale={locale} />
                 </div>
               </div>
             </div>
           </section>
         )}
 
-        <TestimonialsSection items={testimonials} />
+        <TestimonialsSection items={testimonials} locale={locale} />
 
         <ContactSection dark />
       </main>
