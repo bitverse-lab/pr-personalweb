@@ -1936,3 +1936,62 @@ h3.mono-meta {
     color: $text-meta;
     li + li { margin-top: 6px; }
 }
+
+// ============================================================ live SQL console (LiveConsole)
+.hero-c-live {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: $font-mono;
+    font-size: 13px;
+    font-weight: 600;
+    color: $primary;
+    text-align: left;
+    &:hover { text-decoration: underline; }
+}
+.hero-c-live-note { font-weight: 400; color: $text-meta; }
+.hero-c-live + .hero-c-plain { margin-top: 12px; }
+.qc--live { transform: none !important; }
+.qc-conn .qc-exit { cursor: pointer; background: transparent; font: inherit; color: $console-text; white-space: nowrap; flex: none; &:hover { color: $white; border-color: $console-dim; } }
+.qc--live .qc-host { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qc--live .qc-tab[aria-pressed="true"] { color: $white; border-bottom-color: $console-key; }
+.qc-editor {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    border: 0;
+    resize: vertical;
+    background: transparent;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 13px;
+    line-height: 1.6;
+    &:focus-visible { outline: 2px solid $console-key !important; outline-offset: -2px !important; }
+}
+.qc-live-out { min-height: 150px; }
+.qc-live-scroll { max-height: 300px; overflow: auto; }
+.qc-live-note { margin: 0; padding: 16px 18px; font-family: $font-family-secondary; font-size: 14px; color: $console-dim; }
+.qc-live-error, .qc-live-plan {
+    margin: 0;
+    padding: 14px 18px;
+    font-family: $font-mono;
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: $console-text;
+    max-height: 300px;
+    overflow: auto;
+}
+.qc-live-error { color: #ff9d9d; }
+.qc-null { color: $console-dim; font-style: italic; }
+.qc-bar {
+    position: relative;
+    display: block;
+    padding-left: 6px;
+    i { position: absolute; inset: 1px auto 1px 0; background: rgba($console-key, 0.28); border-radius: 2px; }
+}

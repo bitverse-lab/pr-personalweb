@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { FiDownload } from "react-icons/fi";
 import QueryConsole from "@/components/home/QueryConsole";
@@ -8,9 +9,13 @@ import EmbeddingCloud from "@/components/home/EmbeddingCloud";
 import type { ConsoleData } from "@/lib/data/console";
 import type { Profile } from "@/lib/data/profile";
 
+// Loaded only when a visitor asks for it: it brings a WebAssembly Postgres with it.
+const LiveConsole = dynamic(() => import("@/components/home/LiveConsole"), { ssr: false });
+
 /** The home hero: the owner's name, one positioning line, and their CV as a live query. */
 export default function HeroC({ profile, console: data }: { profile: Profile; console: ConsoleData | null }) {
   const [human, setHuman] = useState(false);
+  const [live, setLive] = useState(false);
   const words = profile.fullName.split(/\s+/).filter(Boolean);
   // The cloud is built from the same rows the console shows: stack layers and published projects.
   const cloud = useMemo(() => {
@@ -47,14 +52,19 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
                 <FiDownload aria-hidden /> Download CV
               </a>
             </div>
-            {data && (
+            {data && !live && (
+              <button type="button" className="hero-c-live" onClick={() => setLive(true)}>
+                <span aria-hidden="true">▶</span> Make it live <span className="hero-c-live-note">real Postgres in your browser · 5.5 MB</span>
+              </button>
+            )}
+            {data && !live && (
               <div className="hero-c-plain">
                 <button type="button" role="switch" aria-checked={human} aria-labelledby="plain-label" className="hero-c-switch" onClick={() => setHuman((h) => !h)} />
                 <span id="plain-label">Show in plain language</span>
               </div>
             )}
           </div>
-          {data && <QueryConsole data={data} human={human} />}
+          {data && (live ? <LiveConsole onExit={() => setLive(false)} /> : <QueryConsole data={data} human={human} />)}
         </div>
       </div>
     </section>
