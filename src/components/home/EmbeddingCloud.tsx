@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { Timeline } from "@/features/projects/timeline";
 
 // The hero's backdrop: the owner's stack drawn as an embedding space. Each layer (frontend, ml, …)
 // is a cluster, each skill a point in it, each project a bright node tied to the layers it uses.
@@ -19,6 +20,8 @@ export interface CloudProject {
 /** Sent by the query console: which layer or project the visitor is pointing at. */
 export type CloudFocus = { layer: string } | { slug: string } | null;
 export const CLOUD_FOCUS_EVENT = "hero:focus";
+/** Sent by the career scrubber: show the stack as it was at the end of this year (null = today). */
+export const CLOUD_YEAR_EVENT = "hero:year";
 
 type Kind = "dust" | "skill" | "project";
 interface Pt {
@@ -30,6 +33,8 @@ interface Pt {
   slug?: string;
   label?: string;
   glow: number; // eased 0..1 highlight
+  year?: number; // first year in dated work; undated points have none
+  vis: number; // eased 0..1, fades points that do not exist yet in the scrubbed year
 }
 
 // Deterministic randomness, so the cloud has the same shape on every visit.
@@ -43,7 +48,7 @@ function rng(seed: string) {
   };
 }
 
-function build(layers: CloudLayer[], projects: CloudProject[], dust: number): Pt[] {
+function build(layers: CloudLayer[], projects: CloudProject[], dust: number, timeline: Timeline | null): Pt[] {
   const r = rng(layers.map((l) => l.name).join("|") || "cloud");
   const gauss = () => (r() + r() + r() - 1.5) / 1.5;
   const centers = new Map<string, [number, number, number]>();
@@ -61,7 +66,7 @@ function build(layers: CloudLayer[], projects: CloudProject[], dust: number): Pt
     // A few extra points per skill so small stacks still read as clusters.
     for (const s of l.skills) {
       for (let k = 0; k < 6; k++) {
-        pts.push({ x: cx + gauss() * 0.27, y: cy + gauss() * 0.27, z: cz + gauss() * 0.27, kind: "skill", layer: l.name, label: k === 0 ? s : undefined, glow: 0 });
+        pts.push({ x: cx + gauss() * 0.27, y: cy + gauss() * 0.27, z: cz + gauss() * 0.27, kind: "skill", layer: l.name, label: k === 0 ? s : undefined, glow: 0, year: timeline?.skills[s], vis: 1 });
       }
     }
   }
@@ -69,19 +74,19 @@ function build(layers: CloudLayer[], projects: CloudProject[], dust: number): Pt
     const cs = p.layers.map((l) => centers.get(l)).filter((c): c is [number, number, number] => !!c);
     if (!cs.length) continue;
     const avg = cs.reduce((a, c) => [a[0] + c[0] / cs.length, a[1] + c[1] / cs.length, a[2] + c[2] / cs.length], [0, 0, 0]);
-    pts.push({ x: avg[0] * 0.7 + gauss() * 0.08, y: avg[1] * 0.7 + gauss() * 0.08, z: avg[2] * 0.7 + gauss() * 0.08, kind: "project", slug: p.slug, label: p.title, glow: 0 });
+    pts.push({ x: avg[0] * 0.7 + gauss() * 0.08, y: avg[1] * 0.7 + gauss() * 0.08, z: avg[2] * 0.7 + gauss() * 0.08, kind: "project", slug: p.slug, label: p.title, glow: 0, year: timeline?.projects[p.slug], vis: 1 });
   }
   for (let i = 0; i < dust; i++) {
     const t = r() * Math.PI * 2;
     const u = r() * 2 - 1;
     const d = 0.4 + r() * 0.95;
     const s = Math.sqrt(1 - u * u);
-    pts.push({ x: Math.cos(t) * s * d * 1.25, y: u * d * 0.9, z: Math.sin(t) * s * d * 1.25, kind: "dust", glow: 0 });
+    pts.push({ x: Math.cos(t) * s * d * 1.25, y: u * d * 0.9, z: Math.sin(t) * s * d * 1.25, kind: "dust", glow: 0, vis: 1 });
   }
   return pts;
 }
 
-export default function EmbeddingCloud({ layers, projects }: { layers: CloudLayer[]; projects: CloudProject[] }) {
+export default function EmbeddingCloud({ layers, projects, timeline = null }: { layers: CloudLayer[]; projects: CloudProject[]; timeline?: Timeline | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     const small = window.innerWidth < 768;
-    const pts = build(layers, projects, small ? 80 : 190);
+    const pts = build(layers, projects, small ? 80 : 190, timeline);
     const byLayer = new Map<string, Pt[]>();
     for (const p of pts) if (p.layer) byLayer.set(p.layer, [...(byLayer.get(p.layer) ?? []), p]);
     const projectLayers = new Map(projects.map((p) => [p.slug, p.layers]));
@@ -109,6 +114,9 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
     const mono = "500 11px 'JetBrains Mono', ui-monospace, monospace";
 
     let focus: CloudFocus = null;
+    let upTo: number | null = null;
+    // Undated skills cannot be placed in time, so they fade with the future while scrubbing.
+    const exists = (p: Pt) => upTo === null || p.kind === "dust" || (p.year !== undefined && p.year <= upTo);
     let w = 0;
     let h = 0;
     let angle = 0.6;
@@ -154,6 +162,7 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
 
       const proj = pts.map((p) => {
         p.glow += ((isLit(p) ? 1 : 0) - p.glow) * ease;
+        p.vis += ((exists(p) ? 1 : 0.06) - p.vis) * ease;
         // rotate around Y (spin), then X (tilt), then a little Y from the pointer
         let x = p.x * cosA - p.z * sinA;
         let z = p.x * sinA + p.z * cosA;
@@ -176,7 +185,7 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
           const b = proj.find((q) => q.p === members[0]);
           if (!b) continue;
           const g = Math.max(a.p.glow, b.p.glow);
-          ctx.strokeStyle = `rgba(${primary}, ${0.07 + g * 0.22})`;
+          ctx.strokeStyle = `rgba(${primary}, ${(0.07 + g * 0.22) * Math.min(a.p.vis, b.p.vis)})`;
           ctx.lineWidth = 0.6 + g * 0.5;
           ctx.beginPath();
           ctx.moveTo(a.sx, a.sy);
@@ -188,7 +197,7 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
       const dim = focus ? 0.45 : 1;
       for (const { p, sx, sy, depth } of proj) {
         const base = p.kind === "dust" ? 0.2 : p.kind === "skill" ? 0.5 : 0.85;
-        const alpha = Math.min(1, (base * dim + p.glow * 0.6) * (0.45 + depth * 0.55));
+        const alpha = Math.min(1, (base * dim + p.glow * 0.6) * (0.45 + depth * 0.55)) * p.vis;
         const size = (p.kind === "project" ? 3.4 : p.kind === "skill" ? 2.1 : 1.2) * depth * (1 + p.glow * 0.7);
         ctx.fillStyle = `rgba(${p.kind === "dust" ? ink : primary}, ${alpha})`;
         ctx.beginPath();
@@ -203,15 +212,16 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
         }
       }
 
-      // Names next to what is lit, so the highlight explains itself.
+      // Names next to what is lit, so the highlight explains itself. Not while scrubbing: the
+      // scrubber's caption names what appears, and canvas labels there ran behind the hero title.
       if (focus) {
         ctx.font = mono;
         ctx.textBaseline = "middle";
         const taken: [number, number, number, number][] = [];
         // Nearest first, so the front label wins a collision.
         for (const { p, sx, sy } of [...proj].reverse()) {
-          if (!p.label || p.glow < 0.4) continue;
-          if (p.kind === "skill" && "slug" in focus) continue;
+          if (!p.label) continue;
+          if (p.glow < 0.4 || p.vis < 0.5 || (p.kind === "skill" && "slug" in focus)) continue;
           const tw = ctx.measureText(p.label).width;
           // On wide screens the console covers the right of the hero: a label that would run under
           // it is set to the left of its point instead.
@@ -269,6 +279,11 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
       if (reduce) draw(16);
     };
     window.addEventListener(CLOUD_FOCUS_EVENT, onFocus);
+    const onYear = (e: Event) => {
+      upTo = (e as CustomEvent<number | null>).detail;
+      if (reduce) draw(16);
+    };
+    window.addEventListener(CLOUD_YEAR_EVENT, onYear);
     const themeWatch = new MutationObserver(() => {
       readColors();
       draw(16);
@@ -289,9 +304,10 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
       themeWatch.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener(CLOUD_FOCUS_EVENT, onFocus);
+      window.removeEventListener(CLOUD_YEAR_EVENT, onYear);
       window.removeEventListener("pointermove", onMove);
     };
-  }, [layers, projects]);
+  }, [layers, projects, timeline]);
 
   return <canvas ref={canvasRef} className="hero-cloud" aria-hidden="true" />;
 }

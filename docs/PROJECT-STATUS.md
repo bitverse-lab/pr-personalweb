@@ -190,6 +190,10 @@ Built in brief order, each on its own stacked branch and PR:
 - **Role-tailored links** (idea 9): `/for/data-engineer`, `/for/ml-engineer`, `/for/backend`,
   `/for/frontend`, `/for/fullstack` show the home page with the work for that role first and a
   note saying so. Static, `noindex`, canonical `/`. Roles live in `src/features/roles/roles.ts`.
+- **Career time scrubber** (idea 7): a slider under the hero walks the cloud back in time. A
+  skill's year is the earliest dated project listing it or role text naming it
+  (`src/features/projects/timeline.ts`); undated skills stay undated. No new column needed.
+- **/proof dependency freshness**: `pnpm outdated` in the Proof workflow, shown as a tile.
 - Skipped for now: idea 3 (needs the owner's trained models), idea 5 (needs a real incident;
   the queue article is demo data), bilingual copy (must be written by the owner).
 

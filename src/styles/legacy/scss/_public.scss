@@ -2114,3 +2114,25 @@ h3.mono-meta {
     strong { font-weight: 600; }
     a { color: var(--pub-accent); text-decoration: underline !important; }
 }
+
+// ============================================================ career scrubber (hero)
+.career {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 220px) auto;
+    justify-content: start;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-family: $font-mono;
+    font-size: 12px;
+    color: var(--pub-meta);
+}
+.career-label { color: var(--pub-accent); }
+.career-range { width: 100%; accent-color: $primary; }
+[data-theme="dark"] .career-range { accent-color: var(--pub-accent); }
+.career-caption {
+    grid-column: 1 / -1;
+    margin: 0;
+    min-height: 1.6em; // the caption changes length; the hero must not jump
+    strong { color: var(--pub-ink); font-weight: 600; margin-right: 6px; }
+}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FiDownload } from "react-icons/fi";
 import QueryConsole from "@/components/home/QueryConsole";
 import EmbeddingCloud from "@/components/home/EmbeddingCloud";
+import CareerScrubber from "@/components/home/CareerScrubber";
 import type { ConsoleData } from "@/lib/data/console";
 import type { Profile } from "@/lib/data/profile";
 
@@ -30,7 +31,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
 
   return (
     <section className="hero-c" id="intro" aria-labelledby="hero-title">
-      {cloud.layers.length > 0 && <EmbeddingCloud layers={cloud.layers} projects={cloud.projects} />}
+      {cloud.layers.length > 0 && <EmbeddingCloud layers={cloud.layers} projects={cloud.projects} timeline={data?.timeline ?? null} />}
       <div className="container">
         <div className="hero-c-grid">
           <div className="hero-c-copy">
@@ -64,6 +65,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
                 <span id="plain-label">Show in plain language</span>
               </div>
             )}
+            {data?.timeline && cloud.layers.length > 0 && <CareerScrubber timeline={data.timeline} />}
           </div>
           {data && (live ? <LiveConsole onExit={() => setLive(false)} /> : <QueryConsole data={data} human={human} />)}
         </div>

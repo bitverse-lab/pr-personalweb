@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { layersOf } from "@/features/projects/layers";
+import { buildTimeline, type Timeline } from "@/features/projects/timeline";
 import { SITE_REVALIDATE_SECONDS, SITE_TAG, publicRead } from "@/lib/data/site-cache";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { profileRepository } from "@/server/repositories/profile-repository";
@@ -31,6 +32,8 @@ export interface ConsoleData {
   ms: number;
   /** ISO time of that measurement; the page is cached, so the UI shows its age. */
   measuredAt: string;
+  /** When each skill and project first appears in dated work (the hero's career scrubber). Optional: older cached entries lack it. */
+  timeline?: Timeline | null;
 }
 
 export interface ConsoleInput {
@@ -110,9 +113,16 @@ const loadConsole = unstable_cache(
         skills: full.skills.map((s) => ({ name: s.name, category: s.category })),
         projects: published,
       }),
+      timeline: buildTimeline({
+        skills: full.skills.map((s) => s.name),
+        projects: published.map((p) => ({ slug: p.slug, technologies: p.technologies, startDate: p.startDate })),
+        experience: full.experiences.map((e) => ({ startDate: e.startDate, text: [e.role, e.description ?? "", ...e.achievements].join(". ") })),
+        now: new Date(),
+      }),
     };
   },
-  ["public-console"],
+  // Bump when the shape changes (v3: the timeline, keyed by the owner's spelling).
+  ["public-console", "v3"],
   { tags: [SITE_TAG], revalidate: SITE_REVALIDATE_SECONDS },
 );
 
