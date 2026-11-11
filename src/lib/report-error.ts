@@ -9,7 +9,7 @@ const safeErrorNames = new Set([
   "URIError",
 ]);
 
-export type ErrorArea = "public-read" | "storage-cleanup" | "contact-email" | "public-render" | "workspace-render";
+export type ErrorArea = "public-read" | "cv-download" | "storage-cleanup" | "contact-email" | "public-render" | "workspace-render";
 
 export function safeErrorType(error: unknown): string {
   if (!(error instanceof Error) || !safeErrorNames.has(error.name)) return "UnknownError";

@@ -6,6 +6,7 @@ import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
 import { skillsByLayer } from "@/features/projects/layers";
+import { getCvFiles } from "@/lib/data/cv-files";
 import { getProfile, localizeProfile } from "@/lib/data/profile";
 import { dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
@@ -21,7 +22,8 @@ const bare = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "")
 // The CV is one sheet: it reads on screen and prints cleanly (the site chrome is hidden in print).
 export async function CvPage({ locale }: { locale: Locale }) {
   const t = dict(locale).cv;
-  const profile = localizeProfile(await getProfile(), locale);
+  const [full, files] = await Promise.all([getProfile(), getCvFiles()]);
+  const profile = localizeProfile(full, locale);
   const real = !profile.isPlaceholder;
   const contact = [
     profile.location && { key: "location", value: profile.location },
@@ -47,9 +49,16 @@ export async function CvPage({ locale }: { locale: Locale }) {
             <div className="container">
               <div className="cv-actions">
                 <p className="path-label mb-0">~/cv</p>
-                <a href="/cv/download" className="btn btn-primary d-inline-flex align-items-center gap-2">
-                  <FiDownload aria-hidden /> {t.downloadPdf}
-                </a>
+                {/* The owner's own PDFs, one per kind of job; the page below is the same CV for the web. */}
+                {files.length > 0 && (
+                  <div id="cv-files" className="d-flex flex-wrap gap-2" role="group" aria-label={t.downloads}>
+                    {files.map((f) => (
+                      <a key={f.role} href={`/cv/download/${f.role}`} className="btn btn-primary btn-sm d-inline-flex align-items-center gap-2">
+                        <FiDownload aria-hidden /> {t.downloadFor(f.title)}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <article className="cv-sheet">

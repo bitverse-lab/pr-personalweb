@@ -11,6 +11,7 @@ export interface Role {
 }
 
 export const ROLES: Role[] = [
+  { slug: "data-analyst", title: "Data Analyst", layers: ["data", "ml", "ui"] },
   { slug: "data-engineer", title: "Data Engineer", layers: ["data", "ops", "ml"] },
   { slug: "ml-engineer", title: "ML Engineer", layers: ["ml", "data", "api"] },
   { slug: "backend", title: "Backend Engineer", layers: ["api", "data", "ops"] },

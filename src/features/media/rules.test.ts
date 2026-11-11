@@ -54,8 +54,8 @@ describe("type and size rules", () => {
   });
 
   it("describes every kind of media reference before a file can be deleted", () => {
-    expect(mediaReferenceLabels({ articles: 0, journal: 0, projects: 0, profile: 0, applications: 0 })).toEqual([]);
-    expect(mediaReferenceLabels({ articles: 1, journal: 2, projects: 1, profile: 1, applications: 2 })).toEqual([
+    expect(mediaReferenceLabels({ articles: 0, journal: 0, projects: 0, profile: 0, applications: 0, cv: 0 })).toEqual([]);
+    expect(mediaReferenceLabels({ articles: 1, journal: 2, projects: 1, profile: 1, applications: 2, cv: 0 })).toEqual([
       "1 article",
       "2 journal entries",
       "1 project",

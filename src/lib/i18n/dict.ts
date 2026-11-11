@@ -137,7 +137,8 @@ const en = {
   cv: {
     title: "CV",
     soon: "My CV will be available soon.",
-    downloadPdf: "Download PDF",
+    downloads: "Download my CV",
+    downloadFor: (role: string) => `${role} CV (PDF)`,
     proof: "Proof",
     experience: "Experience",
     projects: "Selected projects",
@@ -306,7 +307,8 @@ const id: Dict = {
   cv: {
     title: "CV",
     soon: "CV saya akan segera tersedia.",
-    downloadPdf: "Unduh PDF",
+    downloads: "Unduh CV saya",
+    downloadFor: (role) => `CV ${role} (PDF)`,
     proof: "Bukti",
     experience: "Pengalaman",
     projects: "Proyek pilihan",
