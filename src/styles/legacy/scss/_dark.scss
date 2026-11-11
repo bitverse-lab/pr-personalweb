@@ -1,0 +1,131 @@
+//
+// _dark.scss — the public site's dark theme. Designed, not inverted: the page sits on the same navy
+// as the hero console, so the console reads as part of the page instead of a dark box on white.
+// Light mode never reads this file's rules (everything is under [data-theme="dark"]), and /me is
+// always light (src/lib/theme.ts).
+//
+// Contrast (WCAG AA, checked by e2e/accessibility.spec.ts in both themes):
+//   ink #e4e9f5 on bg #0b1120 ≈ 15:1 · meta #9eabc8 ≈ 8:1 · accent #8eabff ≈ 8:1
+//
+
+$d-bg: #0b1120;
+$d-surface: #121a2c;
+$d-surface-alt: #0f1626;
+$d-raised: #182238;
+$d-line: #24304a;
+$d-ink: #e4e9f5;
+$d-heading: #f3f6fc;
+$d-meta: #9eabc8;
+$d-accent: #8eabff;
+
+// :root[…] so these beat the plain :root tokens that _me-shell.scss declares later.
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --pub-dot: #3a4866;
+    --pub-cloud-accent: 142, 171, 255;
+    --pub-cloud-ink: 228, 233, 245;
+    --pub-ink: #{$d-ink};
+    --pub-accent: #{$d-accent};
+    --pub-surface: #{$d-surface};
+    --pub-surface-alt: #{$d-surface-alt};
+    --pub-meta: #{$d-meta};
+    --pub-line: #{$d-line};
+    --pub-soft: #1a2647;
+    --pub-ml-soft: #0f2f2b;
+    --pub-ml-ink: #5cd3bc;
+    --app-border: #{$d-line};
+    --app-primary-soft: rgba(142, 171, 255, 0.12);
+    --app-on-primary-soft: #{$d-accent};
+    --app-surface: #{$d-surface-alt};
+    --bs-body-bg: #{$d-bg};
+    --bs-body-color: #{$d-ink};
+    --bs-border-color: #{$d-line};
+    --bs-secondary-color: #{$d-meta};
+    --bs-link-color-rgb: 142, 171, 255;
+
+    body {
+        background: $d-bg;
+        color: $d-ink;
+    }
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, .text-dark, .title-heading .heading {
+        color: $d-heading !important;
+    }
+    .text-muted {
+        color: $d-meta !important;
+    }
+    .bg-white {
+        background-color: $d-surface !important;
+    }
+    .bg-light {
+        background-color: $d-surface-alt !important;
+    }
+    .border, .border-top, .border-bottom {
+        border-color: $d-line !important;
+    }
+    .shadow, .shadow-md, .shadow-lg {
+        box-shadow: 0 0 0 1px $d-line !important;
+    }
+    .card {
+        background: $d-surface;
+        border-color: $d-line;
+        color: $d-ink;
+    }
+    .form-control, .form-select {
+        background-color: $d-surface;
+        border-color: $d-line;
+        color: $d-ink;
+        &::placeholder { color: $d-meta; }
+        &:focus { border-color: $d-accent; }
+    }
+    .btn-outline-dark {
+        color: $d-ink;
+        border-color: $d-meta;
+        &:hover, &:focus-visible { color: $d-bg; background: $d-ink; border-color: $d-ink; }
+    }
+    .btn-outline-primary {
+        color: $d-accent;
+        border-color: $d-accent;
+        &:hover, &:focus-visible { color: $white; background: $primary; border-color: $primary; }
+    }
+    .btn-link {
+        color: $d-accent;
+    }
+    ::selection {
+        background: $d-accent;
+        color: $d-bg;
+    }
+
+    // Header
+    #topnav {
+        .logo .logo-light-mode { display: none; }
+        .logo .logo-dark-mode { display: inline-block; }
+        &.nav-sticky, &.scroll {
+            background: rgba($d-bg, 0.92);
+            box-shadow: 0 1px 0 $d-line;
+        }
+        // Below lg the template gives the header a solid white bar at all times.
+        @media (max-width: 991px) {
+            background-color: $d-bg;
+            box-shadow: 0 1px 0 $d-line;
+        }
+        .navigation-menu > li > a {
+            color: $d-ink !important;
+        }
+        .navigation-menu > li > a:hover,
+        .navigation-menu > li.active > a {
+            color: $d-accent !important;
+        }
+        .navbar-toggle .lines span {
+            background-color: $d-ink;
+        }
+        #navigation {
+            background-color: transparent;
+        }
+        @media (max-width: 991px) {
+            #navigation {
+                background-color: $d-surface;
+                border-color: $d-line;
+            }
+        }
+    }
+}

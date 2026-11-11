@@ -97,9 +97,15 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
     for (const p of pts) if (p.layer) byLayer.set(p.layer, [...(byLayer.get(p.layer) ?? []), p]);
     const projectLayers = new Map(projects.map((p) => [p.slug, p.layers]));
 
-    const css = getComputedStyle(document.documentElement);
-    const primary = css.getPropertyValue("--bs-primary-rgb").trim() || "42, 82, 195";
-    const ink = "20, 28, 48";
+    // Colours come from the theme tokens and are read again when the theme switches.
+    let primary = "42, 82, 195";
+    let ink = "20, 28, 48";
+    const readColors = () => {
+      const css = getComputedStyle(document.documentElement);
+      primary = css.getPropertyValue("--pub-cloud-accent").trim() || primary;
+      ink = css.getPropertyValue("--pub-cloud-ink").trim() || ink;
+    };
+    readColors();
     const mono = "500 11px 'JetBrains Mono', ui-monospace, monospace";
 
     let focus: CloudFocus = null;
@@ -263,6 +269,11 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
       if (reduce) draw(16);
     };
     window.addEventListener(CLOUD_FOCUS_EVENT, onFocus);
+    const themeWatch = new MutationObserver(() => {
+      readColors();
+      draw(16);
+    });
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     const onMove = (e: PointerEvent) => {
       targetY = (e.clientX / window.innerWidth - 0.5) * 0.5;
@@ -275,6 +286,7 @@ export default function EmbeddingCloud({ layers, projects }: { layers: CloudLaye
       stop();
       ro.disconnect();
       io.disconnect();
+      themeWatch.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener(CLOUD_FOCUS_EVENT, onFocus);
       window.removeEventListener("pointermove", onMove);

@@ -13,6 +13,8 @@ import ViewTransitionLinks from "@/components/shared/ViewTransitionLinks";
 import PublicTerminal from "@/components/shared/PublicTerminal";
 import { getTerminalIndex } from "@/lib/data/terminal";
 import ServiceWorker from "@/components/shared/ServiceWorker";
+import ThemeSync from "@/components/shared/ThemeSync";
+import { THEME_SCRIPT } from "@/lib/theme";
 
 export const viewport: Viewport = { themeColor: "#2a52c3" };
 
@@ -47,7 +49,11 @@ export default async function RootLayout({
   const [site, terminal] = await Promise.all([getSiteInfo(), getTerminalIndex()]);
 
   return (
-    <html lang="en">
+    // The head script sets data-theme before React runs, so the attribute differs from the server render on purpose.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <NavigationProgress />
         <ViewTransitionLinks />
@@ -57,6 +63,7 @@ export default async function RootLayout({
           <ScrollTop />
           <Analytics />
           <ServiceWorker />
+          <ThemeSync />
         </SiteProvider>
       </body>
     </html>

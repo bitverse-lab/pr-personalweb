@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FiDownload } from "react-icons/fi";
 import SocialIcon from "@/components/shared/SocialIcon";
 import { OPEN_TERMINAL_EVENT } from "@/components/shared/PublicTerminal";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import { useSite } from "@/lib/site-context";
 
 export default function PersonalNavbar() {
@@ -81,6 +82,9 @@ export default function PersonalNavbar() {
                 </a>
               </li>
             ))}
+            <li className="list-inline-item ms-1">
+              <ThemeToggle />
+            </li>
             <li className="list-inline-item ms-1 d-none d-lg-inline-block">
               <button type="button" className="btn btn-sm btn-pills term-trigger" onClick={() => window.dispatchEvent(new Event(OPEN_TERMINAL_EVENT))} aria-label={`${mac ? "⌘K" : "Ctrl K"}: open the site terminal`} title="Jump anywhere">
                 {/* The visible shortcut starts the accessible name, so voice users can say what they see. */}

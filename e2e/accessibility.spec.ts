@@ -3,11 +3,13 @@ import { expect, test } from "@playwright/test";
 
 const routes = ["/", "/about", "/cv", "/projects", "/articles", "/contact", "/match", "/proof", "/privacy", "/offline", "/login"];
 
+// Both themes: the dark one follows the system setting, which is how most visitors get it.
+for (const colorScheme of ["light", "dark"] as const)
 for (const route of routes) {
-  test(`${route} has no automatically detectable WCAG 2.1 A/AA violations`, async ({ page }) => {
+  test(`${route} (${colorScheme}) has no automatically detectable WCAG 2.1 A/AA violations`, async ({ page }) => {
     // Contrast is judged at rest. With reduced motion the home console shows its result at once and
     // nothing fades in, so axe never samples a row mid-animation (timing-based waits stayed flaky).
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.emulateMedia({ reducedMotion: "reduce", colorScheme });
     await page.goto(route, { waitUntil: "domcontentloaded" });
     if ((await page.getByTestId("console-footer").count()) > 0) {
       await expect(page.getByTestId("console-footer")).toContainText(/row/, { timeout: 15_000 });

@@ -15,6 +15,22 @@ $ml-soft: #e3f6f2;
 $ml-ink: #0d7565;
 $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
+// The same tokens as CSS properties, so the dark theme (_dark.scss) can redefine them.
+:root {
+    --pub-ink: #{$dark};
+    --pub-accent: #{$primary};   // primary used as text; buttons and fills keep $primary
+    --pub-surface: #{$white};
+    --pub-surface-alt: #{$light};
+    --pub-meta: #{$text-meta};
+    --pub-line: #{$gray-200};
+    --pub-soft: #{$surface-soft};
+    --pub-ml-soft: #{$ml-soft};
+    --pub-ml-ink: #{$ml-ink};
+    --pub-dot: #{$gray-300}; // inactive markers
+    --pub-cloud-accent: 42, 82, 195; // hero canvas, as r, g, b
+    --pub-cloud-ink: 20, 28, 48;
+}
+
 .font-mono {
     font-family: $font-mono;
     font-variant-numeric: tabular-nums;
@@ -24,7 +40,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 .mono-meta {
     font-family: $font-mono;
     font-size: 12px;
-    color: $text-meta;
+    color: var(--pub-meta);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
 }
@@ -33,7 +49,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 .path-label {
     font-family: $font-mono;
     font-size: 12px;
-    color: $primary;
+    color: var(--pub-accent);
 }
 
 .layer-chip {
@@ -45,12 +61,12 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     padding: 5px 9px;
     border-radius: 4px;
     border: 0;
-    background: $surface-soft;
-    color: $primary;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
     transition: background-color 0.2s $ease-out, color 0.2s $ease-out;
     &--ml {
-        background: $ml-soft;
-        color: $ml-ink;
+        background: var(--pub-ml-soft);
+        color: var(--pub-ml-ink);
     }
     &--active,
     &[aria-pressed="true"] {
@@ -67,7 +83,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     max-width: 68ch;
     font-size: 17px;
     line-height: 1.75;
-    color: $dark;
+    color: var(--pub-ink);
     h2,
     h3 {
         margin-top: 2.2em;
@@ -95,7 +111,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 // Browser surfaces carry the palette too.
 ::selection {
     background: rgba($primary, 0.18);
-    color: $dark;
+    color: var(--pub-ink);
 }
 :focus-visible {
     outline: 2px solid $primary;
@@ -108,7 +124,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     width: 100%;
     overflow: hidden;
     border-radius: 10px;
-    background: $surface-soft;
+    background: var(--pub-soft);
 }
 .cover-block {
     width: 100%;
@@ -121,14 +137,14 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         display: flex;
         align-items: flex-end;
         padding: clamp(16px, 3vw, 28px);
-        background: linear-gradient(160deg, $surface-soft 0%, mix($surface-soft, $primary, 86%) 100%);
+        background: linear-gradient(160deg, var(--pub-soft) 0%, mix($surface-soft, $primary, 86%) 100%);
         span {
             font-family: $font-family-base;
             font-weight: 700;
             font-size: clamp(20px, 2.6vw, 30px);
             line-height: 1.15;
             letter-spacing: -0.02em;
-            color: $primary;
+            color: var(--pub-accent);
             text-wrap: balance;
             display: -webkit-box;
             -webkit-line-clamp: 4;
@@ -145,7 +161,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 // ============================================================ home: hero C v3
 .hero-c {
     padding: 150px 0 72px;
-    background: $light;
+    background: var(--pub-surface-alt);
     @media (max-width: 991px) {
         padding: 110px 0 56px;
     }
@@ -165,7 +181,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     line-height: 0.95;
     font-weight: 800;
     letter-spacing: -0.035em;
-    color: $dark;
+    color: var(--pub-ink);
     margin: 0;
     text-wrap: balance;
 }
@@ -186,13 +202,13 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 }
 .hero-c-accent {
-    color: $primary;
+    color: var(--pub-accent);
 }
 .hero-c-role {
     font-family: $font-family-secondary;
     font-size: 18px;
     line-height: 1.6;
-    color: $text-meta;
+    color: var(--pub-meta);
     max-width: 46ch;
     margin: 22px 0 0;
 }
@@ -220,7 +236,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     margin-top: 22px;
     font-family: $font-family-secondary;
     font-size: 14px;
-    color: $text-meta;
+    color: var(--pub-meta);
 }
 .hero-c-switch {
     width: 40px;
@@ -240,7 +256,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         width: 17px;
         height: 17px;
         border-radius: 50%;
-        background: $white;
+        background: var(--pub-surface);
         transition: transform 0.25s $ease-out;
     }
     &[aria-checked="true"] {
@@ -472,7 +488,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 .qc-why {
     font-family: $font-family-secondary;
     font-size: 12.5px;
-    color: $text-meta;
+    color: var(--pub-meta);
     margin: 12px 0 0;
     text-align: right;
     @media (max-width: 920px) {
@@ -521,13 +537,13 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 .section-query-sql {
     font-family: inherit;
     font-size: inherit;
-    color: $text-meta;
+    color: var(--pub-meta);
     background: none;
     padding: 0;
     overflow-wrap: anywhere;
 }
 .section-query-result {
-    color: $ml-ink;
+    color: var(--pub-ml-ink);
     white-space: nowrap;
 }
 
@@ -602,7 +618,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     font-family: $font-family-secondary;
     font-size: 17px;
     line-height: 1.6;
-    color: $dark;
+    color: var(--pub-ink);
 }
 
 // ============================================================ selected work
@@ -610,7 +626,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     font-size: clamp(30px, 4vw, 52px) !important; // beats the template's !important h2 size
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: $dark;
+    color: var(--pub-ink);
     margin-bottom: 28px;
     display: flex;
     flex-wrap: wrap;
@@ -632,8 +648,8 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     display: flex;
     flex-direction: column;
-    background: $white;
-    border: 1px solid $gray-200;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
     border-radius: 12px;
     overflow: hidden;
     transition: opacity 0.25s $ease-out, filter 0.25s $ease-out, border-color 0.2s, box-shadow 0.25s $ease-out;
@@ -651,7 +667,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         filter: grayscale(1);
     }
     &.lit {
-        border-color: $primary;
+        border-color: var(--pub-accent);
         box-shadow: 0 0 0 3px rgba($primary, 0.12);
     }
 }
@@ -669,23 +685,23 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     font-weight: 700;
     margin-bottom: 6px;
     a {
-        color: $dark;
+        color: var(--pub-ink);
     }
 }
 .case-summary {
     font-family: $font-family-secondary;
     font-size: 14.5px;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.55;
     margin-bottom: 0;
 }
 .case-outcome {
     margin: 14px 0 0;
     padding-top: 12px;
-    border-top: 1px dashed $gray-200;
+    border-top: 1px dashed var(--pub-line);
     font-family: $font-mono;
     font-size: 13px;
-    color: $primary;
+    color: var(--pub-accent);
     font-variant-numeric: tabular-nums;
 }
 
@@ -702,7 +718,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     display: block;
     color: inherit;
     &:hover .writing-latest-title {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .writing-latest-title {
@@ -710,32 +726,32 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     font-weight: 700;
     line-height: 1.25;
     letter-spacing: -0.015em;
-    color: $dark;
+    color: var(--pub-ink);
     transition: color 0.2s;
     text-wrap: balance;
 }
 .writing-excerpt {
     font-family: $font-family-secondary;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.6;
     max-width: 60ch;
 }
 .writing-earlier-item {
     padding: 14px 0;
-    border-top: 1px solid $gray-200;
+    border-top: 1px solid var(--pub-line);
 }
 .writing-earlier-link {
     font-weight: 600;
-    color: $dark;
+    color: var(--pub-ink);
     &:hover {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .writing-all {
     display: inline-block;
     margin-top: 14px;
     font-weight: 600;
-    color: $primary;
+    color: var(--pub-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -805,7 +821,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
         box-sizing: border-box;
         border: 2px solid $primary;
         border-radius: 50%;
-        background: $white;
+        background: var(--pub-surface);
     }
     &:first-child::after {
         top: 7px;
@@ -826,34 +842,34 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     }
 }
 .xp-now {
-    color: $ml-ink;
+    color: var(--pub-ml-ink);
 }
 .xp-role {
     font-size: 18px !important; // the template sizes every h3 with !important
     font-weight: 700;
-    color: $dark;
+    color: var(--pub-ink);
     margin-bottom: 2px;
 }
 .xp-company {
     font-family: $font-family-secondary;
-    color: $primary;
+    color: var(--pub-accent);
     font-weight: 500;
     margin-bottom: 8px;
 }
 .xp-location {
-    color: $text-meta;
+    color: var(--pub-meta);
     font-weight: 400;
 }
 .xp-desc {
     font-family: $font-family-secondary;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.65;
     max-width: 68ch;
     margin-bottom: 8px;
 }
 .xp-wins {
     font-family: $font-family-secondary;
-    color: $dark;
+    color: var(--pub-ink);
     line-height: 1.6;
     padding-left: 1.1em;
     margin-bottom: 0;
@@ -884,7 +900,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 // ============================================================ inner pages: shared head
 .page-head {
     padding: 150px 0 48px;
-    background: $light;
+    background: var(--pub-surface-alt);
     @media (max-width: 991px) {
         padding: 110px 0 36px;
     }
@@ -894,7 +910,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     line-height: 1.05;
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: $dark;
+    color: var(--pub-ink);
     max-width: 22ch;
     margin: 0;
     text-wrap: balance;
@@ -903,7 +919,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     font-family: $font-family-secondary;
     font-size: 18px;
     line-height: 1.6;
-    color: $text-meta;
+    color: var(--pub-meta);
     max-width: 60ch;
     margin: 18px 0 0;
 }
@@ -916,11 +932,11 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 .page-cta {
     font-family: $font-family-secondary;
     font-size: 18px;
-    color: $dark;
+    color: var(--pub-ink);
     margin: 0;
     a {
         font-weight: 600;
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 
@@ -930,11 +946,11 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     margin: 18px 0 0;
     padding: 10px 14px;
     border-radius: 8px;
-    background: $white;
-    border: 1px solid $gray-200;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
     font-family: $font-mono;
     font-size: 15px;
-    color: $primary;
+    color: var(--pub-accent);
     font-variant-numeric: tabular-nums;
 }
 .project-layout {
@@ -959,7 +975,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 }
 .facts-row {
     padding: 10px 0;
-    border-top: 1px solid $gray-200;
+    border-top: 1px solid var(--pub-line);
     &:first-child {
         border-top: 0;
         padding-top: 0;
@@ -970,18 +986,18 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     }
     dd {
         margin: 0;
-        color: $dark;
+        color: var(--pub-ink);
     }
 }
 .facts-tech {
     font-family: $font-family-secondary;
-    color: $dark;
+    color: var(--pub-ink);
     line-height: 1.6;
     margin: 0;
 }
 .facts-link {
     font-weight: 600;
-    color: $primary;
+    color: var(--pub-accent);
 }
 
 // ============================================================ writing: list (option B) + archive
@@ -991,7 +1007,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     max-width: 460px;
     margin-top: 24px;
     .form-control {
-        border-color: $gray-200;
+        border-color: var(--pub-line);
     }
 }
 .writing-earlier-head {
@@ -1003,7 +1019,7 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
     gap: 20px;
     align-items: baseline;
     padding: 16px 0;
-    border-top: 1px solid $gray-200;
+    border-top: 1px solid var(--pub-line);
     @media (max-width: 767px) {
         grid-template-columns: minmax(0, 1fr);
         gap: 4px;
@@ -1015,15 +1031,15 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 .log-title {
     font-weight: 600;
     font-size: 17px;
-    color: $dark;
+    color: var(--pub-ink);
     &:hover {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .log-excerpt {
     font-family: $font-family-secondary;
     font-size: 14px;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.5;
     margin: 4px 0 0;
     max-width: 68ch;
@@ -1061,17 +1077,17 @@ a.layer-chip.layer-chip--active:hover {
 .toc-link {
     display: block;
     padding: 5px 0 5px 12px;
-    border-left: 1px solid $gray-200;
+    border-left: 1px solid var(--pub-line);
     font-size: 14px;
-    color: $text-meta;
+    color: var(--pub-meta);
     transition: color 0.2s, border-color 0.2s;
     &:hover {
-        color: $primary;
+        color: var(--pub-accent);
     }
     &[aria-current="true"] {
-        color: $primary;
+        color: var(--pub-accent);
         font-weight: 600;
-        border-left-color: $primary;
+        border-left-color: var(--pub-accent);
     }
 }
 .toc-sub .toc-link {
@@ -1090,8 +1106,8 @@ a.layer-chip.layer-chip--active:hover {
 .reading-col :not(pre) > code {
     font-family: $font-mono;
     font-size: 0.9em;
-    background: $surface-soft;
-    color: $primary;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
     padding: 1px 6px;
     border-radius: 4px;
 }
@@ -1100,7 +1116,7 @@ a.layer-chip.layer-chip--active:hover {
     padding-left: 18px;
     border-left: 1px solid $primary;
     font-size: 19px;
-    color: $dark;
+    color: var(--pub-ink);
 }
 
 // Headings used as list labels keep the meta size (template h2/h3 sizes would otherwise win).
@@ -1175,7 +1191,7 @@ h3.mono-meta {
 // ============================================================ cv: one sheet, screen and print
 .cv-page {
     padding: 120px 0 72px;
-    background: $light;
+    background: var(--pub-surface-alt);
     @media (max-width: 991px) {
         padding: 96px 0 48px;
     }
@@ -1191,8 +1207,8 @@ h3.mono-meta {
 .cv-sheet {
     max-width: 880px;
     margin: 0 auto;
-    background: $white;
-    border: 1px solid $gray-200;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
     border-radius: 12px;
     padding: 48px 56px;
     @media (max-width: 767px) {
@@ -1205,19 +1221,19 @@ h3.mono-meta {
     justify-content: space-between;
     gap: 24px;
     padding-bottom: 24px;
-    border-bottom: 1px solid $gray-200;
+    border-bottom: 1px solid var(--pub-line);
 }
 .cv-name {
     font-size: 32px !important; // the template sizes every h1 with !important
     font-weight: 800 !important;
     letter-spacing: -0.02em;
     line-height: 1.1;
-    color: $dark;
+    color: var(--pub-ink);
     margin: 0;
 }
 .cv-headline {
     font-family: $font-family-secondary;
-    color: $text-meta;
+    color: var(--pub-meta);
     margin: 8px 0 0;
 }
 .cv-contact {
@@ -1239,12 +1255,12 @@ h3.mono-meta {
         overflow-wrap: anywhere;
     }
     a {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .cv-summary {
     font-family: $font-family-secondary;
-    color: $dark;
+    color: var(--pub-ink);
     line-height: 1.7;
     margin: 24px 0 0;
     white-space: pre-line;
@@ -1255,7 +1271,7 @@ h3.mono-meta {
 .cv-label {
     padding-bottom: 8px;
     margin-bottom: 16px;
-    border-bottom: 1px solid $gray-200;
+    border-bottom: 1px solid var(--pub-line);
 }
 .cv-proof {
     display: grid;
@@ -1270,18 +1286,18 @@ h3.mono-meta {
 .cv-proof-value {
     font-family: $font-mono;
     font-size: 22px;
-    color: $primary;
+    color: var(--pub-accent);
     font-variant-numeric: tabular-nums;
 }
 .cv-proof-note {
     font-family: $font-family-secondary;
     font-size: 14px;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.45;
 }
 .cv-item {
     padding: 12px 0;
-    border-top: 1px solid $gray-200;
+    border-top: 1px solid var(--pub-line);
     &:first-child {
         border-top: 0;
         padding-top: 0;
@@ -1289,20 +1305,20 @@ h3.mono-meta {
 }
 .cv-item-title {
     font-weight: 600;
-    color: $dark;
+    color: var(--pub-ink);
     margin: 0;
     a {
-        color: $dark;
+        color: var(--pub-ink);
     }
 }
 .cv-item-meta {
     font-weight: 400;
-    color: $text-meta;
+    color: var(--pub-meta);
 }
 .cv-item-text {
     font-family: $font-family-secondary;
     font-size: 15px;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1.6;
     margin: 4px 0 6px;
 }
@@ -1316,11 +1332,11 @@ h3.mono-meta {
         display: none !important;
     }
     body {
-        background: $white;
+        background: var(--pub-surface);
     }
     .cv-page {
         padding: 0;
-        background: $white;
+        background: var(--pub-surface);
     }
     .cv-sheet {
         border: 0;
@@ -1359,7 +1375,7 @@ h3.mono-meta {
     font-weight: 800 !important;
     line-height: 1.1;
     letter-spacing: -0.025em;
-    color: $dark;
+    color: var(--pub-ink);
     max-width: 18ch;
     margin: 0;
     text-wrap: balance;
@@ -1367,7 +1383,7 @@ h3.mono-meta {
 .contact-lede {
     font-family: $font-family-secondary;
     font-size: 17px;
-    color: $text-meta;
+    color: var(--pub-meta);
     margin: 16px 0 0;
 }
 .contact-rows {
@@ -1383,18 +1399,18 @@ h3.mono-meta {
         width: 84px;
         flex: none;
         font-weight: 400;
-        color: $text-meta;
+        color: var(--pub-meta);
     }
     dd {
         margin: 0;
         overflow-wrap: anywhere;
     }
     a {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .contact-open {
-    color: $ml-ink;
+    color: var(--pub-ml-ink);
 }
 // "copy" beside the email: a mono word, not an icon button, so it reads like the rows around it.
 .contact-copy {
@@ -1406,11 +1422,11 @@ h3.mono-meta {
     font: inherit;
     font-size: 11px;
     line-height: 1.6;
-    color: $text-meta;
+    color: var(--pub-meta);
     cursor: pointer;
     &:hover,
     &:focus-visible {
-        color: $primary;
+        color: var(--pub-accent);
     }
 }
 .contact-dark .contact-copy {
@@ -1421,8 +1437,8 @@ h3.mono-meta {
     }
 }
 .contact-form-card {
-    background: $white;
-    border: 1px solid $gray-200;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
     border-radius: 12px;
     padding: 28px;
     @media (max-width: 767px) {
@@ -1459,7 +1475,7 @@ h3.mono-meta {
 .privacy-h {
     font-size: 20px !important;
     margin: 32px 0 8px;
-    color: $dark;
+    color: var(--pub-ink);
 }
 .page-head--tall {
     padding-bottom: 120px;
@@ -1521,7 +1537,7 @@ h3.mono-meta {
     right: calc(var(--pipe-dot) / 2);
     top: calc(var(--pipe-dot) / 2 - 1px);
     height: 2px;
-    background: $gray-200;
+    background: var(--pub-line);
     overflow: hidden;
 }
 // A pulse runs along the line while the card is pointed at: data flowing through the layers.
@@ -1562,29 +1578,29 @@ h3.mono-meta {
     width: var(--pipe-dot);
     height: var(--pipe-dot);
     border-radius: 50%;
-    background: $white;
-    border: 2px solid $gray-300;
+    background: var(--pub-surface);
+    border: 2px solid var(--pub-dot);
     transition: transform 0.25s $ease-out;
 }
 .pipe-name {
     font-family: $font-mono;
     font-size: 11px;
-    color: $text-meta;
+    color: var(--pub-meta);
     line-height: 1;
 }
 .pipe-node.is-on {
-    .pipe-dot { background: $primary; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.14); }
-    .pipe-name { color: $primary; font-weight: 600; }
+    .pipe-dot { background: $primary; border-color: var(--pub-accent); box-shadow: 0 0 0 3px rgba($primary, 0.14); }
+    .pipe-name { color: var(--pub-accent); font-weight: 600; }
 }
 .pipe-node--ml.is-on {
-    .pipe-dot { background: $ml-ink; border-color: $ml-ink; box-shadow: 0 0 0 3px rgba($ml-ink, 0.14); }
-    .pipe-name { color: $ml-ink; }
+    .pipe-dot { background: var(--pub-ml-ink); border-color: var(--pub-ml-ink); box-shadow: 0 0 0 3px rgba($ml-ink, 0.14); }
+    .pipe-name { color: var(--pub-ml-ink); }
 }
 .case:hover .pipe-node.is-on .pipe-dot { transform: scale(1.25); }
 .pipe-tools {
     font-family: $font-family-secondary;
     font-size: 12.5px;
-    color: $text-meta;
+    color: var(--pub-meta);
     text-align: center;
     line-height: 1.35;
     max-width: 14ch;
@@ -1636,7 +1652,7 @@ h3.mono-meta {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: $white;
+    background: var(--pub-surface);
     border: 3px solid $primary;
 }
 .glog-commit.is-head .glog-node {
@@ -1656,32 +1672,32 @@ h3.mono-meta {
     padding: 1px 7px;
     border-radius: 999px;
     background: rgba($primary, 0.1);
-    color: $primary;
+    color: var(--pub-accent);
     font-weight: 600;
 }
 .glog-role {
     font-size: 20px !important; // the template sizes h3 with !important
     font-weight: 700;
     margin: 0 0 2px;
-    color: $dark;
+    color: var(--pub-ink);
 }
-.glog-at { font-weight: 500; color: $primary; font-size: 17px; }
-.glog-meta { font-size: 13.5px; color: $text-meta; margin-bottom: 6px; }
-.glog-desc { font-family: $font-family-secondary; font-size: 15px; color: $text-meta; margin-bottom: 8px; max-width: 64ch; }
+.glog-at { font-weight: 500; color: var(--pub-accent); font-size: 17px; }
+.glog-meta { font-size: 13.5px; color: var(--pub-meta); margin-bottom: 6px; }
+.glog-desc { font-family: $font-family-secondary; font-size: 15px; color: var(--pub-meta); margin-bottom: 8px; max-width: 64ch; }
 .glog-diff {
     list-style: none;
     margin: 0;
     padding: 6px 0;
     border-radius: 8px;
-    background: $ml-soft;
+    background: var(--pub-ml-soft);
     max-width: 68ch;
     li {
         font-family: $font-family-secondary;
         font-size: 14.5px;
-        color: $dark;
+        color: var(--pub-ink);
         padding: 2px 12px 2px 26px;
         text-indent: -14px; // wrapped lines line up with the text, not under the "+"
-        span { font-family: $font-mono; color: $ml-ink; font-weight: 700; }
+        span { font-family: $font-mono; color: var(--pub-ml-ink); font-weight: 700; }
     }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1701,8 +1717,8 @@ h3.mono-meta {
 }
 .review {
     margin: 0;
-    background: $white;
-    border: 1px solid $gray-200;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
     border-radius: 12px;
     overflow: hidden;
     display: flex;
@@ -1713,8 +1729,8 @@ h3.mono-meta {
     align-items: center;
     gap: 12px;
     padding: 12px 18px;
-    background: $surface-soft;
-    border-bottom: 1px solid $gray-200;
+    background: var(--pub-soft);
+    border-bottom: 1px solid var(--pub-line);
 }
 .review-avatar {
     flex: none;
@@ -1730,8 +1746,8 @@ h3.mono-meta {
     font-weight: 700;
 }
 .review-who { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
-.review-name { font-weight: 700; color: $dark; font-size: 14.5px; }
-.review-role { font-size: 12.5px; color: $text-meta; }
+.review-name { font-weight: 700; color: var(--pub-ink); font-size: 14.5px; }
+.review-role { font-size: 12.5px; color: var(--pub-meta); }
 .review-badge {
     margin-left: auto;
     flex: none;
@@ -1739,8 +1755,8 @@ h3.mono-meta {
     font-size: 11.5px;
     padding: 3px 9px;
     border-radius: 999px;
-    color: $ml-ink;
-    background: $ml-soft;
+    color: var(--pub-ml-ink);
+    background: var(--pub-ml-soft);
     border: 1px solid rgba($ml-ink, 0.25);
 }
 .review-body {
@@ -1769,7 +1785,7 @@ h3.mono-meta {
 .cf-sql-ok {
     font-family: $font-mono;
     font-size: 13px;
-    color: $ml-ink;
+    color: var(--pub-ml-ink);
 }
 
 // ============================================================ the page as a query plan (wide screens)
@@ -1793,28 +1809,28 @@ h3.mono-meta {
         .qplan-head, .qplan-op { opacity: 1; }
     }
     li { margin: 2px 0; }
-    a { display: flex; align-items: center; gap: 8px; color: $text-meta; text-decoration: none; padding: 3px 4px; }
-    li.is-on a { color: $primary; font-weight: 600; }
+    a { display: flex; align-items: center; gap: 8px; color: var(--pub-meta); text-decoration: none; padding: 3px 4px; }
+    li.is-on a { color: var(--pub-accent); font-weight: 600; }
 }
-.qplan-head { margin: 0 0 6px 4px; color: $text-meta; letter-spacing: 0.08em; }
+.qplan-head { margin: 0 0 6px 4px; color: var(--pub-meta); letter-spacing: 0.08em; }
 .qplan-dot {
     flex: none;
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: $gray-300;
+    background: var(--pub-dot);
     transition: transform 0.2s $ease-out, background 0.2s;
 }
 .qplan li.is-on .qplan-dot { background: $primary; transform: scale(1.5); box-shadow: 0 0 0 3px rgba($primary, 0.15); }
 
 // ============================================================ public terminal (cmdk in DialogShell)
-.term-trigger {
+.term-trigger, .theme-toggle {
     font-family: $font-mono;
     font-size: 12px;
-    color: $text-meta;
-    background: $surface-soft;
-    border: 1px solid $gray-200;
-    &:hover, &:focus-visible { color: $primary; border-color: rgba($primary, 0.4); }
+    color: var(--pub-meta);
+    background: var(--pub-soft);
+    border: 1px solid var(--pub-line);
+    &:hover, &:focus-visible { color: var(--pub-accent); border-color: rgba($primary, 0.4); }
 }
 .me-dialog-panel.term-panel {
     background: $console-bg;
@@ -1882,17 +1898,17 @@ h3.mono-meta {
 }
 .proof-tile {
     padding: 18px 20px;
-    border: 1px solid $gray-200;
+    border: 1px solid var(--pub-line);
     border-radius: 12px;
-    background: $white;
-    &.is-ok .proof-value { color: $ml-ink; }
+    background: var(--pub-surface);
+    &.is-ok .proof-value { color: var(--pub-ml-ink); }
     &.is-bad { border-color: rgba($danger, 0.5); .proof-value { color: #b02020; } }
 }
 .proof-label {
     font-family: $font-mono;
     font-size: 12px;
     font-weight: 400;
-    color: $text-meta;
+    color: var(--pub-meta);
     margin-bottom: 6px;
 }
 .proof-value {
@@ -1900,7 +1916,7 @@ h3.mono-meta {
     font-size: 30px;
     font-weight: 700;
     line-height: 1.1;
-    color: $dark;
+    color: var(--pub-ink);
     margin: 0 0 8px;
     font-variant-numeric: tabular-nums;
 }
@@ -1908,9 +1924,9 @@ h3.mono-meta {
     font-family: $font-family-secondary;
     font-size: 13.5px;
     line-height: 1.5;
-    color: $text-meta;
+    color: var(--pub-meta);
     margin: 0;
-    code { font-family: $font-mono; font-size: 12px; color: $dark; background: $surface-soft; padding: 1px 5px; border-radius: 4px; }
+    code { font-family: $font-mono; font-size: 12px; color: var(--pub-ink); background: var(--pub-soft); padding: 1px 5px; border-radius: 4px; }
 }
 .proof-h {
     font-size: 22px !important;
@@ -1924,16 +1940,16 @@ h3.mono-meta {
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     margin-bottom: 48px;
-    th, td { padding: 7px 10px; border-bottom: 1px solid $gray-200; }
-    thead th { font-weight: 400; color: $text-meta; }
-    tbody th { font-weight: 500; color: $dark; }
+    th, td { padding: 7px 10px; border-bottom: 1px solid var(--pub-line); }
+    thead th { font-weight: 400; color: var(--pub-meta); }
+    tbody th { font-weight: 500; color: var(--pub-ink); }
 }
 .proof-notes {
     max-width: 68ch;
     padding-left: 18px;
     font-family: $font-family-secondary;
     font-size: 15px;
-    color: $text-meta;
+    color: var(--pub-meta);
     li + li { margin-top: 6px; }
 }
 
@@ -1950,11 +1966,11 @@ h3.mono-meta {
     font-family: $font-mono;
     font-size: 13px;
     font-weight: 600;
-    color: $primary;
+    color: var(--pub-accent);
     text-align: left;
     &:hover { text-decoration: underline; }
 }
-.hero-c-live-note { font-weight: 400; color: $text-meta; }
+.hero-c-live-note { font-weight: 400; color: var(--pub-meta); }
 .hero-c-live + .hero-c-plain { margin-top: 12px; }
 .qc--live { transform: none !important; }
 .qc-conn .qc-exit { cursor: pointer; background: transparent; font: inherit; color: $console-text; white-space: nowrap; flex: none; &:hover { color: $white; border-color: $console-dim; } }
@@ -1997,10 +2013,10 @@ h3.mono-meta {
 }
 
 // ============================================================ /match (JdMatcher)
-.jd-label { font-family: $font-mono; font-size: 12px; color: $text-meta; margin-bottom: 6px; display: block; }
+.jd-label { font-family: $font-mono; font-size: 12px; color: var(--pub-meta); margin-bottom: 6px; display: block; }
 .jd-text { font-size: 14.5px; line-height: 1.55; max-width: 860px; }
 .jd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
-.jd-privacy { font-size: 13px; color: $text-meta; margin: 8px 0 0; }
+.jd-privacy { font-size: 13px; color: var(--pub-meta); margin: 8px 0 0; }
 .jd-results { margin-top: 40px; max-width: 980px; }
 .jd-summary {
     display: flex;
@@ -2009,18 +2025,18 @@ h3.mono-meta {
     justify-content: space-between;
     gap: 12px;
     padding-bottom: 14px;
-    border-bottom: 1px solid $gray-200;
+    border-bottom: 1px solid var(--pub-line);
 }
 .jd-summary-title { font-size: 22px !important; font-weight: 700; margin: 0; }
 .jd-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
-.jd-size { font-weight: 400; color: $text-meta; margin-left: 4px; }
-.jd-loading, .jd-on { font-family: $font-mono; font-size: 12px; color: $text-meta; }
-.jd-on { color: $ml-ink; }
+.jd-size { font-weight: 400; color: var(--pub-meta); margin-left: 4px; }
+.jd-loading, .jd-on { font-family: $font-mono; font-size: 12px; color: var(--pub-meta); }
+.jd-on { color: var(--pub-ml-ink); }
 .jd-failed { font-size: 13px; color: #b02020; }
 .jd-list { list-style: none; padding: 0; margin: 0; counter-reset: req; }
 .jd-req {
     padding: 16px 0 16px 34px;
-    border-bottom: 1px solid $gray-200;
+    border-bottom: 1px solid var(--pub-line);
     position: relative;
     counter-increment: req;
     &::before {
@@ -2031,17 +2047,17 @@ h3.mono-meta {
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: $ml-soft;
-        color: $ml-ink;
+        background: var(--pub-ml-soft);
+        color: var(--pub-ml-ink);
         font-family: $font-mono;
         font-size: 11px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    &.is-gap::before { background: $gray-200; color: $text-meta; }
+    &.is-gap::before { background: var(--pub-line); color: var(--pub-meta); }
 }
-.jd-req-text { font-weight: 600; color: $dark; margin: 0 0 8px; }
+.jd-req-text { font-weight: 600; color: var(--pub-ink); margin: 0 0 8px; }
 .jd-evidence {
     list-style: none;
     padding: 0;
@@ -2060,16 +2076,16 @@ h3.mono-meta {
     font-size: 11px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: $surface-soft;
-    color: $primary;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
     flex: none;
 }
-.jd-kind--achievement { background: $ml-soft; color: $ml-ink; }
+.jd-kind--achievement { background: var(--pub-ml-soft); color: var(--pub-ml-ink); }
 .jd-ev-link { font-weight: 600; }
-.jd-ev-text { color: $text-meta; flex-basis: 100%; padding-left: 2px; }
-.jd-score { margin-left: auto; font-family: $font-mono; font-size: 12px; color: $text-meta; }
-.jd-gap { margin: 0; font-size: 14px; color: $text-meta; font-style: italic; }
-.jd-note { color: $text-meta; }
+.jd-ev-text { color: var(--pub-meta); flex-basis: 100%; padding-left: 2px; }
+.jd-score { margin-left: auto; font-family: $font-mono; font-size: 12px; color: var(--pub-meta); }
+.jd-gap { margin: 0; font-size: 14px; color: var(--pub-meta); font-style: italic; }
+.jd-note { color: var(--pub-meta); }
 .hero-c-match { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 600; }
 
 // Printing the match gives a recruiter a one-page summary: the results only.

@@ -173,6 +173,23 @@ Spec, plan and approved HTML prototypes:
 - After the merge, `338a5e8` made E2E tests that assert on the demo dataset skip in CI,
   where the database is unreachable by design.
 
+## 5b. 11 November 2026 — redesign brief (`docs/REDESIGN-BRIEF.md`)
+
+Built in brief order, each on its own stacked branch and PR:
+
+- **/proof** (idea 4): CI writes test counts, route sizes and job health to `site_metric`;
+  the page links every number to the run that produced it. See `docs/PROOF.md`.
+- **Live SQL console** (idea 2): "Make it live" loads PGlite in a worker with the public
+  snapshot from `/api/snapshot`; 5 s timeout, 500-row cap, writes stay in the browser.
+- **/match** (idea 1): a pasted job description is matched to evidence by tool, by area and,
+  opt-in, by meaning (MiniLM in the browser). The text never leaves the page.
+- **Craft** (idea 8): installable PWA with offline reading (`public/sw.js`, production only;
+  never touches `/me`, `/login`, `/api`) and a designed dark theme for the public site
+  (`_dark.scss`, tokens in `_public.scss`, `src/lib/theme.ts`; `/me` stays light). The axe
+  suite runs in both themes.
+- Skipped for now: idea 3 (needs the owner's trained models), idea 5 (needs a real incident;
+  the queue article is demo data), bilingual copy (must be written by the owner).
+
 ## 6. Open issues
 
 1. **Workspace browser testing is incomplete.** The 18 migrated dialogs compile and are
