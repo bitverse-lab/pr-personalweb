@@ -187,6 +187,9 @@ Built in brief order, each on its own stacked branch and PR:
   never touches `/me`, `/login`, `/api`) and a designed dark theme for the public site
   (`_dark.scss`, tokens in `_public.scss`, `src/lib/theme.ts`; `/me` stays light). The axe
   suite runs in both themes.
+- **Role-tailored links** (idea 9): `/for/data-engineer`, `/for/ml-engineer`, `/for/backend`,
+  `/for/frontend`, `/for/fullstack` show the home page with the work for that role first and a
+  note saying so. Static, `noindex`, canonical `/`. Roles live in `src/features/roles/roles.ts`.
 - Skipped for now: idea 3 (needs the owner's trained models), idea 5 (needs a real incident;
   the queue article is demo data), bilingual copy (must be written by the owner).
 

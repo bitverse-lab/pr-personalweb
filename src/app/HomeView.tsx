@@ -14,6 +14,7 @@ import type { PublicTestimonial } from "@/lib/data/testimonials";
 import type { Profile } from "@/lib/data/profile";
 import type { Article } from "@/lib/data/articles";
 import type { Project } from "@/features/projects/format";
+import type { Role } from "@/features/roles/roles";
 
 interface HomeViewProps {
   profile: Profile;
@@ -23,6 +24,8 @@ interface HomeViewProps {
   articles: Article[];
   testimonials: PublicTestimonial[];
   console: ConsoleData | null;
+  /** Set on /for/<role>: projects arrive ranked for that role, and the page says so. */
+  role?: Role;
 }
 
 // The sections, as the plan of the query that builds the page.
@@ -35,7 +38,7 @@ const PLAN = [
   { id: "contact", op: "Insert on message" },
 ];
 
-export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData }: HomeViewProps) {
+export default function HomeView({ profile, projects, workMs, articles, testimonials, console: consoleData, role }: HomeViewProps) {
   const real = !profile.isPlaceholder;
   const skills = profile.skills.map((s) => ({ name: s.label, category: s.category }));
 
@@ -73,8 +76,20 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
         <SelectedWork
           projects={projects.slice(0, 3)}
           skills={skills}
-          query={{ sql: "SELECT title, layers, outcome FROM project WHERE published ORDER BY featured DESC LIMIT 3;", ms: workMs }}
-        />
+          query={{
+            sql: role
+              ? `SELECT title, layers, outcome FROM project WHERE published ORDER BY role_fit('${role.layers.join("', '")}') DESC, featured DESC LIMIT 3;`
+              : "SELECT title, layers, outcome FROM project WHERE published ORDER BY featured DESC LIMIT 3;",
+            ms: workMs,
+          }}
+        >
+          {role && (
+            <p className="role-note" data-testid="role-note">
+              Arranged for a <strong>{role.title}</strong> role: work in {role.layers.join(", ")} comes first. Nothing is hidden.{" "}
+              <Link href="/">See the general page</Link>
+            </p>
+          )}
+        </SelectedWork>
 
         <LatestWriting articles={articles} />
 
