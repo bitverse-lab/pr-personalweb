@@ -7,6 +7,7 @@ import { requireUserId } from "@/server/auth";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { contactRepository } from "@/server/repositories/contact-repository";
 import { sendContactNotification } from "@/server/email/send";
+import { clientIp } from "@/server/rate-limit";
 import { contactSchema, messageIdSchema, messageReadSchema, restoreMessageSchema } from "./schema";
 import type { ActionResult } from "@/types/action-result";
 
@@ -28,7 +29,7 @@ const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const,
 
 async function senderHash(): Promise<string | null> {
   const h = await headers();
-  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "").trim();
+  const ip = clientIp(h);
   if (!ip) return null;
   // salted so the raw address is never stored and the hash cannot be reversed with a rainbow table
   return createHash("sha256").update(`${process.env.AUTH_SECRET ?? ""}:${ip}`).digest("hex").slice(0, 32);

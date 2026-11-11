@@ -25,7 +25,7 @@ git clone <repo-url> && cd <repo-folder>
 pnpm install
 cp .env.local.example .env.local   # Windows PowerShell: Copy-Item .env.local.example .env.local
 # fill in .env.local (see "Where each value comes from" below)
-pnpm db:push                        # create the tables in your database
+pnpm db:migrate                     # create the tables in your database
 pnpm dev                            # http://localhost:3000
 ```
 
@@ -45,7 +45,7 @@ Then open `/login` and sign in with the Google account set as `OWNER_EMAIL`. If 
 pnpm check    # typecheck + lint + unit tests (the same as CI)
 ```
 
-Conventions: keep the layering `UI → Server Action → requireUserId → Zod → service → repository`; every query must filter by `userId`; add schema changes additively so `pnpm db:push` stays non-interactive. Never commit `.env.local` or any secret. `personal-os-master-specification.pdf` is the product spec.
+Conventions: keep the layering `UI → Server Action → requireUserId → Zod → service → repository`; every query must filter by `userId`; change the schema through `pnpm db:generate` + `pnpm db:migrate`. Never commit `.env.local` or any secret. `personal-os-master-specification.pdf` is the product spec.
 
 ### Browser tests
 
@@ -89,7 +89,9 @@ tests that mutate data are intentionally not configured yet.
 | `pnpm lint` | ESLint (only `<img>` warnings from the template are expected) |
 | `pnpm test` | Vitest unit tests (calculations, validation, upload rules) |
 | `pnpm test:e2e` | Playwright smoke tests and automated WCAG 2.1 A/AA checks for public pages |
-| `pnpm db:push` | Apply schema changes to the database (renames/drops need a TTY prompt, so prefer additive changes) |
+| `pnpm db:generate` | Write a migration for a change in `src/db/schema/` |
+| `pnpm db:migrate` | Apply pending migrations to the database in `DIRECT_URL` |
+| `pnpm db:baseline` | Once, on a database built with `db:push` before migrations: mark the existing migrations applied |
 
 Run `pnpm build` with the dev server stopped and `.next` deleted; a concurrent dev server corrupts the build cache.
 
@@ -118,7 +120,7 @@ Uploads go browser → Supabase directly via a one-time signed URL for a server-
 - Security headers (`nosniff`, frame denial, referrer/permissions policy, HSTS) are set in `next.config.mjs`. `/me` and `/login` are `noindex` and `no-store`.
 - Application error logs use `src/lib/report-error.ts`, which records only a fixed error area and an allowlisted JavaScript error type. It deliberately omits exception messages, stacks, SQL parameters, user identifiers and request content. No third-party error-monitoring SDK is configured; choose and configure a provider only after reviewing its data-processing and retention settings.
 - A strict Content-Security-Policy is **not** enabled yet: the template's inline styles and the YouTube modal need a tuned policy. Add one (start with report-only) before launch if desired.
-- There is no rate limiting. It is a single-owner app behind Google sign-in; add it (e.g. at the host/WAF) if the public contact or download endpoints become abused.
+- Rate limits: the contact form counts recent messages per hashed sender in the database; `/api/trace` (one database round trip per call) allows 20 calls a minute per address and 300 overall, counted in memory per server instance. Other endpoints have none; add a host/WAF rule if they are abused.
 
 ## SEO and sharing
 
@@ -206,7 +208,7 @@ Until a name is saved in **Profile & CV**, public pages show a neutral "being se
 
 - [ ] Set all environment variables on the host (including `SITE_URL` and the production `AUTH_URL`).
 - [ ] Add the production URL to the Google OAuth client's authorised redirect URIs (`<url>/api/auth/callback/google`).
-- [ ] `pnpm db:push` against the production database.
+- [ ] `pnpm db:migrate` against the production database (a new, empty one; the current Supabase database is already baselined).
 - [ ] Confirm `OWNER_EMAIL` is correct, then sign in once so the profile row exists.
 - [ ] Fill in **Profile & CV** so the public pages stop showing the template's placeholder content.
 - [ ] Check `/robots.txt`, `/sitemap.xml`, and that `/me` redirects to `/login` when signed out.

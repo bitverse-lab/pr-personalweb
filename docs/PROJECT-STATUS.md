@@ -27,14 +27,13 @@ journal, writing, projects and files.
 | Verification | Re-run on 10 November 2026 on `feat/public-redesign` (`338a5e8`): `pnpm check` passes — typecheck clean, lint clean, **151 unit tests in 27 files** pass. `pnpm build` was **not** re-run since the redesign (it last passed on 24 October, with existing dependency and `<img>` warnings). Playwright was not re-run either. |
 | Browser testing | Public routes and signed-in workspace pages checked; overview mobile layout, calendar controls, and article/project previews verified. Manually tested article/project publish-to-public flows against the current Supabase project using owner-approved E2E content, then removed the marked records and confirmed list, detail, RSS, and sitemap cleanup. Playwright covers public-route smoke tests, the signed-out `/me` redirect, WCAG 2.1 A/AA scans, public scroll-reveal behavior, and Projects hydration (20 tests pass). Authenticated flows, contact submission and other mutation flows remain untested. No screen-reader/manual accessibility audit yet. Inbox and Media pagination boundaries are unit-tested, but current data is below page size. |
 | Branches | Checked against the remote on 10 November 2026. `main` and `production` are identical on local and remote and hold PR #1 and PR #2. The public redesign (PR #3) is merged into **`origin/develop`** only, not `main`. `338a5e8` exists only on `origin/feat/public-redesign`; it is not in `origin/develop`. Local `develop` is 16 commits behind `origin/develop` (run `git pull`). `feat/docker` exists only on this machine — it is not on the remote. See section 5a. |
-| Deployment | Not deployed. A Docker image and `compose.yaml` exist on `feat/docker` (unmerged). CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. An initial Drizzle baseline is prepared but not applied; hosting, monitoring and backups remain outstanding. |
+| Deployment | Not deployed. A Docker image and `compose.yaml` exist on `feat/docker` (unmerged). CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. Drizzle migrations are tracked: `0000_baseline` is the whole schema, and the Supabase database is marked as baselined; hosting, monitoring and backups remain outstanding. |
 | Real content | Setup is incomplete. Existing published content remains; two pre-existing records identified by the owner as test content remain as drafts. Temporary E2E article/project records were removed after verification. |
 | Database | Supabase has been resumed; local public-page reads returned successfully. |
 
 ### Before production
 
-Local development is unblocked. Complete the manual browser round, establish a safe migration
-baseline for the populated Supabase database, and configure hosting, monitoring and backups
+Local development is unblocked. Complete the manual browser round, and configure hosting, monitoring and backups
 before production.
 
 ## 3. What is built
@@ -240,10 +239,10 @@ Built in brief order, each on its own stacked branch and PR:
    dialog, the contact form, and the newer-article navigation in section 6.
 2. **Fill in real content** — Profile & CV, photo, first project, first article, testimonials.
    The public site shows placeholders until a name is saved.
-3. **Adopt tracked Drizzle migrations safely.** An initial schema baseline has been generated
-   under `src/db/migrations/`, but it has not been applied. It creates the current tables and is
-   only suitable for a fresh database; do not run it against the populated Supabase instance.
-   Before adopting migrations there, compare the live schema and establish a verified baseline.
+3. ~~Adopt tracked Drizzle migrations.~~ Done 2026-11-11: `0000_baseline` was regenerated from
+   the current schema, applied to an empty Postgres and compared with the live database (same
+   columns, indexes and constraints), and the live database was marked applied with
+   `pnpm db:baseline`. From now on: `db:generate` + `db:migrate`, not `db:push`.
 4. **Confirm CI is green.** `.github/workflows/ci.yml` runs install, typecheck, lint and tests on
    push to `main` and on pull requests. Confirm it goes green after the first push. `pnpm build`
    is deliberately not in CI because prerendering needs a database.

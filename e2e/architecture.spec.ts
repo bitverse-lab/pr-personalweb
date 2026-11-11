@@ -7,8 +7,9 @@ test("a request sent through the site comes back timed, stop by stop", async ({ 
   await page.getByRole("button", { name: "Send a request" }).click();
   const total = page.locator(".arch-total");
   await expect(total).toContainText(/Round trip \d+ ms/, { timeout: 20_000 });
-  await expect(total).toContainText(/postgres \d+ ms/);
-  await expect(page.locator(".arch-ms").first()).toContainText(/\d+ ms/);
+  // A hop under 10 ms shows one decimal; in CI the refused database connection is that fast.
+  await expect(total).toContainText(/postgres [\d.]+ ms/);
+  await expect(page.locator(".arch-ms").first()).toContainText(/[\d.]+ ms/);
 });
 
 test("each stop opens its decision and the real code behind it", async ({ page }) => {

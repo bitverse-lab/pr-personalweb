@@ -27,7 +27,8 @@ pnpm check                   # typecheck + lint + tests; run before claiming don
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # vitest run
 pnpm build                   # stop the dev server and delete .next first
-pnpm db:push                 # apply schema changes (additive only)
+pnpm db:generate             # after a schema change: write the next migration
+pnpm db:migrate              # apply pending migrations (DIRECT_URL)
 ```
 
 ## Non-negotiable architecture
@@ -114,8 +115,11 @@ Public site data is cached for 5 minutes via `unstable_cache` tagged `SITE_TAG`
 4. **Client components must not import server modules** — it pulls `postgres` into the browser
    bundle ("Can't resolve 'net'"). Keep shared types in pure files, e.g.
    `src/features/projects/format.ts`.
-5. **`db:push` only; there are no migration files.** `src/db/migrations/` is empty. Keep schema
-   changes additive so the push stays non-interactive. Production needs real migrations first.
+5. **Schema changes go through migrations.** Change `src/db/schema/`, then `pnpm db:generate`
+   and `pnpm db:migrate`. Do not `db:push` to a shared database: it changes tables without
+   recording a migration, and the next `db:migrate` then fails on what already exists.
+   `0000_baseline` is the whole schema as of 2026-11-11; the Supabase database was built with
+   push before that, so it was marked applied with `pnpm db:baseline` (once per such database).
 6. **Supabase free tier pauses** after about a week of inactivity. The symptom is
    `tenant/user postgres.<ref> not found`. Resume the project in the Supabase dashboard.
 7. Use `DIRECT_URL` (Session pooler) for drizzle-kit, `DATABASE_URL` (transaction pooler,
