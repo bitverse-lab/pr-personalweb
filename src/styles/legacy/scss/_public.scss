@@ -2106,11 +2106,11 @@ h3.mono-meta {
 .role-note {
     margin: 10px 0 28px;
     padding: 10px 14px;
-    border-left: 3px solid $primary;
+    border: 1px solid var(--pub-line);
     background: var(--pub-soft);
     color: var(--pub-ink);
     font-size: 14px;
-    border-radius: 0 6px 6px 0;
+    border-radius: 6px;
     strong { font-weight: 600; }
     a { color: var(--pub-accent); text-decoration: underline !important; }
 }
