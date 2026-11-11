@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { roleBySlug } from "@/features/roles/roles";
 import { reportError } from "@/lib/report-error";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { cvFileService } from "@/server/services/cv-file-service";
@@ -15,6 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: { role: string
   const wait = perVisitor(clientIp(req.headers));
   if (wait) return new NextResponse("Too many requests", { status: 429, headers: { ...noStore, "Retry-After": String(wait) } });
 
+  const toList = () => NextResponse.redirect(new URL("/cv#cv-files", req.url), { headers: noStore });
+  if (!roleBySlug(params.role)) return toList(); // not a role this site knows: nothing to look up
+
   let url: string | null;
   try {
     const owner = await articleRepository.owner();
@@ -24,5 +28,5 @@ export async function GET(req: NextRequest, { params }: { params: { role: string
     reportError("cv-download", error);
     return new NextResponse("The CV cannot be downloaded right now. Please try again in a moment.", { status: 503, headers: noStore });
   }
-  return NextResponse.redirect(url ?? new URL("/cv#cv-files", req.url), { headers: noStore });
+  return url ? NextResponse.redirect(url, { headers: noStore }) : toList();
 }

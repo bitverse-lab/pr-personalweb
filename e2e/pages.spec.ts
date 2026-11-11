@@ -23,6 +23,10 @@ test("Download CV leads to the owner's CV, or to the list when there is not exac
   // An unknown role is not an error page: it leads to the list too.
   const unknown = await request.get("/cv/download/astronaut", { maxRedirects: 0 });
   expect(unknown.headers()["location"]).toMatch(/\/cv#cv-files$/);
+  // A known role reads the database: a redirect when it answers, a plain 503 when it is down (as in CI).
+  const known = await request.get("/cv/download/data-analyst", { maxRedirects: 0 });
+  expect([307, 503]).toContain(known.status());
+  expect(known.headers()["cache-control"]).toContain("no-store");
 });
 
 test("/cv shows the highlights as proof", async ({ page }) => {
