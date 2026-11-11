@@ -1,6 +1,6 @@
 # Personal OS — project status and handoff
 
-Last updated: 10 November 2026 (work of 9 November recorded in section 5a). Written for whoever picks this project up next, human or AI.
+Last updated: 11 November 2026 (first production deploy). Older entries keep their own dates. Written for whoever picks this project up next, human or AI.
 For architecture rules and day-to-day conventions, read `CLAUDE.md` first; this file is the
 story of how the project got here and what is left.
 
@@ -18,23 +18,24 @@ personal operating system: tasks, calendar, job applications, health and fitness
 journal, writing, projects and files.
 
 **GitHub:** `bitverse-lab/pr-personalweb` · branch `main`
+**Live:** https://verindra.bitverse-company.site (Vercel, deploys `main`)
 
 ## 2. Current state
 
 | | |
 | --- | --- |
 | Feature work | **Complete.** Every planned module is built. |
-| Verification | Re-run on 10 November 2026 on `feat/public-redesign` (`338a5e8`): `pnpm check` passes — typecheck clean, lint clean, **151 unit tests in 27 files** pass. `pnpm build` was **not** re-run since the redesign (it last passed on 24 October, with existing dependency and `<img>` warnings). Playwright was not re-run either. |
+| Verification | 11 November 2026, `main` at PR #22: CI green (typecheck, lint, **270 unit tests in 45 files**, Playwright e2e including axe on every public route in light and dark themes). The production build runs on every Vercel deploy. |
 | Browser testing | Public routes and signed-in workspace pages checked; overview mobile layout, calendar controls, and article/project previews verified. Manually tested article/project publish-to-public flows against the current Supabase project using owner-approved E2E content, then removed the marked records and confirmed list, detail, RSS, and sitemap cleanup. Playwright covers public-route smoke tests, the signed-out `/me` redirect, WCAG 2.1 A/AA scans, public scroll-reveal behavior, and Projects hydration (20 tests pass). Authenticated flows, contact submission and other mutation flows remain untested. No screen-reader/manual accessibility audit yet. Inbox and Media pagination boundaries are unit-tested, but current data is below page size. |
-| Branches | Checked against the remote on 10 November 2026. `main` and `production` are identical on local and remote and hold PR #1 and PR #2. The public redesign (PR #3) is merged into **`origin/develop`** only, not `main`. `338a5e8` exists only on `origin/feat/public-redesign`; it is not in `origin/develop`. Local `develop` is 16 commits behind `origin/develop` (run `git pull`). `feat/docker` exists only on this machine — it is not on the remote. See section 5a. |
-| Deployment | Not deployed. A Docker image and `compose.yaml` exist on `feat/docker` (unmerged). CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. Drizzle migrations are tracked: `0000_baseline` is the whole schema, and the Supabase database is marked as baselined; hosting, monitoring and backups remain outstanding. |
+| Branches | 11 November 2026: everything is on `main` (PRs #1–#22). Merged branches, including the old `develop` and `production`, were deleted after checking that every commit on them is in `main`. Vercel deploys `main`. `feat/docker` exists only on the owner's machine and is unmerged. |
+| Deployment | **Live since 11 November 2026** on Vercel (Hobby), function region `sin1` next to Supabase `ap-southeast-1`. Domain `verindra.bitverse-company.site` is a CNAME at Hostinger (the `bitverse-company.site` apex is a separate site, untouched); `verindra.vercel.app` redirects to it with 308. `AUTH_URL` and `SITE_URL` are that domain; the Google OAuth client has it as origin and redirect URI. A merge to `main` deploys; a redeploy must be the **Production** deployment (promote it if it was built as Preview), or the domain keeps serving the old build. Migrations are tracked (`0000_baseline`; the Supabase database is baselined). Daily encrypted backups run in `.github/workflows/backup.yml` (see `docs/BACKUP.md`). No error-monitoring provider yet. |
 | Real content | Setup is incomplete. Existing published content remains; two pre-existing records identified by the owner as test content remain as drafts. Temporary E2E article/project records were removed after verification. |
-| Database | Supabase has been resumed; local public-page reads returned successfully. |
+| Database | One Supabase project serves both local development and production. Free tier: it pauses after about a week without activity. |
 
 ### Before production
 
-Local development is unblocked. Complete the manual browser round, and configure hosting, monitoring and backups
-before production.
+The site is in production. Outstanding: the manual browser round, an error-monitoring provider,
+and real content in both languages (Indonesian is written in `/me` with the EN/ID tabs).
 
 ## 3. What is built
 
@@ -229,7 +230,7 @@ Built in brief order, each on its own stacked branch and PR:
 
 ## 7. What to do next, in order
 
-0. **Settle the branches** (section 5a), in this order:
+0. ~~Settle the branches.~~ Done 2026-11-11: everything is on `main`. Previously:
    1. `git checkout develop && git pull` to bring local `develop` up to date.
    2. Merge `feat/public-redesign` into `develop` so `338a5e8` lands there.
    3. Stop any dev server, delete `.next`, run `pnpm build`, and run `pnpm test:e2e` locally.
@@ -243,14 +244,15 @@ Built in brief order, each on its own stacked branch and PR:
    the current schema, applied to an empty Postgres and compared with the live database (same
    columns, indexes and constraints), and the live database was marked applied with
    `pnpm db:baseline`. From now on: `db:generate` + `db:migrate`, not `db:push`.
-4. **Confirm CI is green.** `.github/workflows/ci.yml` runs install, typecheck, lint and tests on
+4. ~~Confirm CI is green.~~ Green on `main` at PR #22. `.github/workflows/ci.yml` runs install, typecheck, lint and tests on
    push to `main` and on pull requests. Confirm it goes green after the first push. `pnpm build`
    is deliberately not in CI because prerendering needs a database.
-5. **Deploy to Vercel:** set every environment variable including `SITE_URL` and the production
+5. ~~Deploy to Vercel.~~ Done 2026-11-11 (see Deployment in section 2). Original steps: set every environment variable including `SITE_URL` and the production
    `AUTH_URL`, add `<url>/api/auth/callback/google` to the Google OAuth client's authorised
    redirect URIs, run migrations, then check `/robots.txt`, `/sitemap.xml` and that `/me`
    redirects to `/login` when signed out. Pick a function region near the Supabase region.
-6. **Then, in rough priority order:** implement scheduled backups of both the database and
+6. **Then, in rough priority order:** (scheduled backups are now done: `.github/workflows/backup.yml`,
+   `docs/BACKUP.md`; rehearse a restore.) The original brief: scheduled backups of both the database and
    storage buckets `public-media` and `private-docs` (a database dump alone cannot restore the
    site). Owner preference: an external encrypted destination with 30 daily and 12 monthly
    restore points; provider is still undecided. Treat database dumps and private documents as
