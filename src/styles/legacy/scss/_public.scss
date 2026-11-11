@@ -1872,3 +1872,67 @@ h3.mono-meta {
 .term-note { color: $console-dim; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; min-width: 0; }
 .term-empty { padding: 14px 8px; font-family: $font-mono; font-size: 13px; color: $console-dim; }
 .term-foot { margin: 10px 0 0; font-family: $font-mono; font-size: 11px; color: $console-dim; }
+
+// ============================================================ /proof
+.proof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin: 0 0 48px;
+}
+.proof-tile {
+    padding: 18px 20px;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    background: $white;
+    &.is-ok .proof-value { color: $ml-ink; }
+    &.is-bad { border-color: rgba($danger, 0.5); .proof-value { color: #b02020; } }
+}
+.proof-label {
+    font-family: $font-mono;
+    font-size: 12px;
+    font-weight: 400;
+    color: $text-meta;
+    margin-bottom: 6px;
+}
+.proof-value {
+    font-family: $font-mono;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: $dark;
+    margin: 0 0 8px;
+    font-variant-numeric: tabular-nums;
+}
+.proof-note {
+    font-family: $font-family-secondary;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: $text-meta;
+    margin: 0;
+    code { font-family: $font-mono; font-size: 12px; color: $dark; background: $surface-soft; padding: 1px 5px; border-radius: 4px; }
+}
+.proof-h {
+    font-size: 22px !important;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+.proof-table {
+    width: 100%;
+    max-width: 560px;
+    font-family: $font-mono;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 48px;
+    th, td { padding: 7px 10px; border-bottom: 1px solid $gray-200; }
+    thead th { font-weight: 400; color: $text-meta; }
+    tbody th { font-weight: 500; color: $dark; }
+}
+.proof-notes {
+    max-width: 68ch;
+    padding-left: 18px;
+    font-family: $font-family-secondary;
+    font-size: 15px;
+    color: $text-meta;
+    li + li { margin-top: 6px; }
+}

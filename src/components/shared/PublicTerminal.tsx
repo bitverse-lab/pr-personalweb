@@ -20,6 +20,7 @@ const PAGES = [
   { cmd: "cd work", href: "/projects", note: "all projects" },
   { cmd: "cd writing", href: "/articles", note: "all articles" },
   { cmd: "cd contact", href: "/contact", note: "send a message" },
+  { cmd: "cd proof", href: "/proof", note: "tests, bundle sizes, backups" },
 ];
 
 const kebab = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
