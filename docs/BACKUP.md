@@ -39,7 +39,7 @@ You need the PostgreSQL 17 client tools (`pg_restore`, `psql`) and `gpg`.
 # 1. Download the artifact from the Actions run, unzip it, then decrypt and unpack
 gpg --decrypt personal-os-backup-2026-11-10.tar.gz.gpg | tar -xzf - -C restore/
 
-# 2. Database: into an EMPTY project (create the tables first with `pnpm db:push`, or let
+# 2. Database: into an EMPTY project (create the tables first with `pnpm db:migrate`, or let
 #    pg_restore create them). --clean drops and recreates what the dump contains.
 pg_restore --dbname "$DIRECT_URL" --no-owner --no-privileges --clean --if-exists restore/database.dump
 
