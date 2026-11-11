@@ -194,6 +194,10 @@ Built in brief order, each on its own stacked branch and PR:
   skill's year is the earliest dated project listing it or role text naming it
   (`src/features/projects/timeline.ts`); undated skills stay undated. No new column needed.
 - **/proof dependency freshness**: `pnpm outdated` in the Proof workflow, shown as a tile.
+- **/architecture** (idea 6, using this site as the case study): "Send a request" calls
+  `/api/trace`, which times a cached read and a Postgres round trip; the browser adds the network.
+  Each stop shows its decision and a code excerpt read from the repo at build time
+  (`src/features/architecture/`); a unit test fails if a quoted marker disappears.
 - Skipped for now: idea 3 (needs the owner's trained models), idea 5 (needs a real incident;
   the queue article is demo data), bilingual copy (must be written by the owner).
 

@@ -2136,3 +2136,85 @@ h3.mono-meta {
     min-height: 1.6em; // the caption changes length; the hero must not jump
     strong { color: var(--pub-ink); font-weight: 600; margin-right: 6px; }
 }
+
+// ============================================================ /architecture
+.arch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+    margin-bottom: 28px;
+}
+.arch-total { margin: 0; max-width: 62ch; }
+.arch-path {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px;
+    @media (max-width: 767px) { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
+.arch-stop {
+    position: relative;
+    margin: 0 !important;
+    // The wire to the next stop.
+    &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -28px;
+        width: 28px;
+        height: 2px;
+        background: var(--pub-line);
+        transition: background-color 0.2s;
+        @media (max-width: 767px) { top: auto; bottom: -18px; right: auto; left: 24px; width: 2px; height: 18px; }
+    }
+    &.is-active::after { background: $primary; }
+}
+.arch-node {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    padding: 14px 16px;
+    border: 1px solid var(--pub-line);
+    border-radius: 8px;
+    background: var(--pub-surface);
+    color: var(--pub-ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:hover, &:focus-visible, &[aria-expanded="true"] { border-color: $primary; }
+    .is-active & { border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.18); }
+    .is-failed & { border-color: $danger; }
+}
+.arch-name { font-weight: 600; }
+.arch-ms { color: var(--pub-accent); }
+.arch-detail {
+    margin-top: 28px;
+    padding: 20px 22px;
+    border: 1px solid var(--pub-line);
+    border-radius: 8px;
+    background: var(--pub-surface-alt);
+}
+.arch-detail-title { font-size: 18px !important; margin: 0 0 8px; }
+.arch-decision { max-width: 72ch; color: var(--pub-ink); }
+.arch-code {
+    margin: 16px 0 0;
+    pre {
+        margin: 0;
+        padding: 14px 16px;
+        border-radius: 6px;
+        background: $console-bg;
+        color: $console-text;
+        font-family: $font-mono;
+        font-size: 13px;
+        overflow-x: auto;
+    }
+    figcaption { margin-top: 6px; }
+}
+.arch-foot { margin-top: 32px; color: var(--pub-meta); a { text-decoration: underline !important; } }
+@media (prefers-reduced-motion: reduce) {
+    .arch-node, .arch-stop::after { transition: none; }
+}
+.proof-notes a { text-decoration: underline !important; } // links inside prose must not rely on colour alone

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
@@ -138,7 +139,7 @@ export default async function ProofPage() {
                   <li>Test counts and bundle sizes come from running the test suite and the production build in GitHub Actions on the main branch.</li>
                   <li>The browser tests that need real data run on my machine before a merge; in CI they run against a deliberately unreachable database, which also proves the public pages survive an outage.</li>
                   <li>The backup is a nightly encrypted dump of the database and every uploaded file, restored into a clean server once to check it works.</li>
-                  <li>The database round trip is timed by the server that rendered this page, when the page data was last refreshed.</li>
+                  <li>The database round trip is timed by the server that rendered this page, when the page data was last refreshed. To time one yourself, <Link href="/architecture">send a request through the site</Link>.</li>
                 </ul>
               </>
             )}

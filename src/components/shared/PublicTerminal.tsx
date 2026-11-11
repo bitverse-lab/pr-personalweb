@@ -21,6 +21,7 @@ const PAGES = [
   { cmd: "cd writing", href: "/articles", note: "all articles" },
   { cmd: "cd contact", href: "/contact", note: "send a message" },
   { cmd: "cd proof", href: "/proof", note: "tests, bundle sizes, backups" },
+  { cmd: "traceroute", href: "/architecture", note: "send a request through this site" },
   { cmd: "match --jd", href: "/match", note: "paste a job description, see the evidence" },
 ];
 
