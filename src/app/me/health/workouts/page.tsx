@@ -8,6 +8,7 @@ import StartWorkoutButton from "@/components/me/health/workouts/StartWorkoutButt
 import WorkoutHistory from "@/components/me/health/workouts/WorkoutHistory";
 import WorkoutsTabs from "@/components/me/health/workouts/WorkoutsTabs";
 import { getWorkoutsOverview } from "@/features/health/workout-actions";
+import { fmtMinutes } from "@/features/health/workout-meta";
 import { fmtVolume } from "@/features/health/workout-meta";
 
 export default async function WorkoutsPage() {
@@ -39,7 +40,7 @@ export default async function WorkoutsPage() {
       <div className="row row-cols-2 row-cols-lg-4 g-2 mb-4">
         <HealthStat label="This week" value={o.week.target ? `${o.week.count} / ${o.week.target}` : o.week.count} hint="workouts (Mon–Sun)" />
         <HealthStat label="Volume this week" value={fmtVolume(o.week.volumeKg)} hint="completed working sets" />
-        <HealthStat label="Time this week" value={`${o.week.minutes} min`} hint="training time" />
+        <HealthStat label="Time this week" value={fmtMinutes(o.week.minutes)} hint="training time" />
         <HealthStat label="Streak" value={`${o.streak} day${o.streak === 1 ? "" : "s"}`} hint="consecutive workout days" />
       </div>
 

@@ -1,0 +1,2231 @@
+//
+// _public.scss — the public site's shared language (spec: docs/superpowers/specs/2026-11-09-public-redesign-design.md)
+// Fronter tokens only. Mono is reserved for data: query text, dates, durations, layer names.
+//
+
+$font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+$console-bg: #141c30;       // navy console surface (hero console, code blocks)
+$console-line: #2f3d60;
+$console-text: #c7d2ec;
+$console-dim: #8b9bc2;
+$console-key: #7fa0ff;
+$text-meta: #4f5f80;        // ≥ 4.5:1 on white and $light
+$surface-soft: #eef2fb;     // soft primary surface (chips, cover blocks)
+$ml-soft: #e3f6f2;
+$ml-ink: #0d7565;
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+// The same tokens as CSS properties, so the dark theme (_dark.scss) can redefine them.
+:root {
+    --pub-ink: #{$dark};
+    --pub-accent: #{$primary};   // primary used as text; buttons and fills keep $primary
+    --pub-surface: #{$white};
+    --pub-surface-alt: #{$light};
+    --pub-meta: #{$text-meta};
+    --pub-line: #{$gray-200};
+    --pub-soft: #{$surface-soft};
+    --pub-ml-soft: #{$ml-soft};
+    --pub-ml-ink: #{$ml-ink};
+    --pub-dot: #{$gray-300}; // inactive markers
+    --pub-cloud-accent: 42, 82, 195; // hero canvas, as r, g, b
+    --pub-cloud-ink: 20, 28, 48;
+}
+
+.font-mono {
+    font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
+}
+
+// Meta line: dates, read time, counts.
+.mono-meta {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: var(--pub-meta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+}
+
+// A path-like locator used as meta under a heading, never as a kicker above it.
+.path-label {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: var(--pub-accent);
+}
+
+.layer-chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: $font-mono;
+    font-size: 11.5px;
+    line-height: 1;
+    padding: 5px 9px;
+    border-radius: 4px;
+    border: 0;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
+    transition: background-color 0.2s $ease-out, color 0.2s $ease-out;
+    &--ml {
+        background: var(--pub-ml-soft);
+        color: var(--pub-ml-ink);
+    }
+    &--active,
+    &[aria-pressed="true"] {
+        background: $primary;
+        color: $white;
+    }
+    &:is(button) {
+        cursor: pointer;
+    }
+}
+
+// One comfortable reading measure for case studies and articles.
+.reading-col {
+    max-width: 68ch;
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--pub-ink);
+    h2,
+    h3 {
+        margin-top: 2.2em;
+        margin-bottom: 0.6em;
+        letter-spacing: -0.015em;
+    }
+    p {
+        margin-bottom: 1.15em;
+    }
+}
+
+.surface-console {
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+    pre,
+    code {
+        color: inherit;
+        background: transparent;
+    }
+}
+
+// Browser surfaces carry the palette too.
+::selection {
+    background: rgba($primary, 0.18);
+    color: var(--pub-ink);
+}
+:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+}
+
+// Covers: real image, or the title set in type on a soft surface (never a stock photo).
+.cover-block-frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--pub-soft);
+}
+.cover-block {
+    width: 100%;
+    height: 100%;
+    &--img {
+        object-fit: cover;
+        display: block;
+    }
+    &--type {
+        display: flex;
+        align-items: flex-end;
+        padding: clamp(16px, 3vw, 28px);
+        background: linear-gradient(160deg, var(--pub-soft) 0%, mix($surface-soft, $primary, 86%) 100%);
+        span {
+            font-family: $font-family-base;
+            font-weight: 700;
+            font-size: clamp(20px, 2.6vw, 30px);
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: var(--pub-accent);
+            text-wrap: balance;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+    &--compact span {
+        font-size: 15px;
+        -webkit-line-clamp: 3;
+    }
+}
+
+// ============================================================ home: hero C v3
+.hero-c {
+    padding: 150px 0 72px;
+    background: var(--pub-surface-alt);
+    @media (max-width: 991px) {
+        padding: 110px 0 56px;
+    }
+}
+.hero-c-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+    gap: 56px;
+    align-items: center;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 36px;
+    }
+}
+.hero-c-title {
+    font-size: clamp(44px, 6.2vw, 84px) !important; // the template sizes every h1 with !important (was rendering 42px)
+    line-height: 0.95;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    color: var(--pub-ink);
+    margin: 0;
+    text-wrap: balance;
+}
+.hero-c-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.04em;
+    // A CSS animation, not a class added after hydration: the name (the LCP element) appears even
+    // when JavaScript is slow, fails, or is off.
+    > span {
+        display: inline-block;
+        animation: hero-c-rise 0.8s $ease-out both;
+    }
+}
+@keyframes hero-c-rise {
+    from {
+        transform: translateY(105%);
+    }
+}
+.hero-c-accent {
+    color: var(--pub-accent);
+}
+.hero-c-role {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--pub-meta);
+    max-width: 46ch;
+    margin: 22px 0 0;
+}
+.hero-c-availability {
+    margin: 10px 0 0;
+}
+.hero-c-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    .btn {
+        padding: 12px 22px;
+        font-weight: 600;
+        transition: transform 0.15s $ease-out;
+        &:active {
+            transform: scale(0.97);
+        }
+    }
+}
+.hero-c-plain {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: var(--pub-meta);
+}
+.hero-c-switch {
+    width: 40px;
+    height: 23px;
+    flex: none;
+    border: 0;
+    border-radius: 99px;
+    background: #c9d0e2;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s $ease-out;
+    &::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: var(--pub-surface);
+        transition: transform 0.25s $ease-out;
+    }
+    &[aria-checked="true"] {
+        background: $primary;
+        &::after {
+            transform: translateX(17px);
+        }
+    }
+}
+
+// ---- the console
+.qc-stage {
+    perspective: 1600px;
+    min-width: 0;
+}
+.qc {
+    background: $console-bg;
+    color: $console-text;
+    border-radius: 12px;
+    font-family: $font-mono;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    transform-style: preserve-3d;
+    transform: rotateX(6deg) rotateY(-10deg);
+    transition: transform 0.6s $ease-out;
+    box-shadow: 0 30px 60px -30px rgba($console-bg, 0.55);
+    overflow: hidden;
+    @media (max-width: 920px) {
+        transform: none !important;
+        font-size: 12.5px;
+    }
+}
+.qc-conn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid $console-line;
+    font-size: 11.5px;
+    color: $console-dim;
+    .qc-host {
+        color: $console-text;
+    }
+    .qc-ro {
+        margin-left: auto;
+        border: 1px solid $console-line;
+        border-radius: 4px;
+        padding: 2px 7px;
+    }
+}
+.qc-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 10px 0;
+    border-bottom: 1px solid $console-line;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+.qc-tab {
+    font: inherit;
+    font-size: 12px;
+    padding: 7px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: $console-dim;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.3s $ease-out;
+    &[aria-selected="true"] {
+        color: $white;
+        border-bottom-color: $console-key;
+    }
+}
+.qc-run {
+    margin: 0 0 6px auto;
+    position: sticky;
+    right: 0;
+    font-family: $font-family-base;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border: 0;
+    border-radius: 5px;
+    background: $success;
+    color: #06302a;
+    cursor: pointer;
+    transition: transform 0.12s;
+    &:active {
+        transform: scale(0.94);
+    }
+}
+@media (max-width: 600px) {
+    .qc-run-label {
+        display: none;
+    }
+}
+.qc-query {
+    padding: 16px 18px 8px;
+    min-height: 92px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+.qc-kw {
+    color: $console-key;
+}
+.qc-comment {
+    color: #9fb0d6;
+}
+.qc-caret {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    margin-left: 1px;
+    background: $console-text;
+    vertical-align: -3px;
+    animation: qc-blink 1s steps(1) infinite;
+}
+@keyframes qc-blink {
+    50% {
+        opacity: 0;
+    }
+}
+.qc-progress {
+    height: 2px;
+    overflow: hidden;
+    position: relative;
+    i {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, $console-key, transparent);
+        transform: translateX(-100%);
+    }
+    &.is-on i {
+        animation: qc-scan 0.42s linear 1 forwards;
+    }
+}
+@keyframes qc-scan {
+    to {
+        transform: translateX(100%);
+    }
+}
+.qc-table {
+    width: 100%;
+    border-collapse: collapse;
+    th {
+        font-weight: 400;
+        color: #7d8db3;
+        text-align: left;
+        font-size: 11.5px;
+        padding: 8px 18px;
+        border-bottom: 1px solid $console-line;
+    }
+    td {
+        padding: 11px 18px;
+        border-bottom: 1px solid rgba($console-line, 0.55);
+        vertical-align: top;
+        transition: background-color 0.15s;
+    }
+    td[data-col="key"] {
+        color: $console-dim;
+        white-space: nowrap;
+    }
+    .qc-value {
+        color: $white;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .qc-note {
+        font-family: $font-family-secondary;
+        font-size: 13px;
+        color: #b4c1e0;
+        line-height: 1.45;
+    }
+    .qc-row--interactive:hover td,
+    .qc-row--lit td,
+    .qc-row--interactive:focus-within td,
+    .qc-row--interactive:focus td {
+        background: rgba($console-key, 0.09);
+    }
+    .qc-row--interactive:focus {
+        outline: 2px solid $console-key;
+        outline-offset: -2px;
+    }
+}
+@media (max-width: 600px) {
+    .qc-table th,
+    .qc-table td {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .qc-table th[data-col="key"],
+    .qc-table td[data-col="key"] {
+        display: none;
+    }
+}
+.qc-link {
+    font: inherit;
+    color: $console-key;
+    background: none;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba($console-key, 0.4);
+}
+// Motion 3: plain language drops the machine column and keeps the meaning.
+.qc--human th[data-col="key"],
+.qc--human td[data-col="key"] {
+    display: none;
+}
+.qc-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 38px;
+    padding: 10px 18px 14px;
+    font-size: 11.5px;
+    color: #7d8db3;
+    .qc-ok {
+        color: $success;
+    }
+}
+.qc-why {
+    font-family: $font-family-secondary;
+    font-size: 12.5px;
+    color: var(--pub-meta);
+    margin: 12px 0 0;
+    text-align: right;
+    @media (max-width: 920px) {
+        text-align: left;
+    }
+}
+// Motion 5 morph: only the card travels, the page itself does not cross-fade.
+::view-transition-group(case-card) {
+    animation-duration: 0.7s;
+    animation-timing-function: $ease-out;
+}
+::view-transition-old(root) {
+    animation: none;
+    opacity: 0;
+}
+::view-transition-new(root) {
+    animation: none;
+}
+
+// ============================================================ home: section banding
+// Home alternates two light tones and closes on one navy band (Contact), so the page ends on the
+// console's colour instead of zig-zagging: hero white · work white · writing $light · experience
+// white · testimonials $light · contact navy. A hairline marks each light-to-light change.
+.selected-work,
+.latest-writing,
+.home-experience,
+#testimonials {
+    border-top: 1px solid var(--app-border);
+}
+// The template's soft-primary tint (its "work" sections in the portfolio demos): visibly blue, still quiet.
+.latest-writing {
+    background: var(--app-primary-soft);
+}
+
+// The query behind a section, set under its title like a result footer in a SQL client.
+.section-query {
+    margin: -14px 0 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-family: $font-mono;
+    font-size: 12.5px;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+}
+.section-query-sql {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--pub-meta);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+}
+.section-query-result {
+    color: var(--pub-ml-ink);
+    white-space: nowrap;
+}
+
+// ------------------------------------------------------------ motion that explains something
+// All of it is opt-in to motion: nothing here runs under prefers-reduced-motion.
+@media (prefers-reduced-motion: no-preference) {
+    // Links that lead somewhere nudge their arrow toward it.
+    .link-arrow {
+        display: inline-block;
+        transition: transform 0.2s $ease-out;
+    }
+    a:hover > .link-arrow,
+    a:focus-visible > .link-arrow {
+        transform: translateX(3px);
+    }
+    // A cover leans in slightly when its card is the one being considered.
+    .cover-block {
+        transition: transform 0.35s $ease-out;
+    }
+    .case:hover .cover-block,
+    .case.lit .cover-block,
+    .writing-latest-link:hover .cover-block {
+        transform: scale(1.03);
+    }
+}
+
+// Experience rail fills with reading progress (scroll-driven, CSS only). Browsers without
+// scroll timelines keep the static grey rail; nothing is hidden behind the animation.
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .xp-item {
+            view-timeline-name: --xp-item;
+        }
+        // `.xp` prefix: the base rail rules sit later in this file and would otherwise win.
+        .xp .xp-item::before {
+            background: linear-gradient($primary, $primary) top / 100% 0% no-repeat, var(--app-border);
+            animation: xp-rail-fill linear both;
+            animation-timeline: --xp-item;
+            animation-range: cover 40% cover 65%; // fills as the role passes the middle of the screen
+        }
+        .xp .xp-item:not(.xp-item--current)::after {
+            animation: xp-ring-fill linear both;
+            animation-timeline: --xp-item;
+            animation-range: cover 38% cover 42%;
+        }
+    }
+}
+@keyframes xp-rail-fill {
+    to {
+        background-size: 100% 100%, auto;
+    }
+}
+@keyframes xp-ring-fill {
+    to {
+        background: $primary;
+    }
+}
+
+// Experience on Home: heading column sticks while the timeline scrolls.
+.xp-head {
+    @media (min-width: 992px) {
+        position: sticky;
+        top: 110px;
+    }
+    @media (max-width: 991px) {
+        margin-bottom: 8px;
+    }
+}
+
+// Testimonials: the quote is the content, so it reads at body size in ink, not muted grey.
+.testimonial-quote {
+    font-family: $font-family-secondary;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--pub-ink);
+}
+
+// ============================================================ selected work
+.selected-work-title {
+    font-size: clamp(30px, 4vw, 52px) !important; // beats the template's !important h2 size
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--pub-ink);
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 14px;
+}
+.selected-work-filter:empty {
+    display: none;
+}
+.cases {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 22px;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.case {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: opacity 0.25s $ease-out, filter 0.25s $ease-out, border-color 0.2s, box-shadow 0.25s $ease-out;
+    &:hover {
+        border-color: rgba($primary, 0.5);
+    }
+    &--featured {
+        grid-row: span 2;
+    }
+    .cover-block-frame {
+        border-radius: 0;
+    }
+    &.dim {
+        opacity: 0.35;
+        filter: grayscale(1);
+    }
+    &.lit {
+        border-color: var(--pub-accent);
+        box-shadow: 0 0 0 3px rgba($primary, 0.12);
+    }
+}
+.case-body {
+    padding: 20px 22px 22px;
+}
+.case-layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.case-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    a {
+        color: var(--pub-ink);
+    }
+}
+.case-summary {
+    font-family: $font-family-secondary;
+    font-size: 14.5px;
+    color: var(--pub-meta);
+    line-height: 1.55;
+    margin-bottom: 0;
+}
+.case-outcome {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--pub-line);
+    font-family: $font-mono;
+    font-size: 13px;
+    color: var(--pub-accent);
+    font-variant-numeric: tabular-nums;
+}
+
+// ============================================================ latest writing (articles B, small)
+.writing-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 32px;
+    @media (max-width: 920px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.writing-latest-link {
+    display: block;
+    color: inherit;
+    &:hover .writing-latest-title {
+        color: var(--pub-accent);
+    }
+}
+.writing-latest-title {
+    font-size: clamp(20px, 2.2vw, 26px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--pub-ink);
+    transition: color 0.2s;
+    text-wrap: balance;
+}
+.writing-excerpt {
+    font-family: $font-family-secondary;
+    color: var(--pub-meta);
+    line-height: 1.6;
+    max-width: 60ch;
+}
+.writing-earlier-item {
+    padding: 14px 0;
+    border-top: 1px solid var(--pub-line);
+}
+.writing-earlier-link {
+    font-weight: 600;
+    color: var(--pub-ink);
+    &:hover {
+        color: var(--pub-accent);
+    }
+}
+.writing-all {
+    display: inline-block;
+    margin-top: 14px;
+    font-weight: 600;
+    color: var(--pub-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-c-line > span {
+        animation: none;
+    }
+    .qc {
+        transform: none !important;
+    }
+    .qc-caret,
+    .qc-progress.is-on i {
+        animation: none;
+    }
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+.qc-tablist {
+    display: flex;
+    gap: 2px;
+}
+
+// ============================================================ experience (shared: home, CV)
+// A thin rail with a small ring per role, sitting in the gap between "when" and "what". The current
+// role is a filled ring. No glow, no animation: the rail is structure, not decoration.
+$xp-when: 170px;
+$xp-gap: 28px;
+$xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
+.xp-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: $xp-when minmax(0, 1fr);
+    gap: $xp-gap;
+    padding: 22px 0;
+    &:first-child {
+        padding-top: 0;
+    }
+    // the rail
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: $xp-rail;
+        width: 1px;
+        background: var(--app-border);
+    }
+    &:first-child::before {
+        top: 11px;
+    }
+    &:last-child::before {
+        bottom: calc(100% - 33px);
+    }
+    &:only-child::before {
+        display: none;
+    }
+    // the ring, level with the role title
+    &::after {
+        content: "";
+        position: absolute;
+        top: 29px;
+        left: $xp-rail - 4.5px;
+        width: 9px;
+        height: 9px;
+        box-sizing: border-box;
+        border: 2px solid $primary;
+        border-radius: 50%;
+        background: var(--pub-surface);
+    }
+    &:first-child::after {
+        top: 7px;
+    }
+    &--current::after {
+        background: $primary;
+    }
+    @media (max-width: 767px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+        padding-left: 26px;
+        &::before {
+            left: 4px;
+        }
+        &::after {
+            left: 0;
+        }
+    }
+}
+.xp-now {
+    color: var(--pub-ml-ink);
+}
+.xp-role {
+    font-size: 18px !important; // the template sizes every h3 with !important
+    font-weight: 700;
+    color: var(--pub-ink);
+    margin-bottom: 2px;
+}
+.xp-company {
+    font-family: $font-family-secondary;
+    color: var(--pub-accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+.xp-location {
+    color: var(--pub-meta);
+    font-weight: 400;
+}
+.xp-desc {
+    font-family: $font-family-secondary;
+    color: var(--pub-meta);
+    line-height: 1.65;
+    max-width: 68ch;
+    margin-bottom: 8px;
+}
+.xp-wins {
+    font-family: $font-family-secondary;
+    color: var(--pub-ink);
+    line-height: 1.6;
+    padding-left: 1.1em;
+    margin-bottom: 0;
+    max-width: 68ch;
+    li + li {
+        margin-top: 4px;
+    }
+}
+
+// The featured case study runs the full width, cover beside the story, so neither a stretched
+// cover nor an empty column fills the space; the other two sit side by side underneath.
+.cases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 920px) { grid-template-columns: minmax(0, 1fr); }
+}
+.case--featured {
+    grid-row: auto !important;
+    grid-column: 1 / -1;
+    @media (min-width: 921px) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        .cover-block-frame { aspect-ratio: auto !important; height: 100%; min-height: 300px; }
+        .case-body { display: flex; flex-direction: column; justify-content: center; padding: 28px 32px; }
+        .case-title { font-size: 26px !important; }
+    }
+}
+
+// ============================================================ inner pages: shared head
+.page-head {
+    padding: 150px 0 48px;
+    background: var(--pub-surface-alt);
+    @media (max-width: 991px) {
+        padding: 110px 0 36px;
+    }
+}
+.page-head-title {
+    font-size: clamp(32px, 4.6vw, 56px);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--pub-ink);
+    max-width: 22ch;
+    margin: 0;
+    text-wrap: balance;
+}
+.page-head-lede {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--pub-meta);
+    max-width: 60ch;
+    margin: 18px 0 0;
+}
+.layer-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+}
+.page-cta {
+    font-family: $font-family-secondary;
+    font-size: 18px;
+    color: var(--pub-ink);
+    margin: 0;
+    a {
+        font-weight: 600;
+        color: var(--pub-accent);
+    }
+}
+
+// ============================================================ project detail
+.project-outcome {
+    display: inline-block;
+    margin: 18px 0 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
+    font-family: $font-mono;
+    font-size: 15px;
+    color: var(--pub-accent);
+    font-variant-numeric: tabular-nums;
+}
+.project-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 48px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+}
+.project-facts {
+    position: sticky;
+    top: 100px;
+    @media (max-width: 991px) {
+        position: static;
+    }
+}
+.facts {
+    margin: 0;
+}
+.facts-row {
+    padding: 10px 0;
+    border-top: 1px solid var(--pub-line);
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+    dt {
+        font-weight: 400;
+        margin-bottom: 2px;
+    }
+    dd {
+        margin: 0;
+        color: var(--pub-ink);
+    }
+}
+.facts-tech {
+    font-family: $font-family-secondary;
+    color: var(--pub-ink);
+    line-height: 1.6;
+    margin: 0;
+}
+.facts-link {
+    font-weight: 600;
+    color: var(--pub-accent);
+}
+
+// ============================================================ writing: list (option B) + archive
+.writing-search {
+    display: flex;
+    gap: 8px;
+    max-width: 460px;
+    margin-top: 24px;
+    .form-control {
+        border-color: var(--pub-line);
+    }
+}
+.writing-earlier-head {
+    font-weight: 400;
+}
+.log-row {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid var(--pub-line);
+    @media (max-width: 767px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+        .log-time {
+            display: none;
+        }
+    }
+}
+.log-title {
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--pub-ink);
+    &:hover {
+        color: var(--pub-accent);
+    }
+}
+.log-excerpt {
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: var(--pub-meta);
+    line-height: 1.5;
+    margin: 4px 0 0;
+    max-width: 68ch;
+}
+a.layer-chip {
+    text-decoration: none;
+    &:hover {
+        background: mix($surface-soft, $primary, 85%);
+    }
+}
+a.layer-chip.layer-chip--active:hover {
+    background: $primary;
+}
+
+// ============================================================ article detail
+.article-title {
+    max-width: 24ch;
+}
+.article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 56px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+.article-aside {
+    position: sticky;
+    top: 100px;
+    @media (max-width: 991px) {
+        display: none;
+    }
+}
+.toc-link {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 1px solid var(--pub-line);
+    font-size: 14px;
+    color: var(--pub-meta);
+    transition: color 0.2s, border-color 0.2s;
+    &:hover {
+        color: var(--pub-accent);
+    }
+    &[aria-current="true"] {
+        color: var(--pub-accent);
+        font-weight: 600;
+        border-left-color: var(--pub-accent);
+    }
+}
+.toc-sub .toc-link {
+    padding-left: 24px;
+}
+// Code reads like the hero console.
+.reading-col pre {
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+}
+.reading-col :not(pre) > code {
+    font-family: $font-mono;
+    font-size: 0.9em;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.reading-col blockquote {
+    margin: 1.6em 0;
+    padding-left: 18px;
+    border-left: 1px solid $primary;
+    font-size: 19px;
+    color: var(--pub-ink);
+}
+
+// Headings used as list labels keep the meta size (template h2/h3 sizes would otherwise win).
+h2.mono-meta,
+h3.mono-meta {
+    font-size: 12px !important; // _bootstrap-custom sizes every heading with !important
+    font-weight: 400 !important; // the template forces 600 on every heading
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+// The template indents every list item after the first; these lists are aligned columns.
+.writing-earlier-item,
+.log-row,
+.xp-item,
+.toc li,
+.cv-item,
+.cv-proof li,
+.project-facts li {
+    margin-inline-start: 0;
+}
+
+// ============================================================ about
+.about-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 56px;
+    align-items: end;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+}
+.about-now {
+    max-width: 520px;
+    .facts-row {
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 12px;
+        align-items: baseline;
+    }
+}
+.about-portrait {
+    max-width: 280px;
+    img {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+}
+.about-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 40px;
+    }
+}
+.about-layer {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+    dd {
+        margin: 0;
+    }
+}
+
+// ============================================================ cv: one sheet, screen and print
+.cv-page {
+    padding: 120px 0 72px;
+    background: var(--pub-surface-alt);
+    @media (max-width: 991px) {
+        padding: 96px 0 48px;
+    }
+}
+.cv-actions {
+    max-width: 880px;
+    margin: 0 auto 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.cv-sheet {
+    max-width: 880px;
+    margin: 0 auto;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
+    border-radius: 12px;
+    padding: 48px 56px;
+    @media (max-width: 767px) {
+        padding: 28px 20px;
+    }
+}
+.cv-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--pub-line);
+}
+.cv-name {
+    font-size: 32px !important; // the template sizes every h1 with !important
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--pub-ink);
+    margin: 0;
+}
+.cv-headline {
+    font-family: $font-family-secondary;
+    color: var(--pub-meta);
+    margin: 8px 0 0;
+}
+.cv-contact {
+    margin: 0;
+    font-family: $font-mono;
+    font-size: 13px;
+    line-height: 1.9;
+    div {
+        display: flex;
+        gap: 12px;
+    }
+    dt {
+        width: 72px;
+        flex: none;
+        font-size: 13px;
+    }
+    dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    a {
+        color: var(--pub-accent);
+    }
+}
+.cv-summary {
+    font-family: $font-family-secondary;
+    color: var(--pub-ink);
+    line-height: 1.7;
+    margin: 24px 0 0;
+    white-space: pre-line;
+}
+.cv-section {
+    margin-top: 36px;
+}
+.cv-label {
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--pub-line);
+}
+.cv-proof {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 20px;
+    li {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+.cv-proof-value {
+    font-family: $font-mono;
+    font-size: 22px;
+    color: var(--pub-accent);
+    font-variant-numeric: tabular-nums;
+}
+.cv-proof-note {
+    font-family: $font-family-secondary;
+    font-size: 14px;
+    color: var(--pub-meta);
+    line-height: 1.45;
+}
+.cv-item {
+    padding: 12px 0;
+    border-top: 1px solid var(--pub-line);
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+}
+.cv-item-title {
+    font-weight: 600;
+    color: var(--pub-ink);
+    margin: 0;
+    a {
+        color: var(--pub-ink);
+    }
+}
+.cv-item-meta {
+    font-weight: 400;
+    color: var(--pub-meta);
+}
+.cv-item-text {
+    font-family: $font-family-secondary;
+    font-size: 15px;
+    color: var(--pub-meta);
+    line-height: 1.6;
+    margin: 4px 0 6px;
+}
+
+@media print {
+    #topnav,
+    .footer-bar,
+    .back-to-top,
+    .cv-actions,
+    .skip-link {
+        display: none !important;
+    }
+    body {
+        background: var(--pub-surface);
+    }
+    .cv-page {
+        padding: 0;
+        background: var(--pub-surface);
+    }
+    .cv-sheet {
+        border: 0;
+        padding: 0;
+        max-width: none;
+    }
+    .cv-section,
+    .xp-item,
+    .cv-item {
+        break-inside: avoid;
+    }
+    a {
+        text-decoration: none;
+    }
+}
+
+// ============================================================ contact
+.contact-page .section {
+    padding-top: 150px;
+    @media (max-width: 991px) {
+        padding-top: 110px;
+    }
+}
+.contact-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 64px;
+    align-items: start;
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 36px;
+    }
+}
+.contact-title {
+    font-size: clamp(28px, 3.4vw, 42px) !important; // beats the template's !important heading sizes
+    font-weight: 800 !important;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--pub-ink);
+    max-width: 18ch;
+    margin: 0;
+    text-wrap: balance;
+}
+.contact-lede {
+    font-family: $font-family-secondary;
+    font-size: 17px;
+    color: var(--pub-meta);
+    margin: 16px 0 0;
+}
+.contact-rows {
+    margin: 28px 0 0;
+    font-family: $font-mono;
+    font-size: 14px;
+    line-height: 2;
+    div {
+        display: flex;
+        gap: 16px;
+    }
+    dt {
+        width: 84px;
+        flex: none;
+        font-weight: 400;
+        color: var(--pub-meta);
+    }
+    dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    a {
+        color: var(--pub-accent);
+    }
+}
+.contact-open {
+    color: var(--pub-ml-ink);
+}
+// "copy" beside the email: a mono word, not an icon button, so it reads like the rows around it.
+.contact-copy {
+    margin-left: 6px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    background: none;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--pub-meta);
+    cursor: pointer;
+    &:hover,
+    &:focus-visible {
+        color: var(--pub-accent);
+    }
+}
+.contact-dark .contact-copy {
+    color: $console-dim;
+    &:hover,
+    &:focus-visible {
+        color: $console-key;
+    }
+}
+.contact-form-card {
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
+    border-radius: 12px;
+    padding: 28px;
+    @media (max-width: 767px) {
+        padding: 20px;
+    }
+}
+
+// Dark variant (Home only): the closing band reuses the console's navy. The form card stays white on
+// purpose, so inputs, labels and validation colours keep the contrast they were built for.
+.contact-dark {
+    border-bottom: 1px solid $console-line; // the footer is dark too; keep the two bands distinct
+    // Console navy easing toward the brand blue, like the template's closing CTA band but without a photo.
+    // The lightest stop is still dark enough that the dim text below keeps ≥ 4.5:1.
+    background: linear-gradient(160deg, $console-bg 0%, mix($console-bg, $primary, 75%) 100%);
+    .contact-title {
+        color: $white;
+    }
+    .contact-lede,
+    .contact-rows dt {
+        color: $console-dim;
+    }
+    .contact-rows dd {
+        color: $console-text;
+    }
+    .contact-rows a {
+        color: $console-key;
+    }
+    .contact-open {
+        color: $success;
+    }
+}
+
+// ============================================================ privacy, 404
+.privacy-h {
+    font-size: 20px !important;
+    margin: 32px 0 8px;
+    color: var(--pub-ink);
+}
+.page-head--tall {
+    padding-bottom: 120px;
+}
+
+// The template's .btn-sm is 10px; public controls stay at a readable 12px (the workspace keeps its own).
+#topnav .btn-sm,
+[aria-label="Share this page"] .btn-sm,
+[aria-label="Share this page"] > span {
+    font-size: 12px;
+}
+.cv-summary,
+.cv-item-text {
+    max-width: 62ch; // ch is the width of "0"; prose averages narrower, so this lands near 75 characters
+}
+
+// Hero backdrop: the stack drawn as an embedding space (EmbeddingCloud). Decorative and behind the
+// copy; the edges fade so it never meets a hard border.
+.hero-c {
+    position: relative;
+    overflow: hidden;
+    > .container { position: relative; z-index: 1; }
+}
+.hero-cloud {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    animation: hero-cloud-in 1.2s 0.3s $ease-out forwards;
+}
+@keyframes hero-cloud-in { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .hero-cloud { animation: none; opacity: 1; }
+}
+
+// Page transitions (ViewTransitionLinks): shared covers and titles glide; the rest of the page
+// cross-fades quickly so the motion stays on what you clicked.
+::view-transition-group(*) {
+    animation-duration: 0.42s;
+    animation-timing-function: $ease-out;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.22s;
+}
+
+// ============================================================ project pipeline (SelectedWork)
+.pipe {
+    position: relative;
+    margin: 2px 0 14px;
+    --pipe-dot: 9px;
+}
+.pipe-track {
+    position: absolute;
+    left: calc(var(--pipe-dot) / 2);
+    right: calc(var(--pipe-dot) / 2);
+    top: calc(var(--pipe-dot) / 2 - 1px);
+    height: 2px;
+    background: var(--pub-line);
+    overflow: hidden;
+}
+// A pulse runs along the line while the card is pointed at: data flowing through the layers.
+.pipe-flow {
+    position: absolute;
+    top: 0;
+    left: -30%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba($primary, 0.9), transparent);
+    opacity: 0;
+}
+.case:hover .pipe-flow,
+.case:focus-within .pipe-flow {
+    opacity: 1;
+    animation: pipe-flow 1.4s linear infinite;
+}
+@keyframes pipe-flow { to { left: 100%; } }
+.pipe-nodes {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.pipe-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    flex: 1 1 0;
+    &:first-child { align-items: flex-start; }
+    &:last-child { align-items: flex-end; }
+}
+.pipe-dot {
+    width: var(--pipe-dot);
+    height: var(--pipe-dot);
+    border-radius: 50%;
+    background: var(--pub-surface);
+    border: 2px solid var(--pub-dot);
+    transition: transform 0.25s $ease-out;
+}
+.pipe-name {
+    font-family: $font-mono;
+    font-size: 11px;
+    color: var(--pub-meta);
+    line-height: 1;
+}
+.pipe-node.is-on {
+    .pipe-dot { background: $primary; border-color: var(--pub-accent); box-shadow: 0 0 0 3px rgba($primary, 0.14); }
+    .pipe-name { color: var(--pub-accent); font-weight: 600; }
+}
+.pipe-node--ml.is-on {
+    .pipe-dot { background: var(--pub-ml-ink); border-color: var(--pub-ml-ink); box-shadow: 0 0 0 3px rgba($ml-ink, 0.14); }
+    .pipe-name { color: var(--pub-ml-ink); }
+}
+.case:hover .pipe-node.is-on .pipe-dot { transform: scale(1.25); }
+.pipe-tools {
+    font-family: $font-family-secondary;
+    font-size: 12.5px;
+    color: var(--pub-meta);
+    text-align: center;
+    line-height: 1.35;
+    max-width: 14ch;
+}
+.pipe-node:first-child .pipe-tools { text-align: left; }
+.pipe-node:last-child .pipe-tools { text-align: right; }
+.pipe--lg {
+    --pipe-dot: 12px;
+    padding: 16px 0 6px;
+    .pipe-name { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .case:hover .pipe-flow { animation: none; opacity: 0; }
+}
+
+// ============================================================ experience as git log (home)
+.glog {
+    position: relative;
+    padding-left: 30px;
+    // The branch line, drawn as the section scrolls into view where supported.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 6px;
+        bottom: 6px;
+        width: 2px;
+        background: linear-gradient($primary, rgba($primary, 0.15));
+        transform-origin: top;
+    }
+}
+@supports (animation-timeline: view()) {
+    .glog::before {
+        animation: glog-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 55%;
+    }
+}
+@keyframes glog-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.glog-commit {
+    position: relative;
+    padding-bottom: 34px;
+    &:last-child { padding-bottom: 0; }
+}
+.glog-node {
+    position: absolute;
+    left: -30px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--pub-surface);
+    border: 3px solid $primary;
+}
+.glog-commit.is-head .glog-node {
+    background: $primary;
+    box-shadow: 0 0 0 0 rgba($primary, 0.45);
+    animation: glog-pulse 2.2s $ease-out infinite;
+}
+@keyframes glog-pulse { 70% { box-shadow: 0 0 0 10px rgba($primary, 0); } 100% { box-shadow: 0 0 0 0 rgba($primary, 0); } }
+.glog-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.glog-hash { color: #8a5a10; } // amber, as git prints hashes; 5:1 on white
+.glog-ref {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba($primary, 0.1);
+    color: var(--pub-accent);
+    font-weight: 600;
+}
+.glog-role {
+    font-size: 20px !important; // the template sizes h3 with !important
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: var(--pub-ink);
+}
+.glog-at { font-weight: 500; color: var(--pub-accent); font-size: 17px; }
+.glog-meta { font-size: 13.5px; color: var(--pub-meta); margin-bottom: 6px; }
+.glog-desc { font-family: $font-family-secondary; font-size: 15px; color: var(--pub-meta); margin-bottom: 8px; max-width: 64ch; }
+.glog-diff {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+    border-radius: 8px;
+    background: var(--pub-ml-soft);
+    max-width: 68ch;
+    li {
+        font-family: $font-family-secondary;
+        font-size: 14.5px;
+        color: var(--pub-ink);
+        padding: 2px 12px 2px 26px;
+        text-indent: -14px; // wrapped lines line up with the text, not under the "+"
+        span { font-family: $font-mono; color: var(--pub-ml-ink); font-weight: 700; }
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .glog-commit.is-head .glog-node { animation: none; }
+}
+
+// ============================================================ testimonials as review approvals
+.review-count {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+.reviews {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 18px;
+}
+.review {
+    margin: 0;
+    background: var(--pub-surface);
+    border: 1px solid var(--pub-line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.review-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    background: var(--pub-soft);
+    border-bottom: 1px solid var(--pub-line);
+}
+.review-avatar {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: $primary;
+    color: $white;
+    font-size: 13px;
+    font-weight: 700;
+}
+.review-who { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.review-name { font-weight: 700; color: var(--pub-ink); font-size: 14.5px; }
+.review-role { font-size: 12.5px; color: var(--pub-meta); }
+.review-badge {
+    margin-left: auto;
+    flex: none;
+    font-family: $font-mono;
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: var(--pub-ml-ink);
+    background: var(--pub-ml-soft);
+    border: 1px solid rgba($ml-ink, 0.25);
+}
+.review-body {
+    margin: 0;
+    padding: 18px 20px 20px;
+    flex: 1 1 auto;
+}
+.review-source { padding: 0 20px 16px; }
+
+// ============================================================ contact: the message as an INSERT
+.cf-sql {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: $console-bg;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.cf-sql-kw { color: $console-key; }
+.cf-sql-str { color: #9fe0c6; }
+.cf-sql-empty { color: $console-dim; }
+.cf-sql-ok {
+    font-family: $font-mono;
+    font-size: 13px;
+    color: var(--pub-ml-ink);
+}
+
+// ============================================================ the page as a query plan (wide screens)
+.qplan {
+    position: fixed;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: none;
+    font-family: $font-mono;
+    font-size: 11px;
+    padding: 10px 10px 10px 8px;
+    border-radius: 10px;
+    @media (min-width: 1400px) { display: block; }
+    // Collapsed to a column of dots; the labels show while you point at it or tab through it.
+    .qplan-head, .qplan-op { opacity: 0; transition: opacity 0.2s $ease-out; white-space: nowrap; }
+    &:hover, &:focus-within {
+        background: rgba($white, 0.95);
+        box-shadow: 0 8px 30px rgba($dark, 0.12);
+        .qplan-head, .qplan-op { opacity: 1; }
+    }
+    li { margin: 2px 0; }
+    a { display: flex; align-items: center; gap: 8px; color: var(--pub-meta); text-decoration: none; padding: 3px 4px; }
+    li.is-on a { color: var(--pub-accent); font-weight: 600; }
+}
+.qplan-head { margin: 0 0 6px 4px; color: var(--pub-meta); letter-spacing: 0.08em; }
+.qplan-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--pub-dot);
+    transition: transform 0.2s $ease-out, background 0.2s;
+}
+.qplan li.is-on .qplan-dot { background: $primary; transform: scale(1.5); box-shadow: 0 0 0 3px rgba($primary, 0.15); }
+
+// ============================================================ public terminal (cmdk in DialogShell)
+.term-trigger, .theme-toggle, .lang-switch {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: var(--pub-meta);
+    background: var(--pub-soft);
+    border: 1px solid var(--pub-line);
+    &:hover, &:focus-visible { color: var(--pub-accent); border-color: rgba($primary, 0.4); }
+}
+.me-dialog-panel.term-panel {
+    background: $console-bg;
+    color: $console-text;
+    border: 1px solid $console-line;
+    margin-top: 12vh;
+    align-self: flex-start;
+    h2 { font-family: $font-mono; font-size: 12px !important; font-weight: 400; color: $console-dim; }
+    .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }
+}
+.term-prompt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 2px 12px;
+    border-bottom: 1px solid $console-line;
+    font-family: $font-mono;
+    color: #9fe0c6;
+}
+.term-input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: $white;
+    font-family: $font-mono;
+    font-size: 15px;
+    &::placeholder { color: $console-dim; }
+}
+.term-list {
+    max-height: min(52vh, 420px);
+    overflow-y: auto;
+    margin-top: 8px;
+    [cmdk-group-heading] {
+        font-family: $font-mono;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: $console-dim;
+        padding: 10px 6px 4px;
+        text-transform: uppercase;
+    }
+}
+.term-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-family: $font-mono;
+    font-size: 13px;
+    cursor: pointer;
+    &[data-selected="true"] { background: rgba($console-key, 0.16); .term-cmd { color: $white; } }
+}
+.term-cmd { color: $console-key; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.term-note { color: $console-dim; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; min-width: 0; }
+.term-empty { padding: 14px 8px; font-family: $font-mono; font-size: 13px; color: $console-dim; }
+.term-foot { margin: 10px 0 0; font-family: $font-mono; font-size: 11px; color: $console-dim; }
+
+// ============================================================ /proof
+.proof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin: 0 0 48px;
+}
+.proof-tile {
+    padding: 18px 20px;
+    border: 1px solid var(--pub-line);
+    border-radius: 12px;
+    background: var(--pub-surface);
+    &.is-ok .proof-value { color: var(--pub-ml-ink); }
+    &.is-bad { border-color: rgba($danger, 0.5); .proof-value { color: #b02020; } }
+}
+.proof-label {
+    font-family: $font-mono;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--pub-meta);
+    margin-bottom: 6px;
+}
+.proof-value {
+    font-family: $font-mono;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--pub-ink);
+    margin: 0 0 8px;
+    font-variant-numeric: tabular-nums;
+}
+.proof-note {
+    font-family: $font-family-secondary;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--pub-meta);
+    margin: 0;
+    code { font-family: $font-mono; font-size: 12px; color: var(--pub-ink); background: var(--pub-soft); padding: 1px 5px; border-radius: 4px; }
+}
+.proof-h {
+    font-size: 22px !important;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+.proof-table {
+    width: 100%;
+    max-width: 560px;
+    font-family: $font-mono;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 48px;
+    th, td { padding: 7px 10px; border-bottom: 1px solid var(--pub-line); }
+    thead th { font-weight: 400; color: var(--pub-meta); }
+    tbody th { font-weight: 500; color: var(--pub-ink); }
+}
+.proof-notes {
+    max-width: 68ch;
+    padding-left: 18px;
+    font-family: $font-family-secondary;
+    font-size: 15px;
+    color: var(--pub-meta);
+    li + li { margin-top: 6px; }
+}
+
+// ============================================================ live SQL console (LiveConsole)
+.hero-c-live {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: $font-mono;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pub-accent);
+    text-align: left;
+    &:hover { text-decoration: underline; }
+}
+.hero-c-live-note { font-weight: 400; color: var(--pub-meta); }
+.hero-c-live + .hero-c-plain { margin-top: 12px; }
+.qc--live { transform: none !important; }
+.qc-conn .qc-exit { cursor: pointer; background: transparent; font: inherit; color: $console-text; white-space: nowrap; flex: none; &:hover { color: $white; border-color: $console-dim; } }
+.qc--live .qc-host { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qc--live .qc-tab[aria-pressed="true"] { color: $white; border-bottom-color: $console-key; }
+.qc-editor {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    border: 0;
+    resize: vertical;
+    background: transparent;
+    color: $console-text;
+    font-family: $font-mono;
+    font-size: 13px;
+    line-height: 1.6;
+    &:focus-visible { outline: 2px solid $console-key !important; outline-offset: -2px !important; }
+}
+.qc-live-out { min-height: 150px; }
+.qc-live-scroll { max-height: 300px; overflow: auto; }
+.qc-live-note { margin: 0; padding: 16px 18px; font-family: $font-family-secondary; font-size: 14px; color: $console-dim; }
+.qc-live-error, .qc-live-plan {
+    margin: 0;
+    padding: 14px 18px;
+    font-family: $font-mono;
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: $console-text;
+    max-height: 300px;
+    overflow: auto;
+}
+.qc-live-error { color: #ff9d9d; }
+.qc-null { color: $console-dim; font-style: italic; }
+.qc-bar {
+    position: relative;
+    display: block;
+    padding-left: 6px;
+    i { position: absolute; inset: 1px auto 1px 0; background: rgba($console-key, 0.28); border-radius: 2px; }
+}
+
+// ============================================================ /match (JdMatcher)
+.jd-label { font-family: $font-mono; font-size: 12px; color: var(--pub-meta); margin-bottom: 6px; display: block; }
+.jd-text { font-size: 14.5px; line-height: 1.55; max-width: 860px; }
+.jd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.jd-privacy { font-size: 13px; color: var(--pub-meta); margin: 8px 0 0; }
+.jd-results { margin-top: 40px; max-width: 980px; }
+.jd-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--pub-line);
+}
+.jd-summary-title { font-size: 22px !important; font-weight: 700; margin: 0; }
+.jd-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+.jd-size { font-weight: 400; color: var(--pub-meta); margin-left: 4px; }
+.jd-loading, .jd-on { font-family: $font-mono; font-size: 12px; color: var(--pub-meta); }
+.jd-on { color: var(--pub-ml-ink); }
+.jd-failed { font-size: 13px; color: #b02020; }
+.jd-list { list-style: none; padding: 0; margin: 0; counter-reset: req; }
+.jd-req {
+    padding: 16px 0 16px 34px;
+    border-bottom: 1px solid var(--pub-line);
+    position: relative;
+    counter-increment: req;
+    &::before {
+        content: counter(req);
+        position: absolute;
+        left: 0;
+        top: 17px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--pub-ml-soft);
+        color: var(--pub-ml-ink);
+        font-family: $font-mono;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    &.is-gap::before { background: var(--pub-line); color: var(--pub-meta); }
+}
+.jd-req-text { font-weight: 600; color: var(--pub-ink); margin: 0 0 8px; }
+.jd-evidence {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 10px;
+        padding: 4px 0;
+        font-size: 14.5px;
+    }
+}
+.jd-kind {
+    font-family: $font-mono;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--pub-soft);
+    color: var(--pub-accent);
+    flex: none;
+}
+.jd-kind--achievement { background: var(--pub-ml-soft); color: var(--pub-ml-ink); }
+.jd-ev-link { font-weight: 600; }
+.jd-ev-text { color: var(--pub-meta); flex-basis: 100%; padding-left: 2px; }
+.jd-score { margin-left: auto; font-family: $font-mono; font-size: 12px; color: var(--pub-meta); }
+.jd-gap { margin: 0; font-size: 14px; color: var(--pub-meta); font-style: italic; }
+.jd-note { color: var(--pub-meta); }
+.hero-c-match { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 600; }
+
+// Printing the match gives a recruiter a one-page summary: the results only.
+@media print {
+    #topnav, footer, .jd-input, .jd-tools, .page-head .path-label, .qplan, .back-to-top { display: none !important; }
+    .page-head { padding: 0 0 12px !important; background: none !important; }
+    .section { padding: 0 !important; }
+    .jd-results { margin-top: 0; }
+    .jd-req { break-inside: avoid; }
+}
+
+// ============================================================ offline
+.saved-pages { padding-left: 1.1rem; }
+.saved-pages li { margin-bottom: 8px; }
+.saved-pages .mono-meta { margin-left: 6px; }
+
+// ============================================================ role-tailored home (/for/<role>)
+.role-note {
+    margin: 10px 0 28px;
+    padding: 10px 14px;
+    border: 1px solid var(--pub-line);
+    background: var(--pub-soft);
+    color: var(--pub-ink);
+    font-size: 14px;
+    border-radius: 6px;
+    strong { font-weight: 600; }
+    a { color: var(--pub-accent); text-decoration: underline !important; }
+}
+
+// ============================================================ career scrubber (hero)
+.career {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 220px) auto;
+    justify-content: start;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-family: $font-mono;
+    font-size: 12px;
+    color: var(--pub-meta);
+}
+.career-label { color: var(--pub-accent); }
+.career-range { width: 100%; accent-color: $primary; }
+[data-theme="dark"] .career-range { accent-color: var(--pub-accent); }
+.career-caption {
+    grid-column: 1 / -1;
+    margin: 0;
+    min-height: 1.6em; // the caption changes length; the hero must not jump
+    strong { color: var(--pub-ink); font-weight: 600; margin-right: 6px; }
+}
+
+// ============================================================ /architecture
+.arch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+    margin-bottom: 28px;
+}
+.arch-total { margin: 0; max-width: 62ch; }
+.arch-path {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px;
+    @media (max-width: 767px) { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
+.arch-stop {
+    position: relative;
+    margin: 0 !important;
+    // The wire to the next stop.
+    &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -28px;
+        width: 28px;
+        height: 2px;
+        background: var(--pub-line);
+        transition: background-color 0.2s;
+        @media (max-width: 767px) { top: auto; bottom: -18px; right: auto; left: 24px; width: 2px; height: 18px; }
+    }
+    &.is-active::after { background: $primary; }
+}
+.arch-node {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    padding: 14px 16px;
+    border: 1px solid var(--pub-line);
+    border-radius: 8px;
+    background: var(--pub-surface);
+    color: var(--pub-ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:hover, &:focus-visible, &[aria-expanded="true"] { border-color: $primary; }
+    .is-active & { border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.18); }
+    .is-failed & { border-color: $danger; }
+}
+.arch-name { font-weight: 600; }
+.arch-ms { color: var(--pub-accent); }
+.arch-detail {
+    margin-top: 28px;
+    padding: 20px 22px;
+    border: 1px solid var(--pub-line);
+    border-radius: 8px;
+    background: var(--pub-surface-alt);
+}
+.arch-detail-title { font-size: 18px !important; margin: 0 0 8px; }
+.arch-decision { max-width: 72ch; color: var(--pub-ink); }
+.arch-code {
+    margin: 16px 0 0;
+    pre {
+        margin: 0;
+        padding: 14px 16px;
+        border-radius: 6px;
+        background: $console-bg;
+        color: $console-text;
+        font-family: $font-mono;
+        font-size: 13px;
+        overflow-x: auto;
+    }
+    figcaption { margin-top: 6px; }
+}
+.arch-foot { margin-top: 32px; color: var(--pub-meta); a { text-decoration: underline !important; } }
+@media (prefers-reduced-motion: reduce) {
+    .arch-node, .arch-stop::after { transition: none; }
+}
+.proof-notes a { text-decoration: underline !important; } // links inside prose must not rely on colour alone
+
+// The header carries six links and five controls (socials, language, theme, terminal, CV); the
+// template's 40px per link pushed the last one onto a second row, worse with Indonesian labels.
+@media (min-width: 992px) {
+    #topnav .navigation-menu.personal-menu > li { margin: 0 2px; }
+    #topnav .navigation-menu.personal-menu > li > a { padding-left: 9px; padding-right: 9px; }
+}
+// On the narrowest phones a long name beside the theme switch and the menu button wrapped the header.
+@media (max-width: 400px) {
+    #topnav .logo .h5 { font-size: 15px !important; }
+}

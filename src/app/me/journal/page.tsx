@@ -79,7 +79,12 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
                   )}
                 </div>
               )}
-              <JournalList entries={o.list} filtered={filtered} tagHref={(t) => link({ tag: t })} />
+              <JournalList
+                entries={o.list}
+                filtered={filtered}
+                // Plain strings, not a function: the list is a client component and props must serialise.
+                tagHrefs={Object.fromEntries(Array.from(new Set(o.list.flatMap((e) => e.tags)), (t) => [t, link({ tag: t })]))}
+              />
               {o.listTruncated && (
                 <div className="text-center mt-3">
                   <Link href={link({ limit: String(limit + 30) })} className="btn btn-sm btn-outline-primary">

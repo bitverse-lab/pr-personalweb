@@ -1,5 +1,6 @@
 "use client";
 
+import { addDaysTo } from "@/features/tasks/dates";
 import { useMemo, useState } from "react";
 import { heatSteps as HEAT_STEPS } from "@/lib/chart-theme";
 
@@ -15,15 +16,11 @@ function colorForCount(count: number, max: number): string {
   return HEAT_STEPS[Math.max(1, bucket)];
 }
 
-function buildDays(activity: ActivityPoint[]): { date: string; count: number }[] {
+function buildDays(activity: ActivityPoint[], today: string): { date: string; count: number }[] {
   const countByDay = new Map(activity.map((point) => [point.day, point.count]));
   const days: { date: string; count: number }[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   for (let i = 89; i >= 0; i--) {
-    const date = new Date(today.getTime() - i * 86400000);
-    const key = date.toISOString().slice(0, 10);
+    const key = addDaysTo(today, -i);
     days.push({ date: key, count: countByDay.get(key) ?? 0 });
   }
   return days;
@@ -35,7 +32,7 @@ function toWeeks(days: { date: string; count: number }[]): ({ date: string; coun
   const weeks: ({ date: string; count: number } | null)[][] = [];
   let currentWeek: ({ date: string; count: number } | null)[] = [];
 
-  const firstDow = new Date(days[0].date).getDay();
+  const firstDow = new Date(`${days[0].date}T00:00:00Z`).getUTCDay();
   for (let i = 0; i < firstDow; i++) currentWeek.push(null);
 
   for (const day of days) {
@@ -52,9 +49,9 @@ function toWeeks(days: { date: string; count: number }[]): ({ date: string; coun
   return weeks;
 }
 
-export default function ProductivityHeatmap({ activity }: { activity: ActivityPoint[] }) {
+export default function ProductivityHeatmap({ activity, today }: { activity: ActivityPoint[]; today: string }) {
   const [showTable, setShowTable] = useState(false);
-  const days = useMemo(() => buildDays(activity), [activity]);
+  const days = useMemo(() => buildDays(activity, today), [activity, today]);
   const weeks = useMemo(() => toWeeks(days), [days]);
   const max = useMemo(() => Math.max(1, ...days.map((day) => day.count)), [days]);
   const activeDays = days.filter((day) => day.count > 0);

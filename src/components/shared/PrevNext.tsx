@@ -7,10 +7,10 @@ export interface Neighbour {
 }
 
 // Older / newer neighbours of the current item, shown at the end of an article or project.
-export default function PrevNext({ prev, next, prevLabel = "Previous", nextLabel = "Next" }: { prev: Neighbour | null; next: Neighbour | null; prevLabel?: string; nextLabel?: string }) {
+export default function PrevNext({ prev, next, prevLabel = "Previous", nextLabel = "Next", aria = "More to read" }: { prev: Neighbour | null; next: Neighbour | null; prevLabel?: string; nextLabel?: string; aria?: string }) {
   if (!prev && !next) return null;
   return (
-    <nav aria-label="More to read" className="row g-3 mt-4">
+    <nav aria-label={aria} className="row g-3 mt-4">
       <div className="col-md-6">
         {prev && (
           <Link href={prev.href} className="card border-0 shadow rounded h-100 text-decoration-none">

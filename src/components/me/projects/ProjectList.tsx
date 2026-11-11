@@ -7,8 +7,10 @@ import { deleteProject, reorderProjects, restoreProject, setProjectFeatured, set
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
+import TranslationBadge from "@/components/me/TranslationBadge";
 import ArticleStatusBadge from "@/components/me/content/ArticleStatusBadge";
 import type { ProjectListItem } from "@/server/services/project-service";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 export default function ProjectList({ items, filtered }: { items: ProjectListItem[]; filtered: boolean }) {
   const [list, setList] = useState(items);
@@ -73,7 +75,7 @@ export default function ProjectList({ items, filtered }: { items: ProjectListIte
 
   return (
     <>
-      <ul className="list-unstyled mb-0">
+      <AnimatedList as="ul" className="list-unstyled mb-0">
         {list.map((p, i) => (
           <li key={p.id} className="d-flex align-items-center gap-3 py-3 border-top">
             <Link href={`/me/projects/${p.id}`} className="flex-shrink-0" aria-label={`Edit ${p.title || "untitled project"}`}>
@@ -90,6 +92,7 @@ export default function ProjectList({ items, filtered }: { items: ProjectListIte
               <div className="d-flex flex-wrap align-items-center gap-2">
                 <strong className="text-truncate">{p.title || "Untitled project"}</strong>
                 <ArticleStatusBadge status={p.status} />
+                <TranslationBadge translations={p.translations} fields={["title", "summary", "outcome"]} />
                 {p.category && <span className="badge bg-light text-dark">{p.category}</span>}
               </div>
               {p.summary && <div className="text-muted small text-truncate">{p.summary}</div>}
@@ -117,7 +120,7 @@ export default function ProjectList({ items, filtered }: { items: ProjectListIte
             </div>
           </li>
         ))}
-      </ul>
+      </AnimatedList>
       {target && (
         <ConfirmDialog
           title="Delete project?"

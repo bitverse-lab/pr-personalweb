@@ -62,8 +62,10 @@ Thumbs.db
 .playwright-mcp/
 .serena/
 .impeccable/
+.superpowers/
 
 # Proof workflow inputs (scripts/proof/collect.mjs)
 vitest.json
+outdated.json
 e2e-list.txt
 build.txt

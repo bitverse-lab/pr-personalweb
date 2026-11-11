@@ -45,6 +45,17 @@ test.describe("on a phone", () => {
   });
 });
 
+test("navigation uses Work and Writing labels", async ({ page }) => {
+  needsSeed();
+  // needs published projects and articles (pnpm db:seed) so both items are shown
+  await page.goto("/");
+  const nav = page.locator("#navigation");
+  await expect(nav.getByRole("link", { name: "Work", exact: true })).toHaveAttribute("href", "/projects");
+  await expect(nav.getByRole("link", { name: "Writing", exact: true })).toHaveAttribute("href", "/articles");
+  await expect(nav.getByRole("link", { name: "Projects", exact: true })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Articles", exact: true })).toHaveCount(0);
+});
+
 test("page titles name the site once", async ({ page }) => {
   needsSeed();
   for (const path of ["/about", "/cv", "/projects", "/contact", "/login", "/this-page-does-not-exist"]) {
@@ -63,11 +74,19 @@ test("page titles name the site once", async ({ page }) => {
 test("a portrait that fails to load shows initials, not a broken image", async ({ page }) => {
   needsSeed();
   await page.route(/\/storage\/v1\/object\/public\//, (route) => route.abort());
-  await page.goto("/", { waitUntil: "load" });
+  await page.goto("/about", { waitUntil: "load" }); // hero C has no portrait; About carries the photo
   await page.waitForTimeout(500);
   const broken = await page.evaluate(() => Array.from(document.images).filter((i) => i.complete && i.naturalWidth === 0 && i.getBoundingClientRect().width > 0 && getComputedStyle(i).display !== "none").map((i) => i.alt));
   expect(broken).toEqual([]);
   await expect(page.getByRole("img", { name: /^Portrait of / }).first()).toBeVisible();
+});
+
+test("no page requests the template's stock photos as covers", async ({ page }) => {
+  // the seed has an archived/draft project and a draft article without covers, and published ones with covers
+  const stock: string[] = [];
+  page.on("request", (r) => { if (/\/images\/(blog|portfolio)\//.test(r.url())) stock.push(r.url()); });
+  for (const path of ["/", "/projects", "/articles"]) await page.goto(path, { waitUntil: "load" });
+  expect(stock).toEqual([]);
 });
 
 test("the projects hero does not use the template's stock photo", async ({ page }) => {

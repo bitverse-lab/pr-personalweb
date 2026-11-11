@@ -5,6 +5,7 @@ import type {
   educations,
   experiences,
   media,
+  profileHighlights,
   projectLinks,
   projectMedia,
   projects,
@@ -25,7 +26,7 @@ export interface MediaSeed {
   png: { width: number; height: number; seed: number };
 }
 
-export type PositionKey = "experience" | "education" | "skill" | "socialLink" | "project" | "testimonial";
+export type PositionKey = "experience" | "education" | "skill" | "socialLink" | "project" | "testimonial" | "highlight";
 
 /** What the owner already has, so demo rows sit after theirs and never collide with their unique keys. */
 export interface PublicContext {
@@ -45,6 +46,7 @@ export interface PublicSeed {
   educations: (Row<typeof educations> & { id: string })[];
   skills: (Row<typeof skills> & { id: string })[];
   socialLinks: (Row<typeof socialLinks> & { id: string })[];
+  highlights: (Row<typeof profileHighlights> & { id: string })[];
   projects: (Row<typeof projects> & { id: string })[];
   projectLinks: (Row<typeof projectLinks> & { id: string })[];
   projectMedia: (Row<typeof projectMedia> & { id: string })[];
@@ -67,6 +69,14 @@ const EXPERIENCES = [
 const EDUCATIONS = [
   { school: "Telkom University", degree: "Bachelor of Applied Science", field: "Information Technology", start: "2019-08-01", end: "2023-08-31", description: "GPA 3.92 / 4.00, Summa Cum Laude. Thesis on Indonesian-language sentiment models." },
   { school: "SMA Negeri 1 Trenggalek", degree: "High School", field: "Natural Sciences", start: "2016-07-01", end: "2019-05-31", description: null },
+];
+
+// The hero console's profile.sql rows (owner-editable in Profile & CV → Highlights).
+const HIGHLIGHTS: [string, string, string][] = [
+  ["gpa", "3.92 /4.00", "Summa Cum Laude, Telkom University"],
+  ["ip_rights", "6 HKI", "Registered intellectual property from systems I built"],
+  ["publications", "3 IEEE + 2", "Peer-reviewed research papers"],
+  ["team_led", "3–4 devs", "Led teams shipping to real clients"],
 ];
 
 const SKILLS: [string, string, number][] = [
@@ -153,6 +163,15 @@ const PROJECTS: ProjectContent[] = [
   },
 ];
 
+// One line of measurable result per project (Projects page cards, hero projects.sql).
+const OUTCOMES: Record<string, string | null> = {
+  yield: "7% median error · 40 cooperatives",
+  assets: "Audits: 5 days → 1 afternoon",
+  sentiment: "F1 0.71 → 0.89 · IEEE paper",
+  village: null,
+  thesis: "8,000 theses searchable by abstract",
+};
+
 interface ArticleContent {
   key: string;
   title: string;
@@ -224,7 +243,7 @@ const start = (ctx: PublicContext, key: PositionKey) => (ctx.positions[key] ?? -
 const AT_NOON = 12 * 60 * 60 * 1000;
 
 export function buildPublic(ownerId: string, today: Date, ctx: PublicContext, publicUrl: (key: string) => string | null): PublicSeed {
-  const seed: PublicSeed = { media: [], experiences: [], educations: [], skills: [], socialLinks: [], projects: [], projectLinks: [], projectMedia: [], tags: [], articles: [], articleTags: [], testimonials: [], contactMessages: [] };
+  const seed: PublicSeed = { media: [], experiences: [], educations: [], skills: [], socialLinks: [], highlights: [], projects: [], projectLinks: [], projectMedia: [], tags: [], articles: [], articleTags: [], testimonials: [], contactMessages: [] };
   const daysAgo = (n: number) => new Date(utcDaysFrom(today, -n).getTime() + AT_NOON);
   // Every id below depends only on the item's fixed place in the content lists, never on what
   // was skipped, so a re-run after the owner takes a slug still targets the same rows.
@@ -244,6 +263,9 @@ export function buildPublic(ownerId: string, today: Date, ctx: PublicContext, pu
   EDUCATIONS.forEach((e, i) =>
     seed.educations.push({ id: demoId("education", i + 1), userId: ownerId, school: e.school, degree: e.degree, field: e.field, startDate: e.start, endDate: e.end, description: e.description, position: start(ctx, "education") + i }),
   );
+  HIGHLIGHTS.forEach(([metric, value, note], i) =>
+    seed.highlights.push({ id: demoId("profile_highlight", i + 1), userId: ownerId, metric, value, note, position: start(ctx, "highlight") + i }),
+  );
   SKILLS.forEach(([name, category, level], i) => seed.skills.push({ id: demoId("skill", i + 1), userId: ownerId, name, category, level, position: start(ctx, "skill") + i }));
   [["GitHub", "https://github.com/example"], ["LinkedIn", "https://www.linkedin.com/in/example"]].forEach(([label, url], i) =>
     seed.socialLinks.push({ id: demoId("social_link", i + 1), userId: ownerId, label, url, position: start(ctx, "socialLink") + i }),
@@ -254,7 +276,7 @@ export function buildPublic(ownerId: string, today: Date, ctx: PublicContext, pu
     const id = demoId("project", i + 1);
     const cover = addImage(i * 10 + 1, `${p.slug}-cover`, 1600, 1000);
     seed.projects.push({
-      id, userId: ownerId, title: p.title, slug: p.slug, summary: p.summary, category: p.category, client: p.client, role: p.role, location: p.location,
+      id, userId: ownerId, title: p.title, slug: p.slug, summary: p.summary, outcome: OUTCOMES[p.key] ?? null, category: p.category, client: p.client, role: p.role, location: p.location,
       startDate: p.start, endDate: p.end, technologies: p.technologies, ...pick(derived(doc(p.body))), coverMediaId: cover.row.id, status: p.status,
       featured: p.featured, position: start(ctx, "project") + i, publishedAt: p.publishedDaysAgo === null ? null : daysAgo(p.publishedDaysAgo),
     });

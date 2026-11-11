@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { OPEN_SEARCH_EVENT } from "@/components/me/CommandPalette";
 import type { IconType } from "react-icons";
+import NumberFlow from "@number-flow/react";
 import {
   FiHome,
   FiCalendar,
@@ -130,7 +131,7 @@ function NavLinks({ pathname, onNavigate, unread = 0 }: { pathname: string; onNa
             >
               <item.icon /> {item.label}
               {item.href === "/me/inbox" && unread > 0 && (
-                <span className="badge bg-primary ms-auto" aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}>{unread}</span>
+                <span className="badge bg-primary ms-auto" aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}><NumberFlow value={unread} aria-hidden /></span>
               )}
             </Link>
           ))}

@@ -1,0 +1,118 @@
+<h2>Arah halaman lain, mengikuti hero C v3</h2>
+<p class="subtitle">Semua memakai token Fronter (Poppins/Roboto, biru #2a52c3, tinta #3c4858) + JetBrains Mono untuk aksen "data". Klik pilihan yang terasa paling pas; boleh campur.</p>
+
+<style>
+  .pg{font-family:Poppins,system-ui,sans-serif;color:#3c4858;background:#f8f9fc;border-radius:8px;overflow:hidden;text-align:left}
+  .pg .nav{display:flex;justify-content:space-between;padding:12px 18px;font-size:11px;color:#4f5f80;background:#f8f9fc}
+  .pg .nav b{color:#3c4858}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+  .pg h4{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0}
+  .muted{color:#4f5f80;font-family:Roboto,sans-serif}
+  .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;background:#eef2fb;color:#2a52c3;margin-right:4px}
+  .chip.ml{background:#e3f6f2;color:#0d7565}
+  .chip.on{background:#2a52c3;color:#fff}
+  .row{display:grid;grid-template-columns:86px 1fr auto;gap:14px;padding:12px 0;border-top:1px solid #e2e6f0;align-items:baseline}
+  .row .d{font-size:11px;color:#4f5f80}
+  .row .t{font-weight:600;font-size:14px}
+  .row .x{font-family:Roboto,sans-serif;font-size:12px;color:#4f5f80;margin-top:3px;line-height:1.45}
+  .row .r{font-size:11px;color:#4f5f80;white-space:nowrap}
+  .cover{border-radius:8px;background:linear-gradient(135deg,#fa693e,#2a52c3);opacity:.9}
+</style>
+
+<div class="cards">
+
+  <!-- Articles A -->
+  <div class="card" data-choice="articles-log" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg">
+        <div class="nav"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:6px 22px 18px">
+          <div class="mono" style="font-size:11px;color:#2a52c3">~/writing</div>
+          <h4 style="margin:4px 0 6px">Notes from building things.</h4>
+          <div class="muted" style="font-size:12px;margin-bottom:10px">Backend, data and ML, written after the work, not before.</div>
+          <div style="margin-bottom:6px"><span class="chip on">all · 6</span><span class="chip">postgresql</span><span class="chip ml">ml</span><span class="chip">laravel</span><span class="chip">next.js</span></div>
+          <div class="row"><span class="d mono">2026-11-03</span><div><div class="t">Serving a PyTorch model behind Next.js without a GPU</div><div class="x">How a small CPU box handles our forecast traffic, and the three settings that mattered.</div></div><span class="r mono">4 min</span></div>
+          <div class="row"><span class="d mono">2026-10-13</span><div><div class="t">The Postgres indexes I add on day one</div><div class="x">Every table gets the same three questions before it gets data.</div></div><span class="r mono">3 min</span></div>
+          <div class="row"><span class="d mono">2026-09-18</span><div><div class="t">Why my Laravel queue stopped dropping jobs</div></div><span class="r mono">5 min</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>Articles A · "Log" bertanggal</h3><p>Daftar rapat seperti changelog: tanggal mono di kiri, judul + ringkasan, durasi baca. Tag jadi filter. Cepat dipindai, sangat "engineer", tanpa kartu-kartu seragam.</p></div>
+  </div>
+
+  <!-- Articles B -->
+  <div class="card" data-choice="articles-editorial" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg">
+        <div class="nav"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:6px 22px 18px;display:grid;grid-template-columns:1.25fr 1fr;gap:16px">
+          <div>
+            <div class="cover" style="aspect-ratio:16/10"></div>
+            <div class="mono" style="font-size:10px;color:#2a52c3;margin-top:10px">LATEST · 2026-11-03 · 4 MIN</div>
+            <div style="font-weight:700;font-size:17px;line-height:1.25;margin-top:4px">Serving a PyTorch model behind Next.js without a GPU</div>
+            <div class="muted" style="font-size:12px;margin-top:6px;line-height:1.5">How a small CPU box handles our forecast traffic, and the three settings that mattered.</div>
+          </div>
+          <div>
+            <div class="mono" style="font-size:10px;color:#4f5f80;margin-bottom:6px">EARLIER</div>
+            <div style="border-top:1px solid #e2e6f0;padding:9px 0"><div style="font-weight:600;font-size:13px">The Postgres indexes I add on day one</div><div class="mono" style="font-size:10px;color:#4f5f80;margin-top:3px">2026-10-13 · postgresql</div></div>
+            <div style="border-top:1px solid #e2e6f0;padding:9px 0"><div style="font-weight:600;font-size:13px">Why my Laravel queue stopped dropping jobs</div><div class="mono" style="font-size:10px;color:#4f5f80;margin-top:3px">2026-09-18 · laravel</div></div>
+            <div style="border-top:1px solid #e2e6f0;padding:9px 0"><div style="font-weight:600;font-size:13px">Evaluating IndoBERT on 2,000 reviews</div><div class="mono" style="font-size:10px;color:#4f5f80;margin-top:3px">2026-08-17 · ml</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>Articles B · Editorial</h3><p>Artikel terbaru besar dengan cover, sisanya daftar ringkas di samping. Lebih "majalah", lebih visual, cocok kalau Anda rajin membuat cover.</p></div>
+  </div>
+
+  <!-- Article detail -->
+  <div class="card" data-choice="article-detail" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg" style="background:#fff">
+        <div class="nav" style="background:#fff"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:8px 22px 18px;display:grid;grid-template-columns:1fr 150px;gap:22px">
+          <div>
+            <div class="mono" style="font-size:10px;color:#4f5f80">← writing · 2026-11-03 · 4 min read</div>
+            <div style="font-weight:700;font-size:21px;line-height:1.2;letter-spacing:-.02em;margin:8px 0 10px">Serving a PyTorch model behind Next.js without a GPU</div>
+            <div style="font-family:Roboto,sans-serif;font-size:13px;line-height:1.75;color:#3c4858;max-width:420px">Our forecast model runs on a two-core CPU instance and answers in under 80 ms. Here is what made that possible.</div>
+            <div style="font-weight:700;font-size:14px;margin:12px 0 4px">Batch small, batch often</div>
+            <div style="font-family:Roboto,sans-serif;font-size:13px;line-height:1.75;color:#3c4858;max-width:420px">Micro-batching requests for 10 ms gave us four times the throughput…</div>
+            <div class="mono" style="font-size:11px;background:#141c30;color:#c7d2ec;border-radius:6px;padding:10px 12px;margin-top:10px">torch.set_num_threads(2)</div>
+          </div>
+          <div style="font-size:11px">
+            <div class="mono" style="color:#4f5f80;margin-bottom:6px">ON THIS PAGE</div>
+            <div style="border-left:2px solid #2a52c3;padding-left:8px;color:#2a52c3;margin-bottom:5px">Batch small, batch often</div>
+            <div style="border-left:2px solid #e2e6f0;padding-left:8px;color:#4f5f80;margin-bottom:5px">Export once</div>
+            <div style="border-left:2px solid #e2e6f0;padding-left:8px;color:#4f5f80">What I'd change</div>
+            <div style="margin-top:14px"><span class="chip ml">ml</span><span class="chip">fastapi</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>Detail artikel · kolom baca</h3><p>Satu kolom ±68 karakter, meta mono di atas, daftar isi yang menyorot bagian aktif saat scroll (gerak bermakna, bukan hiasan), kode bertema gelap seperti konsol hero.</p></div>
+  </div>
+
+  <!-- Projects list -->
+  <div class="card" data-choice="projects-cases" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0">
+      <div class="pg">
+        <div class="nav"><b>Verindra H. Putra</b><span>Work · Writing · CV · Contact</span></div>
+        <div style="padding:6px 22px 18px">
+          <div class="mono" style="font-size:11px;color:#2a52c3">~/work</div>
+          <h4 style="margin:4px 0 8px">Things I shipped, by the layers I built.</h4>
+          <div style="margin-bottom:10px"><span class="chip on">all</span><span class="chip">data</span><span class="chip">api</span><span class="chip">ui</span><span class="chip ml">model</span></div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px">
+            <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;overflow:hidden"><div class="cover" style="aspect-ratio:16/9;border-radius:0"></div><div style="padding:10px 12px"><span class="chip">data</span><span class="chip">api</span><span class="chip">ui</span><span class="chip ml">model</span><div style="font-weight:700;font-size:13px;margin-top:6px">Rice Yield Forecasting</div><div class="muted" style="font-size:11px;margin-top:2px"><b style="color:#2a52c3">7%</b> median error · 40 cooperatives</div></div></div>
+            <div style="display:grid;gap:12px">
+              <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:10px 12px"><span class="chip">data</span><span class="chip">api</span><span class="chip">ui</span><div style="font-weight:700;font-size:13px;margin-top:6px">Campus Lab Asset Tracker</div><div class="muted" style="font-size:11px">audits 5 days → 1 afternoon</div></div>
+              <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:10px 12px"><span class="chip ml">model</span><span class="chip">api</span><div style="font-weight:700;font-size:13px;margin-top:6px">Review Sentiment API</div><div class="muted" style="font-size:11px">F1 0.71 → 0.89 · IEEE</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>Projects · studi kasus per lapisan</h3><p>Satu proyek unggulan besar + yang lain lebih kecil (bukan grid seragam). Filter memakai lapisan yang sama dengan hero (data/api/ui/model). Tiap kartu menonjolkan satu angka hasil.</p></div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:18px">About, CV dan Contact mengikuti bahasa yang sama (meta mono, kolom baca, tanpa kartu seragam). Saya mockup-kan setelah arah di atas disepakati.</p>

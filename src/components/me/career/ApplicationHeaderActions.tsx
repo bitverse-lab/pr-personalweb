@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import ApplicationFormDialog from "./ApplicationFormDialog";
@@ -24,6 +24,8 @@ export default function ApplicationHeaderActions({
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState<ApplicationStatus>(application.status);
   const [isPending, startTransition] = useTransition();
+  // The "Move to" button and the board change the stage too; follow the server value.
+  useEffect(() => setStatus(application.status), [application.status]);
 
   const handleStatus = (next: ApplicationStatus) => {
     const previous = status;
@@ -36,6 +38,7 @@ export default function ApplicationHeaderActions({
         return;
       }
       toast.success(`Moved to ${STATUS_META[next].label}`);
+      router.refresh();
     });
   };
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@/styles/legacy/scss/style.scss";
 import "@/styles/legacy/css/materialdesignicons.min.css";
@@ -9,6 +9,14 @@ import { getProfile } from "@/lib/data/profile";
 import { getSiteInfo } from "@/lib/data/site";
 import { siteUrl } from "@/lib/site";
 import { SiteProvider } from "@/lib/site-context";
+import ViewTransitionLinks from "@/components/shared/ViewTransitionLinks";
+import PublicTerminal from "@/components/shared/PublicTerminal";
+import { getTerminalIndex } from "@/lib/data/terminal";
+import ServiceWorker from "@/components/shared/ServiceWorker";
+import ThemeSync from "@/components/shared/ThemeSync";
+import { THEME_SCRIPT } from "@/lib/theme";
+
+export const viewport: Viewport = { themeColor: "#2a52c3" };
 
 // The site name comes from the profile, so pages refresh at most every 5 minutes (and instantly when the profile is saved).
 export const revalidate = 300;
@@ -38,16 +46,26 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const site = await getSiteInfo();
+  const [site, terminal] = await Promise.all([getSiteInfo(), getTerminalIndex()]);
 
   return (
-    <html lang="en">
+    // The head script sets data-theme before React runs, so the attribute differs from the server render on purpose.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Indonesian pages live under /id; set the document language before anything reads it. */}
+        <script dangerouslySetInnerHTML={{ __html: '(function(){var p=location.pathname;if(p==="/id"||p.indexOf("/id/")===0)document.documentElement.lang="id"})()' }} />
+      </head>
       <body>
         <NavigationProgress />
+        <ViewTransitionLinks />
         <SiteProvider value={site}>
           {children}
+          <PublicTerminal index={terminal} />
           <ScrollTop />
           <Analytics />
+          <ServiceWorker />
+          <ThemeSync />
         </SiteProvider>
       </body>
     </html>

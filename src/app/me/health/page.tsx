@@ -10,6 +10,7 @@ import WeightChart from "@/components/me/health/weight/WeightChart";
 import { getHealthDashboard } from "@/features/health/dashboard-actions";
 import { fmtDate, fmtDelta } from "@/features/health/format";
 import { fmtVolume } from "@/features/health/workout-meta";
+import NumberFlow from "@number-flow/react";
 
 export default async function HealthPage() {
   const d = await getHealthDashboard();
@@ -40,8 +41,10 @@ export default async function HealthPage() {
       <div className="row row-cols-2 row-cols-lg-4 g-2 mb-4">
         <HealthStat
           label="Calories today"
-          value={day.targets.calories ? `${day.totals.calories} / ${day.targets.calories}` : day.totals.calories}
+          value={day.targets.calories ? <><NumberFlow value={day.totals.calories} /> / {day.targets.calories}</> : <NumberFlow value={day.totals.calories} />}
           hint={remaining === null ? "kcal eaten" : remaining >= 0 ? `${remaining} kcal remaining` : `${Math.abs(remaining)} kcal over`}
+          progress={day.targets.calories ? day.totals.calories / day.targets.calories : null}
+          overIsBad
         />
         <HealthStat
           label="Weight"
@@ -50,10 +53,16 @@ export default async function HealthPage() {
         />
         <HealthStat
           label="Workouts this week"
-          value={workouts.week.target ? `${workouts.week.count} / ${workouts.week.target}` : workouts.week.count}
+          value={workouts.week.target ? <><NumberFlow value={workouts.week.count} /> / {workouts.week.target}</> : <NumberFlow value={workouts.week.count} />}
           hint={`${workouts.streak}-day streak`}
+          progress={workouts.week.target ? workouts.week.count / workouts.week.target : null}
         />
-        <HealthStat label="Water today" value={`${day.waterMl} ml`} hint={day.targets.waterMl ? `of ${day.targets.waterMl} ml` : "set a goal in Goals"} />
+        <HealthStat
+          label="Water today"
+          value={<NumberFlow value={day.waterMl} suffix=" ml" />}
+          hint={day.targets.waterMl ? `of ${day.targets.waterMl} ml` : "set a goal in Goals"}
+          progress={day.targets.waterMl ? day.waterMl / day.targets.waterMl : null}
+        />
       </div>
 
       <div className="row g-3 mb-4">

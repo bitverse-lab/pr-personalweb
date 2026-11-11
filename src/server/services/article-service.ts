@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { articleRepository, type ArticleValues } from "@/server/repositories/article-repository";
 import { EMPTY_DOC, countWords, docToPlainText, slugify, validateDoc } from "@/features/content/richtext";
 import type { ArticleStatus, RichDoc } from "@/db/schema/content";
+import type { ArticleTr } from "@/features/content/translations";
 
 export interface ArticleListItem {
   id: string;
@@ -14,6 +15,8 @@ export interface ArticleListItem {
   publishedAt: string | null;
   updatedAt: string;
   tags: string[];
+  /** Indonesian title and excerpt (and, on a detail, the body); empty fields fall back to English. */
+  translations: ArticleTr;
 }
 
 export interface ArticleDetail extends ArticleListItem {
@@ -23,10 +26,12 @@ export interface ArticleDetail extends ArticleListItem {
 export interface ArticleSaveInput {
   title: string;
   slug: string;
+  slugAuto?: boolean;
   excerpt?: string | null;
   content: RichDoc;
   coverUrl?: string | null;
   tags: string[];
+  translations?: ArticleTr;
 }
 
 type Row = {
@@ -39,6 +44,7 @@ type Row = {
   wordCount: number;
   publishedAt: Date | null;
   updatedAt: Date;
+  translations?: ArticleTr | null;
 };
 
 const toItem = (r: Row, tags: string[]): ArticleListItem => ({
@@ -52,6 +58,7 @@ const toItem = (r: Row, tags: string[]): ArticleListItem => ({
   publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
   updatedAt: r.updatedAt.toISOString(),
   tags,
+  translations: r.translations ?? {},
 });
 
 export type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -80,6 +87,8 @@ export const articleService = {
   },
 
   async createDraft(userId: string) {
+    // "New article" opened and then left behind used to pile up as empty "Untitled" drafts.
+    await articleRepository.deleteEmptyDrafts(userId);
     const slug = await uniqueSlug(userId, `draft-${Math.random().toString(36).slice(2, 8)}`);
     return articleRepository.insert(userId, {
       title: "",
@@ -94,11 +103,29 @@ export const articleService = {
     });
   },
 
-  async save(userId: string, id: string, input: ArticleSaveInput): Promise<ServiceResult<{ updatedAt: string }>> {
-    const problem = validateDoc(input.content);
+  /**
+   * Saves everything the editor holds. A slug clash never blocks the rest of the save (that used to
+   * stop the writing itself from saving): an automatic slug is numbered, a typed one is kept as it
+   * was and reported back as `slugError`.
+   */
+  async save(
+    userId: string,
+    id: string,
+    input: ArticleSaveInput
+  ): Promise<ServiceResult<{ updatedAt: string; slug: string; slugError: string | null; wasLive: boolean; previousSlug: string }>> {
+    const problem = validateDoc(input.content) ?? (input.translations?.id?.content ? validateDoc(input.translations.id.content) : null);
     if (problem) return { ok: false, error: problem };
-    const slug = slugify(input.slug);
-    if (await articleRepository.slugTaken(userId, slug, id)) return { ok: false, error: "That URL slug is already used by another article" };
+    const current = await articleRepository.findById(userId, id);
+    if (!current) return { ok: false, error: "Article not found" };
+    let slug = slugify(input.slug);
+    let slugError: string | null = null;
+    if (await articleRepository.slugTaken(userId, slug, id)) {
+      if (input.slugAuto) slug = await uniqueSlug(userId, slug, id);
+      else {
+        slugError = `"${slug}" is already used by another article`;
+        slug = current.slug;
+      }
+    }
     const plainText = docToPlainText(input.content);
 
     const row = await db.transaction(async (tx) => {
@@ -113,6 +140,8 @@ export const articleService = {
           plainText,
           wordCount: countWords(plainText),
           coverUrl: input.coverUrl || null,
+          // undefined leaves the stored translations as they are
+          translations: input.translations,
         },
         tx
       );
@@ -120,7 +149,10 @@ export const articleService = {
       return updated;
     });
     if (!row) return { ok: false, error: "Article not found" };
-    return { ok: true, data: { updatedAt: row.updatedAt.toISOString() } };
+    return {
+      ok: true,
+      data: { updatedAt: row.updatedAt.toISOString(), slug: row.slug, slugError, wasLive: current.status === "published", previousSlug: current.slug },
+    };
   },
 
   async setStatus(userId: string, id: string, status: ArticleStatus): Promise<ServiceResult<ArticleListItem>> {
@@ -147,7 +179,7 @@ export const articleService = {
   },
 
   async restore(userId: string, snap: ArticleDetail) {
-    const problem = validateDoc(snap.content);
+    const problem = validateDoc(snap.content) ?? (snap.translations?.id?.content ? validateDoc(snap.translations.id.content) : null);
     if (problem) return null;
     const slug = await uniqueSlug(userId, slugify(snap.slug));
     const plainText = docToPlainText(snap.content);
@@ -162,6 +194,7 @@ export const articleService = {
         coverUrl: snap.coverUrl,
         status: snap.status,
         publishedAt: snap.publishedAt ? new Date(snap.publishedAt) : null,
+        translations: snap.translations,
       };
       const row = await articleRepository.insert(userId, values, tx);
       await articleRepository.setTags(userId, row.id, snap.tags, tx);

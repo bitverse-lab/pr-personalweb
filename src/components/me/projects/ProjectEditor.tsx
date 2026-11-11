@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo, useState, useTransition } from "react";
+import { Fragment, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FiArchive, FiArrowLeft, FiExternalLink, FiGlobe, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { deleteProject, restoreProject, saveProject, setProjectFeatured, setProjectStatus } from "@/features/projects/actions";
-import { docToPlainText, slugify } from "@/features/content/richtext";
+import { EMPTY_DOC, docToPlainText, slugify } from "@/features/content/richtext";
+import { coverage, pickDoc, pickText } from "@/features/content/translations";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
 import { projectPeriod } from "@/features/projects/format";
 import { useAutosave } from "@/hooks/useAutosave";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -35,7 +37,10 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [title, setTitle] = useState(project.title);
   const [slug, setSlug] = useState(project.slug);
   const [slugTouched, setSlugTouched] = useState(!project.slug.startsWith("draft-"));
+  const [savedSlug, setSavedSlug] = useState(project.slug);
+  const [slugError, setSlugError] = useState<string | null>(null);
   const [summary, setSummary] = useState(project.summary ?? "");
+  const [outcome, setOutcome] = useState(project.outcome ?? "");
   const [category, setCategory] = useState(project.category ?? "");
   const [client, setClient] = useState(project.client ?? "");
   const [role, setRole] = useState(project.role ?? "");
@@ -50,16 +55,26 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [status, setStatus] = useState(project.status);
   const [featured, setFeatured] = useState(project.featured);
   const [preview, setPreview] = useState(false);
+  // Indonesian versions (shown on /id; empty fields fall back to the English).
+  const [lang, setLang] = useState<EditLang>("en");
+  const [idTitle, setIdTitle] = useState(trValue(project.translations.id?.title));
+  const [idSummary, setIdSummary] = useState(trValue(project.translations.id?.summary));
+  const [idOutcome, setIdOutcome] = useState(trValue(project.translations.id?.outcome));
+  const [idDoc, setIdDoc] = useState<RichDoc>(project.translations.id?.content ?? EMPTY_DOC);
+  const idCoverage = coverage({ id: { title: idTitle, summary: idSummary, outcome: idOutcome, content: idDoc } }, ["title", "summary", "outcome", "content"]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const period = useMemo(() => projectPeriod(monthToDate(start) || null, monthToDate(end) || null), [start, end]);
-  const hasStory = useMemo(() => docToPlainText(doc).trim().length > 0, [doc]);
+  const shownDoc = pickDoc(lang, doc, idDoc);
+  const hasStory = useMemo(() => docToPlainText(shownDoc).trim().length > 0, [shownDoc]);
 
   const payload = useMemo(
     () => ({
       id: project.id,
       title,
       slug,
+      slugAuto: !slugTouched,
       summary,
+      outcome,
       category,
       client,
       role,
@@ -71,14 +86,36 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
       coverMediaId: coverMediaId && gallery.some((g) => g.mediaId === coverMediaId) ? coverMediaId : null,
       gallery: gallery.map((g) => ({ mediaId: g.mediaId, caption: g.caption })),
       // half-filled rows are kept on screen but not sent until both fields are filled
-      links: links.filter((l) => l.label.trim() && l.url.trim()),
+      links: links
+        .filter((l) => l.label.trim() && l.url.trim())
+        // "github.com/me/x" is what people type; without a scheme the whole project used to stop saving.
+        .map((l) => ({ label: l.label, url: /^https?:\/\//i.test(l.url.trim()) ? l.url.trim() : `https://${l.url.trim()}` })),
+      translations: { id: { title: idTitle, summary: idSummary, outcome: idOutcome, content: idDoc } },
     }),
-    [project.id, title, slug, summary, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
+    [project.id, title, slug, slugTouched, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links, idTitle, idSummary, idOutcome, idDoc]
   );
-  const { status: saveStatus, error, flush } = useAutosave(payload, async (p) => {
+  const { status: saveStatus, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveProject(p);
-    return result.ok ? null : result.error;
+    if (!result.ok) return result.error;
+    const sent = slugify(p.slug);
+    // The server numbered a clashing automatic slug; show it, unless the title moved on meanwhile.
+    if (result.data.slug !== sent) setSlug((current) => (slugify(current) === sent ? result.data.slug : current));
+    setSavedSlug(result.data.slug);
+    setSlugError(result.data.slugError);
+    return null;
   });
+
+  // Ctrl/Cmd+S saves now instead of opening the browser's "Save page" dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void flush();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flush]);
 
   const onTitle = (value: string) => {
     setTitle(value);
@@ -87,11 +124,13 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
 
   const changeStatus = (next: "draft" | "published" | "archived") =>
     startTransition(async () => {
-      const saved = await saveProject(payload);
-      if (!saved.ok) return toast.error(saved.error);
+      // persist first (waiting for any autosave in flight) so the published version is what is on screen
+      const problem = await flush();
+      if (problem) return toast.error(`Could not save first: ${problem}`);
       const result = await setProjectStatus({ id: project.id, status: next });
       if (!result.ok) return toast.error(result.error);
       setStatus(result.data.status);
+      setSavedSlug(result.data.slug);
       setSlugTouched(true);
       toast.success(next === "published" ? "Published — it is now live on your site" : next === "archived" ? "Project archived" : "Moved back to drafts");
     });
@@ -124,15 +163,18 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
 
   return (
     <>
+      <h1 className="visually-hidden">Edit project: {title.trim() || "Untitled project"}</h1>
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <Link href="/me/projects" className="text-muted small d-inline-flex align-items-center gap-1">
           <FiArrowLeft /> All projects
         </Link>
         <div className="d-flex align-items-center gap-3">
-          <SaveIndicator status={saveStatus} error={error} />
+          <span title="Ctrl+S saves right away">
+            <SaveIndicator status={saveStatus} error={error} savedAt={savedAt} onRetry={() => void flush()} />
+          </span>
           <div className="btn-group btn-group-sm" role="group" aria-label="Editor mode">
-            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(false)}>Write</button>
-            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(true)}>Preview</button>
+            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={!preview} onClick={() => setPreview(false)}>Write</button>
+            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={preview} onClick={() => setPreview(true)}>Preview</button>
           </div>
         </div>
       </div>
@@ -143,8 +185,8 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
             <article className="card rounded shadow-sm">
               <div className="card-body">
                 <header className="text-center mb-4">
-                  <h2 className="h3 mb-3">{title || "Untitled project"}</h2>
-                  {summary.trim() && <p className="text-muted mx-auto mb-2" style={{ maxWidth: 640 }}>{summary}</p>}
+                  <h2 className="h3 mb-3">{pickText(lang, title, idTitle) || "Untitled project"}</h2>
+                  {pickText(lang, summary, idSummary).trim() && <p className="text-muted mx-auto mb-2" style={{ maxWidth: 640 }}>{pickText(lang, summary, idSummary)}</p>}
                   {period && <p className="text-muted small mb-0">{period}</p>}
                 </header>
                 <div className="row">
@@ -163,7 +205,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                     {hasStory ? (
                       <section className="mt-4 pt-2">
                         <h3 className="h5 mb-3">About this project</h3>
-                        <RichTextRenderer doc={doc} />
+                        <RichTextRenderer doc={shownDoc} />
                       </section>
                     ) : (
                       <p className="text-muted">No case study content yet.</p>
@@ -211,8 +253,32 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                 </div>
               </div>
             </article>
-          ) : (
-            <>
+          ) : null}
+          {/* Kept mounted while previewing: unmounting it lost the case study and its undo history. */}
+          <div className={preview ? "d-none" : undefined}>
+              <LangTabs value={lang} onChange={setLang} done={idCoverage.done} total={idCoverage.total} />
+              {/* Both languages stay mounted, like the preview: unmounting an editor loses its undo history. */}
+              <div className={lang === "id" ? undefined : "d-none"} lang="id">
+                <input className="form-control form-control-lg fw-semibold mb-3" placeholder={title || "Project title"} aria-label="Title in Indonesian" maxLength={120} value={idTitle} onChange={(e) => setIdTitle(e.target.value)} />
+                <div className="card rounded shadow-sm mb-3">
+                  <div className="card-body">
+                    <label className="form-label small mb-1" htmlFor="p-summary-id">Short summary (Indonesian)</label>
+                    <textarea id="p-summary-id" className="form-control" rows={2} maxLength={300} placeholder={summary} value={idSummary} onChange={(e) => setIdSummary(e.target.value)} />
+                    <div className="form-text">{idSummary.length}/300</div>
+                    <label className="form-label small mb-1 mt-3" htmlFor="p-outcome-id">Outcome (Indonesian)</label>
+                    <input id="p-outcome-id" className="form-control form-control-sm" maxLength={140} placeholder={outcome} value={idOutcome} onChange={(e) => setIdOutcome(e.target.value)} />
+                  </div>
+                </div>
+                <div className="card rounded shadow-sm mb-3">
+                  <div className="card-body">
+                    <h6 className="mb-2">Case study (Indonesian)</h6>
+                    <p className="text-muted small">Leave it empty to show the English case study on /id.</p>
+                    <RichEditor initial={project.translations.id?.content ?? EMPTY_DOC} onChange={setIdDoc} placeholder="Apa masalahnya, dan bagaimana Anda menyelesaikannya?" minHeight={320} />
+                  </div>
+                </div>
+                <p className="text-muted small">Images, links, dates and technologies are the same in both languages.</p>
+              </div>
+              <div className={lang === "en" ? undefined : "d-none"}>
               <input className="form-control form-control-lg fw-semibold mb-3" placeholder="Project title" aria-label="Project title" maxLength={120} value={title} onChange={(e) => onTitle(e.target.value)} />
 
               <div className="card rounded shadow-sm mb-3">
@@ -237,8 +303,8 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   <GalleryEditor items={gallery} coverMediaId={coverMediaId} onChange={setGallery} onCoverChange={setCoverMediaId} />
                 </div>
               </div>
-            </>
-          )}
+              </div>
+          </div>
         </div>
 
         {!preview && <div className="col-lg-4">
@@ -255,7 +321,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   </button>
                 ) : (
                   <>
-                    <Link href={`/projects/${slug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
+                    <Link href={`/projects/${savedSlug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
                       <FiExternalLink /> View on site
                     </Link>
                     <button type="button" className="btn btn-outline-secondary" disabled={isPending} onClick={() => changeStatus("draft")}>Unpublish (back to draft)</button>
@@ -282,11 +348,17 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
               <h6 className="mb-3">Details</h6>
               <div className="mb-3">
                 <label className="form-label small mb-1" htmlFor="p-slug">URL slug</label>
-                <div className="input-group input-group-sm">
+                <div className="input-group input-group-sm has-validation">
                   <span className="input-group-text">/projects/</span>
-                  <input id="p-slug" className="form-control" maxLength={120} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} onBlur={() => setSlug(slugify(slug))} />
+                  <input id="p-slug" className={`form-control${slugError ? " is-invalid" : ""}`} maxLength={120} value={slug} onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }} onBlur={() => setSlug(slugify(slug))} />
+                  {slugError && <div className="invalid-feedback">{slugError}. The project keeps /projects/{savedSlug} until you pick another.</div>}
                 </div>
                 {status === "published" && <div className="form-text">Changing the slug of a published project changes its public link.</div>}
+              </div>
+              <div className="mb-3">
+                <label className="form-label small mb-1" htmlFor="p-outcome">Outcome</label>
+                <input id="p-outcome" className="form-control form-control-sm" maxLength={140} placeholder="e.g. 7% median error · 40 cooperatives" value={outcome} onChange={(e) => setOutcome(e.target.value)} aria-describedby="p-outcome-help" />
+                <div id="p-outcome-help" className="form-text">One line of measurable result. Shown on project cards and on your home page.</div>
               </div>
               <div className="row g-2 mb-3">
                 <div className="col-12">

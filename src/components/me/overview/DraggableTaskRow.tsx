@@ -23,7 +23,7 @@ export default function DraggableTaskRow({ task }: { task: TaskPreview }) {
       className="d-flex justify-content-between border-bottom py-2"
     >
       <span>{task.title}</span>
-      {task.dueLabel && <span className="text-muted small">{task.dueLabel}</span>}
+      {task.dueLabel && <span className={`small task-due task-due--${task.dueTone ?? "later"}`}>{task.dueLabel}</span>}
     </li>
   );
 }

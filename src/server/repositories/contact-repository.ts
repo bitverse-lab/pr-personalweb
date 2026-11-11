@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { contactMessages } from "@/db/schema";
@@ -47,13 +48,14 @@ export const contactRepository = {
       .limit(200);
   },
 
-  unreadCount(userId: string) {
-    return db
+  // The workspace layout and the Overview both ask during one render; cache() makes it one query.
+  unreadCount: cache((userId: string) =>
+    db
       .select({ n: sql<number>`count(*)::int` })
       .from(contactMessages)
       .where(and(eq(contactMessages.userId, userId), isNull(contactMessages.readAt)))
-      .then((r) => r[0]?.n ?? 0);
-  },
+      .then((r) => r[0]?.n ?? 0)
+  ),
 
   setRead(userId: string, id: string, read: boolean) {
     return db

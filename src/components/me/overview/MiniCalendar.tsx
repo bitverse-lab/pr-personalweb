@@ -1,5 +1,6 @@
 "use client";
 
+import { monthGrid } from "@/features/calendar/format";
 import { useDroppable } from "@dnd-kit/core";
 import { FiCalendar } from "react-icons/fi";
 import OverviewCard from "./OverviewCard";
@@ -9,19 +10,6 @@ export interface MiniCalendarMarker {
 }
 
 const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-
-function buildMonthGrid(year: number, month: number): (string | null)[] {
-  const firstDay = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: (string | null)[] = [];
-
-  for (let i = 0; i < firstDay.getDay(); i++) cells.push(null);
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    cells.push(date.toISOString().slice(0, 10));
-  }
-  return cells;
-}
 
 function MiniCalendarDay({ date, hasActivity, isToday }: { date: string; hasActivity: boolean; isToday: boolean }) {
   const { setNodeRef, isOver } = useDroppable({ id: `mini-calendar-${date}`, data: { date } });
@@ -48,12 +36,12 @@ function MiniCalendarDay({ date, hasActivity, isToday }: { date: string; hasActi
   );
 }
 
-export default function MiniCalendar({ markers = [] }: { markers?: MiniCalendarMarker[] }) {
-  const today = new Date();
-  const todayKey = today.toISOString().slice(0, 10);
+/** `today` is the owner's day ("YYYY-MM-DD"); the grid used local-midnight ISO strings and shifted a day east of UTC. */
+export default function MiniCalendar({ markers = [], today }: { markers?: MiniCalendarMarker[]; today: string }) {
+  const todayKey = today;
   const activityDates = new Set(markers.map((marker) => marker.date));
-  const cells = buildMonthGrid(today.getFullYear(), today.getMonth());
-  const monthLabel = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const cells = monthGrid(today);
+  const monthLabel = new Date(`${today.slice(0, 7)}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
     <OverviewCard title={monthLabel} icon={FiCalendar} href="/me/calendar" linkLabel="Open calendar">

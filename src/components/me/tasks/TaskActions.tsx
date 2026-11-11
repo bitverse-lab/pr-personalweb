@@ -51,6 +51,7 @@ export default function TaskActions({ task }: { task: TaskActionsTask }) {
             description: task.description,
             dueDate: task.dueDate,
             priority: task.priority,
+            recurrence: task.recurrence,
             tags: task.tags,
             subtasks: task.subtasks,
           }}

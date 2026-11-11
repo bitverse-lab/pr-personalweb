@@ -2,6 +2,7 @@
 
 import { requireUserId } from "@/server/auth";
 import { taskService } from "@/server/services/task-service";
+import { getUserTimeZone, todayInUserTz } from "@/lib/timezone";
 
 export interface CompletionActivityPoint {
   day: string;
@@ -15,11 +16,11 @@ function toDateKey(value: unknown): string {
 
 export async function getOverdueTaskCount(): Promise<number> {
   const userId = await requireUserId();
-  return taskService.countOverdue(userId);
+  return taskService.countOverdue(userId, await todayInUserTz());
 }
 
 export async function getTaskCompletionActivity(): Promise<CompletionActivityPoint[]> {
   const userId = await requireUserId();
-  const rows = await taskService.getCompletionActivity(userId);
+  const rows = await taskService.getCompletionActivity(userId, await getUserTimeZone());
   return rows.map((row) => ({ day: toDateKey(row.day), count: Number(row.count) }));
 }

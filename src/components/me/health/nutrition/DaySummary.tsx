@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { DayView } from "@/server/services/nutrition-service";
 import { chart } from "@/lib/chart-theme";
 
@@ -36,7 +37,11 @@ export default function DaySummary({ day }: { day: DayView }) {
                 {remaining >= 0 ? `${remaining} kcal remaining` : `${Math.abs(remaining)} kcal over`}
               </div>
             )}
-            {targets.calories === null && <div className="small mt-1 text-muted">Set a calorie goal in the Goals tab.</div>}
+            {targets.calories === null && (
+              <div className="small mt-1 text-muted">
+                <Link href="/me/health/goals">Set a calorie goal</Link> to see what is left today.
+              </div>
+            )}
           </div>
           <div className="col-md-8">
             <Bar label="Calories" value={totals.calories} target={targets.calories} unit="kcal" color="var(--app-primary)" />

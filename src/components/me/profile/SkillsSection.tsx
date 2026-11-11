@@ -92,7 +92,7 @@ export default function SkillsSection({ items }: { items: Skill[] }) {
           <button type="button" className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" onClick={() => setEditing("new")}><FiPlus /> Add</button>
         </div>
         {list.length === 0 ? (
-          <EmptyState icon={FiStar} title="No skills yet" description="Skills show as progress bars on your public site and as a list on your CV." />
+          <EmptyState icon={FiStar} title="No skills yet" description="Skills are grouped by their category (the layer) on your public site and CV. Proficiency is kept private." />
         ) : (
           <ul className="list-unstyled mb-0">
             {list.map((s, i) => (

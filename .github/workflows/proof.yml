@@ -1,6 +1,7 @@
 name: Proof
 
-# Measures the site (unit tests, browser test count, production bundle sizes, last CI/backup runs)
+# Measures the site (unit tests, browser test count, production bundle sizes, dependency freshness,
+# last CI/backup runs)
 # and writes the results to the site_metric table, which /proof displays. See docs/PROOF.md.
 # Scheduled workflows only run from the default branch (main).
 
@@ -45,10 +46,13 @@ jobs:
         run: pnpm exec vitest run --reporter=json --outputFile=vitest.json || true
       - name: Count browser tests
         run: pnpm exec playwright test --list > e2e-list.txt || true
+      # Exits 1 when anything is outdated; the JSON is the result either way.
+      - name: Dependency freshness
+        run: pnpm outdated --format json > outdated.json || true
       - name: Production build
         run: pnpm build | tee build.txt
       - name: Write metrics
         env:
           DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt
+        run: node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt --outdated outdated.json

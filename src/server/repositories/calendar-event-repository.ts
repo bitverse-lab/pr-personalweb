@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gt, gte, lt, lte, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { calendarEvents } from "@/db/schema";
 import type { EventColor } from "@/db/schema/productivity";
@@ -25,6 +25,22 @@ export const calendarEventRepository = {
       ),
       orderBy: [asc(calendarEvents.startAt)],
       limit,
+    });
+  },
+
+  // Timed events that genuinely overlap [start, end): touching edges (one ends at 10:00, the next
+  // starts at 10:00) are not a clash, and all-day events are context, not a double booking.
+  findOverlapping(userId: string, start: string, end: string, excludeId?: string) {
+    return db.query.calendarEvents.findMany({
+      where: and(
+        eq(calendarEvents.userId, userId),
+        eq(calendarEvents.allDay, false),
+        lt(calendarEvents.startAt, new Date(end)),
+        gt(calendarEvents.endAt, new Date(start)),
+        excludeId ? ne(calendarEvents.id, excludeId) : undefined
+      ),
+      orderBy: [asc(calendarEvents.startAt)],
+      limit: 3,
     });
   },
 

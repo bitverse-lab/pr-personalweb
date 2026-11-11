@@ -5,6 +5,7 @@ import { publicObjectUrl } from "@/server/storage/client";
 import { EMPTY_DOC, docToPlainText, slugify, validateDoc } from "@/features/content/richtext";
 import type { RichDoc } from "@/db/schema/content";
 import type { ProjectStatus } from "@/db/schema/projects";
+import type { ProjectTr } from "@/features/content/translations";
 import type { ServiceResult } from "./article-service";
 
 export interface GalleryItem {
@@ -18,6 +19,7 @@ export interface ProjectListItem {
   title: string;
   slug: string;
   summary: string | null;
+  outcome: string | null;
   category: string | null;
   technologies: string[];
   status: ProjectStatus;
@@ -25,6 +27,8 @@ export interface ProjectListItem {
   coverUrl: string | null;
   publishedAt: string | null;
   updatedAt: string;
+  /** On lists: the Indonesian card fields only; on a detail: everything, including the story. */
+  translations: ProjectTr;
 }
 
 export interface ProjectDetail extends ProjectListItem {
@@ -42,7 +46,9 @@ export interface ProjectDetail extends ProjectListItem {
 export interface ProjectSaveInput {
   title: string;
   slug: string;
+  slugAuto?: boolean;
   summary?: string | null;
+  outcome?: string | null;
   category?: string | null;
   client?: string | null;
   role?: string | null;
@@ -54,6 +60,7 @@ export interface ProjectSaveInput {
   coverMediaId?: string | null;
   gallery: { mediaId: string; caption?: string | null }[];
   links: { label: string; url: string }[];
+  translations?: ProjectTr;
 }
 
 type Row = Awaited<ReturnType<typeof projectRepository.findById>> & object;
@@ -81,6 +88,7 @@ async function assemble(rows: Row[]): Promise<ProjectDetail[]> {
       title: r.title,
       slug: r.slug,
       summary: r.summary,
+      outcome: r.outcome,
       category: r.category,
       technologies: r.technologies,
       status: r.status,
@@ -97,6 +105,7 @@ async function assemble(rows: Row[]): Promise<ProjectDetail[]> {
       coverMediaId: r.coverMediaId,
       gallery: items,
       links: links.filter((l) => l.projectId === r.id).map((l) => ({ label: l.label, url: l.url })),
+      translations: r.translations ?? {},
     };
   });
 }
@@ -108,6 +117,7 @@ function toListItem(d: ProjectDetail): ProjectListItem {
     title: d.title,
     slug: d.slug,
     summary: d.summary,
+    outcome: d.outcome,
     category: d.category,
     technologies: d.technologies,
     status: d.status,
@@ -115,6 +125,7 @@ function toListItem(d: ProjectDetail): ProjectListItem {
     coverUrl: d.coverUrl,
     publishedAt: d.publishedAt,
     updatedAt: d.updatedAt,
+    translations: { id: { title: d.translations.id?.title, summary: d.translations.id?.summary, outcome: d.translations.id?.outcome } },
   };
 }
 
@@ -130,6 +141,7 @@ function toValues(input: ProjectSaveInput, slug: string): ProjectValues {
     title: input.title.trim(),
     slug,
     summary: input.summary?.trim() || null,
+    outcome: input.outcome?.trim() || null,
     category: input.category?.trim() || null,
     client: input.client?.trim() || null,
     role: input.role?.trim() || null,
@@ -140,6 +152,8 @@ function toValues(input: ProjectSaveInput, slug: string): ProjectValues {
     content: input.content,
     plainText,
     coverMediaId: input.coverMediaId ?? null,
+    // undefined leaves the stored translations as they are
+    translations: input.translations,
   };
 }
 
@@ -159,11 +173,14 @@ export const projectService = {
   },
 
   async createDraft(userId: string) {
+    // "New project" opened and then left behind used to pile up as empty "Untitled project" drafts.
+    await projectRepository.deleteEmptyDrafts(userId);
     const slug = await uniqueSlug(userId, `draft-${Math.random().toString(36).slice(2, 8)}`);
     return projectRepository.insert(userId, {
       title: "",
       slug,
       summary: null,
+      outcome: null,
       category: null,
       client: null,
       role: null,
@@ -177,11 +194,28 @@ export const projectService = {
     });
   },
 
-  async save(userId: string, id: string, input: ProjectSaveInput): Promise<ServiceResult<{ updatedAt: string }>> {
-    const problem = validateDoc(input.content);
+  /**
+   * A slug clash never blocks the rest of the save: an automatic slug is numbered, a typed one is
+   * kept as it was and reported back as `slugError` (same rule as articles).
+   */
+  async save(
+    userId: string,
+    id: string,
+    input: ProjectSaveInput
+  ): Promise<ServiceResult<{ updatedAt: string; slug: string; slugError: string | null; wasLive: boolean; previousSlug: string }>> {
+    const problem = validateDoc(input.content) ?? (input.translations?.id?.content ? validateDoc(input.translations.id.content) : null);
     if (problem) return { ok: false, error: problem };
-    const slug = slugify(input.slug);
-    if (await projectRepository.slugTaken(userId, slug, id)) return { ok: false, error: "That URL slug is already used by another project" };
+    const current = await projectRepository.findById(userId, id);
+    if (!current) return { ok: false, error: "Project not found" };
+    let slug = slugify(input.slug);
+    let slugError: string | null = null;
+    if (await projectRepository.slugTaken(userId, slug, id)) {
+      if (input.slugAuto) slug = await uniqueSlug(userId, slug, id);
+      else {
+        slugError = `"${slug}" is already used by another project`;
+        slug = current.slug;
+      }
+    }
 
     // cover and gallery must be the user's own, verified, public images
     const wanted = Array.from(new Set([...input.gallery.map((g) => g.mediaId), ...(input.coverMediaId ? [input.coverMediaId] : [])]));
@@ -198,7 +232,10 @@ export const projectService = {
       return updated;
     });
     if (!row) return { ok: false, error: "Project not found" };
-    return { ok: true, data: { updatedAt: row.updatedAt.toISOString() } };
+    return {
+      ok: true,
+      data: { updatedAt: row.updatedAt.toISOString(), slug: row.slug, slugError, wasLive: current.status === "published", previousSlug: current.slug },
+    };
   },
 
   async setStatus(userId: string, id: string, status: ProjectStatus): Promise<ServiceResult<ProjectListItem>> {
@@ -227,7 +264,7 @@ export const projectService = {
   snapshot: (userId: string, id: string) => projectService.detail(userId, id),
 
   async restore(userId: string, snap: ProjectDetail) {
-    if (validateDoc(snap.content)) return null;
+    if (validateDoc(snap.content) || (snap.translations?.id?.content && validateDoc(snap.translations.id.content))) return null;
     const slug = await uniqueSlug(userId, slugify(snap.slug));
     const wanted = snap.gallery.map((g) => g.mediaId).concat(snap.coverMediaId ? [snap.coverMediaId] : []);
     const owned = await projectRepository.ownedPublicImages(userId, wanted);

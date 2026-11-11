@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { FiActivity, FiTrash2 } from "react-icons/fi";
 import { deleteWorkout, restoreWorkout } from "@/features/health/workout-actions";
 import { fmtDate } from "@/features/health/format";
-import { fmtVolume } from "@/features/health/workout-meta";
+import { fmtMinutes, fmtVolume, groupByWeek } from "@/features/health/workout-meta";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
@@ -36,27 +36,49 @@ export default function WorkoutHistory({ workouts }: { workouts: WorkoutSummary[
 
   return (
     <>
-      <ul className="list-unstyled mb-0">
-        {workouts.map((w) => (
-          <li key={w.id} className="d-flex align-items-center gap-2 py-2 border-top">
-            <Link href={`/me/health/workouts/${w.id}`} className="flex-grow-1 text-decoration-none text-dark min-w-0">
-              <div className="d-flex flex-wrap gap-2 align-items-center">
-                <strong>{w.name}</strong>
-                {w.status === "in_progress" && <span className="badge bg-soft-warning text-warning">In progress</span>}
-                <span className="text-muted small">{fmtDate(w.date, { weekday: "short", month: "short", day: "numeric" })}</span>
-              </div>
-              <div className="text-muted small text-truncate">{w.exerciseNames.join(" · ") || "No exercises"}</div>
-              <div className="text-muted small">
-                {w.setCount} sets · {fmtVolume(w.volumeKg)}
-                {w.durationMin ? ` · ${w.durationMin} min` : ""}
-              </div>
-            </Link>
-            <button type="button" className="btn btn-sm btn-outline-danger border-0" aria-label={`Delete ${w.name}`} onClick={() => setTarget(w)}>
-              <FiTrash2 />
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Week by week, each with its totals, so progress reads without adding anything up. */}
+      {groupByWeek(workouts).map((week) => {
+        const done = week.items.filter((w) => w.status !== "in_progress");
+        const volume = done.reduce((n, w) => n + w.volumeKg, 0);
+        const minutes = done.reduce((n, w) => n + (w.durationMin ?? 0), 0);
+        const end = new Date(`${week.weekStart}T00:00:00Z`);
+        end.setUTCDate(end.getUTCDate() + 6);
+        const range = `${fmtDate(week.weekStart, { month: "short", day: "numeric" })} – ${fmtDate(end.toISOString().slice(0, 10), { month: "short", day: "numeric" })}`;
+        return (
+          <section key={week.weekStart} className="wk-week" aria-label={`Week of ${range}`}>
+            <header className="wk-week-head">
+              <span className="wk-week-range">{range}</span>
+              <span className="wk-week-totals">
+                {done.length} {done.length === 1 ? "workout" : "workouts"} · {fmtVolume(volume)}
+                {minutes ? ` · ${fmtMinutes(minutes)}` : ""}
+              </span>
+            </header>
+            <ul className="list-unstyled mb-0">
+              {week.items.map((w) => (
+                <li key={w.id} className="wk-row">
+                  <Link href={`/me/health/workouts/${w.id}`} className="wk-row-link">
+                    <span className="wk-day">{fmtDate(w.date, { weekday: "short" })}</span>
+                    <span className="wk-row-main">
+                      <span className="wk-row-title">
+                        <strong>{w.name}</strong>
+                        {w.status === "in_progress" && <span className="badge bg-soft-warning text-warning">In progress</span>}
+                      </span>
+                      <span className="wk-row-sub">{w.exerciseNames.join(" · ") || "No exercises"}</span>
+                    </span>
+                    <span className="wk-row-stats">
+                      {w.setCount} sets · {fmtVolume(w.volumeKg)}
+                      {w.durationMin ? ` · ${fmtMinutes(w.durationMin)}` : w.status === "in_progress" ? "" : " · duration not recorded"}
+                    </span>
+                  </Link>
+                  <button type="button" className="btn btn-sm btn-outline-danger border-0" aria-label={`Delete ${w.name}`} onClick={() => setTarget(w)}>
+                    <FiTrash2 />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
       {target && (
         <ConfirmDialog title="Delete workout?" message={`"${target.name}" and all its sets will be deleted. You can undo right after.`} isPending={isPending} onConfirm={confirm} onCancel={() => setTarget(null)} />
       )}

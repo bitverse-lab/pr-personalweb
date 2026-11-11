@@ -1,4 +1,5 @@
 import type { TaskPreview } from "@/components/me/overview/TasksSection";
+import { dueInfo } from "./dates";
 
 interface TaskRow {
   id: string;
@@ -6,19 +7,13 @@ interface TaskRow {
   dueDate: string | null;
 }
 
-function formatDueLabel(dueDate: string | null): string | undefined {
-  if (!dueDate) return undefined;
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-  if (dueDate === today) return "Today";
-  if (dueDate === tomorrow) return "Tomorrow";
-  return dueDate;
-}
-
-export function toTaskPreview(task: TaskRow): TaskPreview {
+/** `today` is the owner's calendar day ("YYYY-MM-DD"), so labels flip at their midnight. */
+export function toTaskPreview(task: TaskRow, today: string): TaskPreview {
+  const info = task.dueDate ? dueInfo(task.dueDate, today) : null;
   return {
     id: task.id,
     title: task.title,
-    dueLabel: formatDueLabel(task.dueDate),
+    dueLabel: info?.label,
+    dueTone: info?.tone,
   };
 }

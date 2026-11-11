@@ -1,5 +1,5 @@
 import { projectService, type ProjectDetail } from "@/server/services/project-service";
-import { projectPeriod, projectCategories, type Project } from "@/features/projects/format";
+import { featuredFirst, projectPeriod, projectCategories, type Project } from "@/features/projects/format";
 import { publicRead } from "@/lib/data/site-cache";
 
 export { projectCategories };
@@ -13,13 +13,6 @@ export interface ProjectPage extends Project {
   gallery: { url: string; caption: string | null }[];
 }
 
-// Template images used when a project has no image of its own (stable per slug).
-function fallbackImage(slug: string) {
-  let hash = 0;
-  for (const ch of slug) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return `/images/portfolio/${(hash % 16) + 1}.jpg`;
-}
-
 function toProject(d: ProjectDetail): Project {
   return {
     id: d.id,
@@ -27,10 +20,13 @@ function toProject(d: ProjectDetail): Project {
     name: d.title,
     label: d.category ?? "",
     category: d.category,
-    image: d.coverUrl || fallbackImage(d.slug),
+    // no cover → null; the UI sets the title in type (CoverBlock), never a stock photo
+    image: d.coverUrl || null,
     summary: d.summary ?? "",
+    outcome: d.outcome,
     technologies: d.technologies,
     featured: d.featured,
+    tr: { title: d.translations.id?.title, summary: d.translations.id?.summary, outcome: d.translations.id?.outcome },
   };
 }
 
@@ -40,9 +36,8 @@ export async function getProjects(): Promise<Project[]> {
 
 /** Featured projects first (up to `limit`); falls back to the latest ones when nothing is featured. */
 export async function getFeaturedProjects(limit = 6): Promise<Project[]> {
-  const all = await getProjects();
-  const featured = all.filter((p) => p.featured);
-  return (featured.length ? featured : all).slice(0, limit);
+  // Featured first, then the rest: the home page always shows up to `limit` pieces of work.
+  return featuredFirst(await getProjects(), limit);
 }
 
 /** Not wrapped in `publicRead` on purpose — see the note on getArticleBySlug: a database outage

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { FiArchive, FiArrowLeft, FiCheck, FiExternalLink, FiGlobe, FiLoader, FiAlertCircle, FiTrash2 } from "react-icons/fi";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { FiArchive, FiArrowLeft, FiCheck, FiCircle, FiExternalLink, FiGlobe, FiLoader, FiAlertCircle, FiRotateCw, FiTrash2 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { deleteArticle, restoreArticle, saveArticle, setArticleStatus } from "@/features/content/article-actions";
 import { countWords, docToPlainText, readingMinutes, slugify } from "@/features/content/richtext";
@@ -13,15 +13,23 @@ import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import { useToast } from "@/components/shared/ToastProvider";
 import ArticleStatusBadge from "./ArticleStatusBadge";
 import RichEditor from "./RichEditor";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
+import { coverage, pickDoc, pickText } from "@/features/content/translations";
 import TagInput from "./TagInput";
 import type { RichDoc } from "@/db/schema/content";
 import type { ArticleDetail } from "@/server/services/article-service";
+import NumberFlow from "@number-flow/react";
 
-export function SaveIndicator({ status, error }: { status: SaveStatus; error: string | null }) {
+export function SaveIndicator({ status, error, onRetry, savedAt }: { status: SaveStatus; error: string | null; onRetry?: () => void; savedAt?: Date | null }) {
   if (status === "error") {
     return (
       <span className="text-danger small d-inline-flex align-items-center gap-1" role="status">
         <FiAlertCircle /> Not saved: {error}
+        {onRetry && (
+          <button type="button" className="btn btn-link btn-sm p-0 ms-1 d-inline-flex align-items-center gap-1" onClick={onRetry}>
+            <FiRotateCw /> Retry
+          </button>
+        )}
       </span>
     );
   }
@@ -33,14 +41,26 @@ export function SaveIndicator({ status, error }: { status: SaveStatus; error: st
     );
   }
   if (status === "dirty") return <span className="text-muted small" role="status">Unsaved changes</span>;
+  const at = savedAt ? ` at ${savedAt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}` : "";
   if (status === "saved") {
     return (
       <span className="text-success small d-inline-flex align-items-center gap-1" role="status">
-        <FiCheck /> Saved
+        <FiCheck /> Saved{at}
       </span>
     );
   }
   return <span className="text-muted small" role="status">All changes saved</span>;
+}
+
+const isHttpUrl = (v: string) => /^https?:\/\/\S+$/i.test(v);
+
+/** The opening of the text, cut at a sentence (or word) boundary: a starting point for the excerpt. */
+function openingExcerpt(plain: string, max = 200) {
+  const text = plain.replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const sentence = cut.lastIndexOf(". ");
+  return sentence > 80 ? cut.slice(0, sentence + 1) : `${cut.slice(0, cut.lastIndexOf(" "))}…`;
 }
 
 export default function ArticleEditor({ article, tagSuggestions }: { article: ArticleDetail; tagSuggestions: string[] }) {
@@ -50,6 +70,8 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
 
   const [title, setTitle] = useState(article.title);
   const [slug, setSlug] = useState(article.slug);
+  const [savedSlug, setSavedSlug] = useState(article.slug);
+  const [slugError, setSlugError] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(!article.slug.startsWith("draft-"));
   const [excerpt, setExcerpt] = useState(article.excerpt ?? "");
   const [coverUrl, setCoverUrl] = useState(article.coverUrl ?? "");
@@ -57,33 +79,73 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
   const [doc, setDoc] = useState<RichDoc>(article.content);
   const [status, setStatus] = useState(article.status);
   const [preview, setPreview] = useState(false);
+  // Indonesian version (shown on /id; empty fields fall back to the English).
+  const [lang, setLang] = useState<EditLang>("en");
+  const [idTitle, setIdTitle] = useState(trValue(article.translations.id?.title));
+  const [idExcerpt, setIdExcerpt] = useState(trValue(article.translations.id?.excerpt));
+  const [idDoc, setIdDoc] = useState<RichDoc>(article.translations.id?.content ?? { type: "doc", content: [] });
+  const idCoverage = coverage({ id: { title: idTitle, excerpt: idExcerpt, content: idDoc } }, ["title", "excerpt", "content"]);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  // A half-typed cover URL must not block saving the article: keep sending the last valid one.
+  const cover = coverUrl.trim();
+  const coverValid = cover === "" || isHttpUrl(cover);
+  const lastValidCover = useRef(article.coverUrl ?? "");
+  if (coverValid) lastValidCover.current = cover;
+
   const payload = useMemo(
-    () => ({ id: article.id, title, slug, excerpt, coverUrl, tags, content: doc }),
-    [article.id, title, slug, excerpt, coverUrl, tags, doc]
+    () => ({ id: article.id, title, slug, slugAuto: !slugTouched, excerpt, coverUrl: lastValidCover.current, tags, content: doc, translations: { id: { title: idTitle, excerpt: idExcerpt, content: idDoc } } }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lastValidCover follows `cover`
+    [article.id, title, slug, slugTouched, excerpt, cover, tags, doc, idTitle, idExcerpt, idDoc]
   );
-  const { status: saveStatus, error, flush } = useAutosave(payload, async (p) => {
+  const { status: saveStatus, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveArticle(p);
-    return result.ok ? null : result.error;
+    if (!result.ok) return result.error;
+    const sent = slugify(p.slug);
+    // The server numbered a clashing automatic slug ("my-post-2"); show it, unless the title moved on.
+    if (result.data.slug !== sent) setSlug((current) => (slugify(current) === sent ? result.data.slug : current));
+    setSavedSlug(result.data.slug);
+    setSlugError(result.data.slugError);
+    return null;
   });
 
   const plain = useMemo(() => docToPlainText(doc), [doc]);
   const words = countWords(plain);
+
+  // Ctrl/Cmd+S saves now instead of opening the browser's "Save page" dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void flush();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flush]);
 
   const onTitle = (value: string) => {
     setTitle(value);
     if (!slugTouched) setSlug(value.trim() ? slugify(value) : slug);
   };
 
+  const checklist = [
+    { label: "A title", done: !!title.trim(), required: true },
+    { label: "Some writing", done: words > 0, required: true },
+    { label: "An excerpt for lists and search results", done: !!excerpt.trim(), required: false },
+    { label: "A cover image", done: !!cover && coverValid, required: false },
+  ];
+  const ready = checklist.every((c) => c.done || !c.required);
+
   const changeStatus = (next: "draft" | "published" | "archived") =>
     startTransition(async () => {
       // persist first so the published version is exactly what is on screen
-      const saved = await saveArticle(payload);
-      if (!saved.ok) return toast.error(saved.error);
+      const problem = await flush();
+      if (problem) return toast.error(`Could not save first: ${problem}`);
       const result = await setArticleStatus({ id: article.id, status: next });
       if (!result.ok) return toast.error(result.error);
       setStatus(result.data.status);
+      setSavedSlug(result.data.slug);
       setSlugTouched(true);
       toast.success(next === "published" ? "Published — it is now live on your site" : next === "archived" ? "Article archived" : "Moved back to drafts");
     });
@@ -103,51 +165,82 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
 
   return (
     <>
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h1 className="visually-hidden">Edit article: {title.trim() || "Untitled"}</h1>
+      <div className="art-topbar d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <Link href="/me/articles" className="text-muted small d-inline-flex align-items-center gap-1">
           <FiArrowLeft /> All articles
         </Link>
         <div className="d-flex align-items-center gap-3">
-          <SaveIndicator status={saveStatus} error={error} />
+          <span title="Ctrl+S saves right away">
+            <SaveIndicator status={saveStatus} error={error} savedAt={savedAt} onRetry={() => void flush()} />
+          </span>
           <div className="btn-group btn-group-sm" role="group" aria-label="Editor mode">
-            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(false)}>Write</button>
-            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setPreview(true)}>Preview</button>
+            <button type="button" className={`btn ${!preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={!preview} onClick={() => setPreview(false)}>Write</button>
+            <button type="button" className={`btn ${preview ? "btn-primary" : "btn-outline-primary"}`} aria-pressed={preview} onClick={() => setPreview(true)}>Preview</button>
           </div>
         </div>
       </div>
 
       <div className="row g-3">
         <div className="col-lg-8">
-          <input
-            className="form-control form-control-lg fw-semibold mb-3"
-            placeholder="Article title"
-            aria-label="Article title"
-            maxLength={160}
-            value={title}
-            onChange={(e) => onTitle(e.target.value)}
-          />
           {preview ? (
-            <article className="card rounded shadow-sm overflow-hidden">
-              {coverUrl && /^https?:\/\//i.test(coverUrl) && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={coverUrl} alt="" className="img-fluid w-100" />
-              )}
-              <div className="card-body">
+            <article className="card rounded shadow-sm art-preview" aria-label="Preview">
+              <div className="card-body p-4 p-md-5">
+                <p className="text-muted small mb-2">
+                  {status === "published" && article.publishedAt
+                    ? new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : "Not published yet"}
+                  {" · "}
+                  {readingMinutes(words)} min read
+                </p>
+                <h1 className="article-title mb-3">{pickText(lang, title, idTitle).trim() || "Untitled"}</h1>
+                {pickText(lang, excerpt, idExcerpt).trim() && <p className="lead text-muted">{pickText(lang, excerpt, idExcerpt)}</p>}
+                {cover && coverValid && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cover} alt="" className="img-fluid rounded my-4 w-100" />
+                )}
+                <div className="reading-col mx-0">
+                  {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={pickDoc(lang, doc, idDoc)} />}
+                </div>
                 {tags.length > 0 && (
-                  <div className="d-flex flex-wrap gap-2 mb-3">
-                    {tags.map((tag) => <span className="badge bg-soft-primary text-primary" key={tag}>{tag}</span>)}
+                  <div className="d-flex flex-wrap gap-2 mt-4">
+                    {tags.map((tag) => (
+                      <span className="task-tag" key={tag}>#{tag.toLowerCase()}</span>
+                    ))}
                   </div>
                 )}
-                <h3 className="mb-3">{title || "Untitled"}</h3>
-                {excerpt.trim() && <p className="lead text-muted">{excerpt}</p>}
-                {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={doc} className="mt-3" />}
               </div>
             </article>
           ) : (
-            <RichEditor initial={article.content} onChange={setDoc} placeholder="Tell your story…" minHeight={420} />
+            <>
+              <LangTabs value={lang} onChange={setLang} done={idCoverage.done} total={idCoverage.total} />
+              {lang === "en" ? (
+                <input
+                  className="form-control form-control-lg fw-semibold mb-3 art-title-input"
+                  placeholder="Article title"
+                  aria-label="Article title"
+                  maxLength={160}
+                  value={title}
+                  onChange={(e) => onTitle(e.target.value)}
+                />
+              ) : (
+                <>
+                  <input lang="id" className="form-control form-control-lg fw-semibold mb-3 art-title-input" placeholder={title || "Judul artikel"} aria-label="Title in Indonesian" maxLength={160} value={idTitle} onChange={(e) => setIdTitle(e.target.value)} />
+                  <label className="form-label small mb-1" htmlFor="article-excerpt-id">Excerpt (Indonesian)</label>
+                  <textarea id="article-excerpt-id" lang="id" className="form-control mb-3" rows={2} maxLength={400} placeholder={excerpt} value={idExcerpt} onChange={(e) => setIdExcerpt(e.target.value)} />
+                </>
+              )}
+            </>
           )}
+          {/* Kept mounted while previewing and while the other language is shown: unmounting an editor lost its content and undo history. */}
+          <div className={preview || lang !== "en" ? "d-none" : undefined}>
+            <RichEditor initial={article.content} onChange={setDoc} placeholder="Tell your story…" minHeight={420} />
+          </div>
+          <div className={preview || lang !== "id" ? "d-none" : undefined} lang="id">
+            <RichEditor initial={article.translations.id?.content ?? { type: "doc", content: [] }} onChange={setIdDoc} placeholder="Leave empty to show the English article on /id…" minHeight={420} />
+          </div>
           <p className="text-muted small mt-2 mb-0">
-            {words} words · {readingMinutes(words)} min read
+            <NumberFlow value={words} /> words · {readingMinutes(words)} min read
           </p>
         </div>
 
@@ -158,14 +251,34 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
                 <h6 className="mb-0">Publishing</h6>
                 <ArticleStatusBadge status={status} />
               </div>
+              {status !== "published" && (
+                <ul className="list-unstyled small mb-3 art-checklist" aria-label="Before publishing">
+                  {checklist.map((c) => (
+                    <li key={c.label} className={c.done ? "is-done" : undefined}>
+                      {c.done ? <FiCheck aria-hidden /> : <FiCircle aria-hidden />}
+                      <span>
+                        {c.label}
+                        {!c.required && <span className="text-muted"> (optional)</span>}
+                      </span>
+                      <span className="visually-hidden">{c.done ? "done" : "to do"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div className="d-grid gap-2">
                 {status !== "published" ? (
-                  <button type="button" className="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1" disabled={isPending} onClick={() => changeStatus("published")}>
+                  <button
+                    type="button"
+                    className="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1"
+                    disabled={isPending || !ready}
+                    title={ready ? undefined : "Add a title and some writing first"}
+                    onClick={() => changeStatus("published")}
+                  >
                     <FiGlobe /> Publish
                   </button>
                 ) : (
                   <>
-                    <Link href={`/articles/${slug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
+                    <Link href={`/articles/${savedSlug}`} target="_blank" className="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-1">
                       <FiExternalLink /> View on site
                     </Link>
                     <button type="button" className="btn btn-outline-secondary" disabled={isPending} onClick={() => changeStatus("draft")}>
@@ -178,7 +291,7 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
                     <FiArchive /> Archive
                   </button>
                 )}
-                <button type="button" className="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center gap-1" onClick={() => setConfirmDelete(true)}>
+                <button type="button" className="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center gap-1" disabled={isPending} onClick={() => setConfirmDelete(true)}>
                   <FiTrash2 /> Delete
                 </button>
               </div>
@@ -191,39 +304,74 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
               <h6 className="mb-3">Details</h6>
               <div className="mb-3">
                 <label className="form-label small mb-1" htmlFor="article-slug">URL slug</label>
-                <div className="input-group input-group-sm">
+                <div className="input-group input-group-sm has-validation">
                   <span className="input-group-text">/articles/</span>
                   <input
                     id="article-slug"
-                    className="form-control"
+                    className={`form-control${slugError ? " is-invalid" : ""}`}
                     maxLength={120}
                     value={slug}
+                    aria-describedby="article-slug-help"
                     onChange={(e) => {
                       setSlugTouched(true);
                       setSlug(e.target.value);
                     }}
                     onBlur={() => setSlug(slugify(slug))}
                   />
+                  {slugError && <div className="invalid-feedback">{slugError}. The article keeps /articles/{savedSlug} until you pick another.</div>}
                 </div>
-                {status === "published" && <div className="form-text">Changing the slug of a published article changes its public link.</div>}
+                <div id="article-slug-help" className="form-text">
+                  {slugTouched ? (
+                    <>
+                      {status === "published" ? "Changing it changes the public link. " : ""}
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 align-baseline"
+                        disabled={!title.trim()}
+                        onClick={() => {
+                          setSlugTouched(false);
+                          setSlug(slugify(title));
+                        }}
+                      >
+                        Follow the title
+                      </button>
+                    </>
+                  ) : (
+                    "Follows the title until you edit it."
+                  )}
+                </div>
               </div>
               <div className="mb-3">
-                <label className="form-label small mb-1" htmlFor="article-excerpt">Excerpt</label>
+                <div className="d-flex justify-content-between align-items-baseline">
+                  <label className="form-label small mb-1" htmlFor="article-excerpt">Excerpt</label>
+                  {!excerpt.trim() && words > 0 && (
+                    <button type="button" className="btn btn-link btn-sm p-0" onClick={() => setExcerpt(openingExcerpt(plain))}>
+                      Use the opening
+                    </button>
+                  )}
+                </div>
                 <textarea id="article-excerpt" className="form-control" rows={3} maxLength={400} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="A short summary shown in article lists and search results" />
-                <div className="form-text">{excerpt.length}/400</div>
+                <div className={`form-text${excerpt.length > 300 ? " text-warning" : ""}`}>{excerpt.length}/400</div>
               </div>
               <div className="mb-3">
                 <label className="form-label small mb-1" htmlFor="article-cover">Cover image</label>
-                {coverUrl && /^https?:\/\//i.test(coverUrl) ? (
-                  <div className="mb-2">
+                {cover && coverValid ? (
+                  <div className="mb-2 art-cover">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={coverUrl} alt="Cover preview" className="img-fluid rounded" />
+                    <img src={cover} alt="Cover preview" className="img-fluid rounded" />
                     <button type="button" className="btn btn-sm btn-link text-danger px-0" onClick={() => setCoverUrl("")}>Remove cover</button>
                   </div>
                 ) : (
                   <UploadDropzone purpose="cover" accept="image" compact label="Upload a cover image" onUploaded={(m) => m.url && setCoverUrl(m.url)} />
                 )}
-                <input id="article-cover" className="form-control form-control-sm mt-2" placeholder="…or paste an image URL" value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} />
+                <input
+                  id="article-cover"
+                  className={`form-control form-control-sm mt-2${coverValid ? "" : " is-invalid"}`}
+                  placeholder="…or paste an image URL"
+                  value={coverUrl}
+                  onChange={(e) => setCoverUrl(e.target.value)}
+                />
+                {!coverValid && <div className="invalid-feedback">Use a full link starting with https://. The rest of the article still saves.</div>}
               </div>
               <TagInput tags={tags} onChange={setTags} suggestions={tagSuggestions} />
             </div>

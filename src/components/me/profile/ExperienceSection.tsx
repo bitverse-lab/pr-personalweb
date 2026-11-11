@@ -8,6 +8,8 @@ import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, fmtMonth, monthToDate, monthValue, moveItem } from "./shared";
 import DialogShell from "@/components/shared/DialogShell";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
+import { coverage } from "@/features/content/translations";
 
 type Experience = ProfileData["experiences"][number];
 
@@ -21,7 +23,13 @@ function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () =>
     current: item ? item.endDate === null : false,
     description: item?.description ?? "",
     achievements: (item?.achievements ?? []).join("\n"),
+    idRole: trValue(item?.translations.id?.role),
+    idDescription: trValue(item?.translations.id?.description),
+    idAchievements: (item?.translations.id?.achievements ?? []).join("\n"),
   });
+  const [lang, setLang] = useState<EditLang>("en");
+  const lines = (v: string) => v.split("\n").map((l) => l.trim()).filter(Boolean);
+  const cov = coverage({ id: { role: f.idRole, description: f.idDescription, achievements: lines(f.idAchievements) } }, ["role", "description", "achievements"]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
@@ -37,7 +45,8 @@ function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () =>
       startDate: monthToDate(f.start),
       endDate: f.current ? null : monthToDate(f.end),
       description: f.description,
-      achievements: f.achievements.split("\n").map((l) => l.trim()).filter(Boolean),
+      achievements: lines(f.achievements),
+      translations: { id: { role: f.idRole, description: f.idDescription, achievements: lines(f.idAchievements) } },
     };
     startTransition(async () => {
       const result = item ? await updateExperience({ id: item.id, data }) : await createExperience(data);
@@ -51,6 +60,14 @@ function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () =>
     <DialogShell title={item ? "Edit experience" : "Add experience"} onClose={onClose} maxWidth={560}>
       <form onSubmit={submit}>
         {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <LangTabs value={lang} onChange={setLang} done={cov.done} total={cov.total} />
+        {lang === "id" ? (
+          <div className="row g-2">
+            <div className="col-12"><label className="form-label small mb-1" htmlFor="x-role-id">Role (Indonesian)</label><input id="x-role-id" lang="id" className="form-control" maxLength={100} placeholder={f.role} value={f.idRole} onChange={set("idRole")} /></div>
+            <div className="col-12"><label className="form-label small mb-1" htmlFor="x-desc-id">Description (Indonesian)</label><textarea id="x-desc-id" lang="id" className="form-control" rows={3} maxLength={1000} placeholder={f.description} value={f.idDescription} onChange={set("idDescription")} /></div>
+            <div className="col-12"><label className="form-label small mb-1" htmlFor="x-ach-id">Achievements, one per line (Indonesian)</label><textarea id="x-ach-id" lang="id" className="form-control" rows={4} placeholder={f.achievements} value={f.idAchievements} onChange={set("idAchievements")} /></div>
+          </div>
+        ) : (
         <div className="row g-2">
           <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-company">Company</label><input id="x-company" className="form-control" maxLength={100} value={f.company} onChange={set("company")} required /></div>
           <div className="col-md-6"><label className="form-label small mb-1" htmlFor="x-role">Role</label><input id="x-role" className="form-control" maxLength={100} value={f.role} onChange={set("role")} required /></div>
@@ -66,6 +83,7 @@ function ExperienceDialog({ item, onClose }: { item?: Experience; onClose: () =>
           <div className="col-12"><label className="form-label small mb-1" htmlFor="x-desc">Description</label><textarea id="x-desc" className="form-control" rows={3} maxLength={1000} value={f.description} onChange={set("description")} /></div>
           <div className="col-12"><label className="form-label small mb-1" htmlFor="x-ach">Achievements (one per line)</label><textarea id="x-ach" className="form-control" rows={4} value={f.achievements} onChange={set("achievements")} placeholder={"Reduced page load time by 40%\nLed a team of 4 engineers"} /></div>
         </div>
+        )}
         <div className="d-flex justify-content-end gap-2 mt-3">
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
           <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
@@ -107,7 +125,7 @@ export default function ExperienceSection({ items }: { items: Experience[] }) {
       setDeleting(null);
       if (!r.ok) return toast.error(r.error);
       toast.success("Experience deleted", {
-        action: { label: "Undo", onClick: () => void createExperience({ company: it.company, role: it.role, location: it.location ?? "", startDate: it.startDate, endDate: it.endDate, description: it.description ?? "", achievements: it.achievements }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) },
+        action: { label: "Undo", onClick: () => void createExperience({ company: it.company, role: it.role, location: it.location ?? "", startDate: it.startDate, endDate: it.endDate, description: it.description ?? "", achievements: it.achievements, translations: it.translations }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) },
       });
     });
   };
@@ -120,7 +138,7 @@ export default function ExperienceSection({ items }: { items: Experience[] }) {
           <button type="button" className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" onClick={() => setEditing("new")}><FiPlus /> Add</button>
         </div>
         {list.length === 0 ? (
-          <EmptyState icon={FiBriefcase} title="No experience yet" description="Add your roles — newest first. They appear on your CV and About page." />
+          <EmptyState icon={FiBriefcase} title="No experience yet" description="Add your roles — newest first. They appear on your CV, About and home page." />
         ) : (
           <ul className="list-unstyled mb-0">
             {list.map((e, i) => (

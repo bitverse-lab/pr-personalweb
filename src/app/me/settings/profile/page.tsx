@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FiDownload, FiExternalLink } from "react-icons/fi";
 import BasicsForm from "@/components/me/profile/BasicsForm";
 import EducationSection from "@/components/me/profile/EducationSection";
+import HighlightsSection from "@/components/me/profile/HighlightsSection";
 import ExperienceSection from "@/components/me/profile/ExperienceSection";
 import LinksSection from "@/components/me/profile/LinksSection";
 import SkillsSection from "@/components/me/profile/SkillsSection";
@@ -29,6 +30,7 @@ export default async function ProfileSettingsPage() {
         bare
         tabs={[
           { key: "basics", label: "Basics", content: <BasicsForm data={data} /> },
+          { key: "highlights", label: `Highlights (${data.highlights.length})`, content: <HighlightsSection items={data.highlights} /> },
           { key: "experience", label: `Experience (${data.experiences.length})`, content: <ExperienceSection items={data.experiences} /> },
           { key: "education", label: `Education (${data.educations.length})`, content: <EducationSection items={data.educations} /> },
           { key: "skills", label: `Skills (${data.skills.length})`, content: <SkillsSection items={data.skills} /> },

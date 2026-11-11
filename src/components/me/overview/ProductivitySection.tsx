@@ -7,19 +7,27 @@ import OverviewCard from "./OverviewCard";
 export default function ProductivitySection({
   activity = [],
   overdue = 0,
+  today,
 }: {
   activity?: ActivityPoint[];
   overdue?: number;
+  /** The owner's day ("YYYY-MM-DD"); every day key below is counted from it. */
+  today: string;
 }) {
   return (
     <OverviewCard title="Productivity" icon={FiActivity}>
-      <ProductivityStats activity={activity} overdue={overdue} />
+      <ProductivityStats activity={activity} overdue={overdue} today={today} />
 
-      <p className="text-muted small mb-2">Last 90 days</p>
-      <ProductivityHeatmap activity={activity} />
-
-      <p className="text-muted small mb-2 mt-4">Completed per week</p>
-      <ProductivityTrendChart activity={activity} />
+      <div className="row g-4 mt-0">
+        <div className="col-md-5">
+          <p className="text-muted small mb-2">Last 90 days</p>
+          <ProductivityHeatmap activity={activity} today={today} />
+        </div>
+        <div className="col-md-7">
+          <p className="text-muted small mb-2">Completed per week</p>
+          <ProductivityTrendChart activity={activity} today={today} />
+        </div>
+      </div>
     </OverviewCard>
   );
 }

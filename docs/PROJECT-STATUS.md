@@ -1,6 +1,6 @@
 # Personal OS — project status and handoff
 
-Last updated: 24 October 2026. Written for whoever picks this project up next, human or AI.
+Last updated: 10 November 2026 (work of 9 November recorded in section 5a). Written for whoever picks this project up next, human or AI.
 For architecture rules and day-to-day conventions, read `CLAUDE.md` first; this file is the
 story of how the project got here and what is left.
 
@@ -24,9 +24,10 @@ journal, writing, projects and files.
 | | |
 | --- | --- |
 | Feature work | **Complete.** Every planned module is built. |
-| Verification | Typecheck, lint, 77 unit tests and `next build` pass; build emits existing dependency and `<img>` warnings. |
+| Verification | Re-run on 10 November 2026 on `feat/public-redesign` (`338a5e8`): `pnpm check` passes — typecheck clean, lint clean, **151 unit tests in 27 files** pass. `pnpm build` was **not** re-run since the redesign (it last passed on 24 October, with existing dependency and `<img>` warnings). Playwright was not re-run either. |
 | Browser testing | Public routes and signed-in workspace pages checked; overview mobile layout, calendar controls, and article/project previews verified. Manually tested article/project publish-to-public flows against the current Supabase project using owner-approved E2E content, then removed the marked records and confirmed list, detail, RSS, and sitemap cleanup. Playwright covers public-route smoke tests, the signed-out `/me` redirect, WCAG 2.1 A/AA scans, public scroll-reveal behavior, and Projects hydration (20 tests pass). Authenticated flows, contact submission and other mutation flows remain untested. No screen-reader/manual accessibility audit yet. Inbox and Media pagination boundaries are unit-tested, but current data is below page size. |
-| Deployment | Not deployed. CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. An initial Drizzle baseline is prepared but not applied; hosting, monitoring and backups remain outstanding. |
+| Branches | Checked against the remote on 10 November 2026. `main` and `production` are identical on local and remote and hold PR #1 and PR #2. The public redesign (PR #3) is merged into **`origin/develop`** only, not `main`. `338a5e8` exists only on `origin/feat/public-redesign`; it is not in `origin/develop`. Local `develop` is 16 commits behind `origin/develop` (run `git pull`). `feat/docker` exists only on this machine — it is not on the remote. See section 5a. |
+| Deployment | Not deployed. A Docker image and `compose.yaml` exist on `feat/docker` (unmerged). CI runs typecheck, lint, unit tests, and non-mutating Playwright smoke tests. An initial Drizzle baseline is prepared but not applied; hosting, monitoring and backups remain outstanding. |
 | Real content | Setup is incomplete. Existing published content remains; two pre-existing records identified by the owner as test content remain as drafts. Temporary E2E article/project records were removed after verification. |
 | Database | Supabase has been resumed; local public-page reads returned successfully. |
 
@@ -118,6 +119,99 @@ which put a ~600 ms floor under every page. Caching it for 5 minutes took `/arti
 was added at the same time: a top progress bar, page fade, optimistic sidebar highlighting,
 button press states and skeleton loaders.
 
+## 5a. 9 November 2026 — demo data, public fixes, Docker, public redesign
+
+One day of work across four branches, 38 commits (including 3 merges) between 12:43 and 22:31 (WIB).
+Verification status is in section 2: `pnpm check` passes (151 unit tests); `next build` and
+Playwright were not re-run. This file previously said 77 unit tests; the count is now 151, and
+there are 39 `page`/`route` files under `src/app`. `CLAUDE.md` still says "67 unit tests in 8 files" and is stale.
+
+Timeline (WIB, 9 November): 12:43–14:36 sync and demo data → 14:47–15:01 UI fixes →
+15:07–15:13 Docker → 17:03–22:25 redesign → 22:31 CI follow-up commit.
+
+**Demo data and admin→public sync** — PR #1, merged to `main`.
+Design and plan: `docs/superpowers/specs/2026-11-09-admin-public-sync-and-demo-data-design.md`,
+`docs/superpowers/plans/2026-11-09-admin-public-sync-and-demo-data.md`.
+
+- `pnpm db:seed` loads deterministic demo content, public and workspace, with generated
+  placeholder PNGs. `pnpm db:seed:clean` removes it, with a cascade guard. Re-runs are
+  idempotent and keep rows the owner has edited.
+- `/me` shows a notice while demo data is loaded.
+- Sitemap and feed now refresh on every public change; testimonials use the site-cache helper.
+- Dev reuses one postgres client across module reloads.
+- Playwright test proving workspace edits reach the public site. It touches the live database,
+  so it is skipped in CI; run it locally with `pnpm test:e2e`.
+
+**Public UI fixes** — PR #2, merged to `main` and `production`.
+
+- One-row mobile header; Escape closes the menu; one site name in page titles; portrait
+  fallback; light projects hero.
+- Testimonial author names and project filters meet WCAG AA contrast.
+
+**Docker** — branch `feat/docker`, local only, not pushed or merged.
+
+- `Dockerfile`, `compose.yaml`, `.dockerignore`, README section. Standalone Next output is
+  enabled only inside the image, so local `next build` is unchanged.
+
+**Public redesign** — PR #3, merged to `develop`, not yet in `main`.
+Spec, plan and approved HTML prototypes:
+`docs/superpowers/specs/2026-11-09-public-redesign-design.md`,
+`docs/superpowers/plans/2026-11-09-public-redesign.md`, `docs/superpowers/specs/assets/`.
+
+- Stays inside the Fronter constraint: same tokens, Poppins/Roboto, Bootstrap utilities.
+  The only addition is JetBrains Mono for a shared mono "layer" label language.
+- Home: "query console" hero fed by timed, cached reads of the owner's own tables; Selected
+  Work, Latest Writing, one-column experience. Percentage skill bars and the template
+  availability banner were removed.
+- Projects: case studies grouped by layer, derived from technologies and skills; one-line
+  outcome field.
+- Articles: editorial list and a reading layout with live table of contents.
+- About, CV sheet and Contact restyled to match. Template stock photos replaced by
+  typographic covers. Profile highlights are owner-editable.
+- Follow-up fixes: readable small buttons, CV line length, aligned fact links, name visible
+  without JS, rows survive a cancelled tab switch, quieter live region.
+- After the merge, `338a5e8` made E2E tests that assert on the demo dataset skip in CI,
+  where the database is unreachable by design.
+
+## 5b. 11 November 2026 — redesign brief (`docs/REDESIGN-BRIEF.md`)
+
+Built in brief order, each on its own stacked branch and PR:
+
+- **/proof** (idea 4): CI writes test counts, route sizes and job health to `site_metric`;
+  the page links every number to the run that produced it. See `docs/PROOF.md`.
+- **Live SQL console** (idea 2): "Make it live" loads PGlite in a worker with the public
+  snapshot from `/api/snapshot`; 5 s timeout, 500-row cap, writes stay in the browser.
+- **/match** (idea 1): a pasted job description is matched to evidence by tool, by area and,
+  opt-in, by meaning (MiniLM in the browser). The text never leaves the page.
+- **Craft** (idea 8): installable PWA with offline reading (`public/sw.js`, production only;
+  never touches `/me`, `/login`, `/api`) and a designed dark theme for the public site
+  (`_dark.scss`, tokens in `_public.scss`, `src/lib/theme.ts`; `/me` stays light). The axe
+  suite runs in both themes.
+- **Role-tailored links** (idea 9): `/for/data-engineer`, `/for/ml-engineer`, `/for/backend`,
+  `/for/frontend`, `/for/fullstack` show the home page with the work for that role first and a
+  note saying so. Static, `noindex`, canonical `/`. Roles live in `src/features/roles/roles.ts`.
+- **Career time scrubber** (idea 7): a slider under the hero walks the cloud back in time. A
+  skill's year is the earliest dated project listing it or role text naming it
+  (`src/features/projects/timeline.ts`); undated skills stay undated. No new column needed.
+- **/proof dependency freshness**: `pnpm outdated` in the Proof workflow, shown as a tile.
+- **/architecture** (idea 6, using this site as the case study): "Send a request" calls
+  `/api/trace`, which times a cached read and a Postgres round trip; the browser adds the network.
+  Each stop shows its decision and a code excerpt read from the repo at build time
+  (`src/features/architecture/`); a unit test fails if a quoted marker disappears.
+- **Bilingual EN/ID, part 1** (interface): Indonesian pages under `/id` for home, about, CV,
+  projects, articles and contact; `/match`, `/proof`, `/architecture`, `/privacy` stay English and
+  the switch leads to `/id` from them. Interface text lives in `src/lib/i18n/dict.ts` (TypeScript
+  fails if a key is missing in Indonesian). Shared page bodies are in `src/app/_views/`; the page
+  files under `/` and `/id` only pick the locale. hreflang alternates on both, both in the sitemap.
+- **Bilingual EN/ID, part 2** (content): profile basics, experience, education, highlights,
+  projects and articles have an Indonesian version in one `translations` jsonb column per table
+  (`{ "id": { … } }`, `src/features/content/translations.ts`). The /me forms have an
+  English | Bahasa Indonesia switch with a "done/total" count; project and article lists show an
+  "ID" badge. Public read models carry both languages and `src/lib/i18n/content.ts` /
+  `localizeProfile` pick per field, falling back to English. Dates and periods are localized.
+  A form that does not send `translations` leaves them untouched.
+- Dropped by the owner (11 November 2026): idea 3 (ML demos) and idea 5 (postmortem).
+
 ## 6. Open issues
 
 1. **Workspace browser testing is incomplete.** The 18 migrated dialogs compile and are
@@ -136,6 +230,12 @@ button press states and skeleton loaders.
 
 ## 7. What to do next, in order
 
+0. **Settle the branches** (section 5a), in this order:
+   1. `git checkout develop && git pull` to bring local `develop` up to date.
+   2. Merge `feat/public-redesign` into `develop` so `338a5e8` lands there.
+   3. Stop any dev server, delete `.next`, run `pnpm build`, and run `pnpm test:e2e` locally.
+   4. Decide when the redesign goes to `main`/`production`.
+   5. Push `feat/docker` (`git push -u origin feat/docker`) and merge it, or drop it.
 1. **Manual test round** in a desktop browser and on a phone: every workspace page, every
    dialog, the contact form, and the newer-article navigation in section 6.
 2. **Fill in real content** — Profile & CV, photo, first project, first article, testimonials.

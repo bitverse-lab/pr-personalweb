@@ -11,7 +11,9 @@ import NoteForm from "@/components/me/career/NoteForm";
 import { getApplicationDocuments } from "@/features/career/document-actions";
 import { isStorageConfigured } from "@/server/storage/client";
 import { getApplicationDetail, getCompanyNames } from "@/features/career/actions";
-import { STATUS_META } from "@/features/career/status";
+import StageStepper from "@/components/me/career/StageStepper";
+import AdvanceStageButton from "@/components/me/career/AdvanceStageButton";
+import { daysSince, followUpDue, stageStart } from "@/features/career/insights";
 import type { ApplicationDto } from "@/features/career/types";
 
 export default async function ApplicationDetailPage({ params }: { params: { id: string } }) {
@@ -19,6 +21,10 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
   if (!detail) notFound();
 
   const application = detail.application as ApplicationDto;
+  const now = new Date();
+  const hasUpcoming = detail.interviews.some((i) => i.status === "scheduled" && i.startAt >= now);
+  const nudge = hasUpcoming ? null : followUpDue(application, now);
+  const inStage = daysSince(stageStart(application), now);
 
   return (
     <div className="container-fluid py-4 px-4">
@@ -38,15 +44,27 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                 {application.companyName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h4 className="mb-0">{application.roleTitle}</h4>
+                <h1 className="h4 mb-0">{application.roleTitle}</h1>
                 <div className="text-muted">{application.companyName}</div>
                 <div className="mt-1">
                   <ApplicationStatusBadge status={application.status} />
                 </div>
               </div>
             </div>
-            <ApplicationHeaderActions application={application} companies={companies} />
+            <div className="d-flex flex-wrap align-items-center gap-2">
+              <AdvanceStageButton id={application.id} status={application.status} />
+              <ApplicationHeaderActions application={application} companies={companies} />
+            </div>
           </div>
+
+          <StageStepper status={application.status} history={detail.history} />
+          {nudge !== null ? (
+            <p className="career-nudge" role="note">
+              No reply for {nudge} days. A short, friendly follow-up to the recruiter is a good next step.
+            </p>
+          ) : (
+            <p className="career-stage-age">{inStage === 0 ? "Entered this stage today." : `In this stage for ${inStage} day${inStage === 1 ? "" : "s"}.`}</p>
+          )}
 
           <div className="d-flex flex-wrap gap-3 text-muted small mt-3">
             {application.location && (
@@ -62,7 +80,8 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
             )}
             {application.appliedAt && (
               <span className="d-inline-flex align-items-center gap-1">
-                <FiCalendar aria-hidden /> Applied {application.appliedAt}
+                <FiCalendar aria-hidden /> Applied{" "}
+                {new Date(`${application.appliedAt}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </span>
             )}
             {application.jobUrl && (
@@ -98,19 +117,6 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                 <NoteForm applicationId={application.id} />
               </div>
               <ApplicationTimeline events={detail.timeline} />
-            </div>
-          </div>
-          <div className="card rounded shadow-sm">
-            <div className="card-body">
-              <h6 className="mb-3">Stage history</h6>
-              <div className="d-flex flex-wrap align-items-center gap-2 small">
-                {detail.history.map((entry, index) => (
-                  <span key={entry.id} className="d-inline-flex align-items-center gap-2">
-                    {index > 0 && <span className="text-muted">→</span>}
-                    <span title={entry.changedAt.toLocaleString()}>{STATUS_META[entry.toStatus].label}</span>
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         </div>

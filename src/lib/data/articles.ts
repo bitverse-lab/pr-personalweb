@@ -14,20 +14,17 @@ export interface Article {
   tag: string;
   tags: string[];
   date: string;
-  image: string;
+  image: string | null;
   readMinutes: number;
+  /** ISO, so a page can format the date in its own language (lib/i18n/content.ts). */
+  publishedAt: string | null;
+  /** Indonesian title and excerpt when written. */
+  tr?: { title?: string | null; excerpt?: string | null };
 }
 
 export interface ArticlePage extends Article {
   detail: ArticleDetail;
   author: string;
-}
-
-// Template images used when an article has no cover of its own (stable per slug).
-function fallbackImage(slug: string) {
-  let hash = 0;
-  for (const ch of slug) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return `/images/blog/${(hash % 9) + 1}.jpg`;
 }
 
 function formatDate(iso: string | null) {
@@ -44,15 +41,19 @@ function toArticle(item: ArticleListItem): Article {
     tag: item.tags[0] ?? "Article",
     tags: item.tags,
     date: formatDate(item.publishedAt),
-    image: item.coverUrl || fallbackImage(item.slug),
+    // no cover → null; the UI sets the title in type (CoverBlock), never a stock photo
+    image: item.coverUrl || null,
     readMinutes: readingMinutes(item.wordCount),
+    publishedAt: item.publishedAt,
+    tr: { title: item.translations.id?.title, excerpt: item.translations.id?.excerpt },
   };
 }
 
 // Cached (and dropped when an article changes) so /articles, tags and previous/next links do not hit the database on every visit.
 const loadArticles = unstable_cache(
   async (): Promise<Article[]> => (await articleService.published()).map(toArticle),
-  ["published-articles"],
+  // v2: entries carry publishedAt and the Indonesian title and excerpt.
+  ["published-articles", "v2"],
   { tags: [SITE_TAG], revalidate: SITE_REVALIDATE_SECONDS }
 );
 

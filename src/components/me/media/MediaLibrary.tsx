@@ -13,6 +13,7 @@ import { useToast } from "@/components/shared/ToastProvider";
 import UploadDropzone from "./UploadDropzone";
 import type { MediaDto } from "@/server/services/media-service";
 import { paginate } from "@/lib/pagination";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 type Filter = "all" | "image" | "document";
 
@@ -104,7 +105,7 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
           {shown.length === 0 ? (
             <EmptyState icon={FiImage} title="No files here yet" description="Upload images to use in articles and your profile, or documents for job applications." />
           ) : (
-            <div className="row g-3">
+            <AnimatedList as="div" className="row g-3">
               {pageData.items.map((m) => (
                 <div className="col-6 col-md-4 col-xl-3" key={m.id}>
                   <div className="border rounded h-100 bg-white overflow-hidden d-flex flex-column">
@@ -138,7 +139,7 @@ export default function MediaLibrary({ items, usage }: { items: MediaDto[]; usag
                   </div>
                 </div>
               ))}
-            </div>
+            </AnimatedList>
           )}
           <PaginationControls
             page={pageData.page}

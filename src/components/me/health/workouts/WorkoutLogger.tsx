@@ -16,7 +16,7 @@ import {
   updateWorkoutMeta,
 } from "@/features/health/workout-actions";
 import { totalVolume } from "@/features/health/calc";
-import { fmtDuration, fmtVolume } from "@/features/health/workout-meta";
+import { MAX_SESSION_MIN, fmtDuration, fmtVolume } from "@/features/health/workout-meta";
 import { useToast } from "@/components/shared/ToastProvider";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import ExerciseCard from "./ExerciseCard";
@@ -121,9 +121,17 @@ export default function WorkoutLogger({ data, allExercises }: { data: LoggerData
     if (notes !== (workout.notes ?? "")) void updateWorkoutMeta({ id: workout.id, notes });
   };
 
+  // Left open by mistake: more than six hours since it started. Checked after mount so the server
+  // and browser render the same HTML.
+  const [stale, setStale] = useState(false);
+  const [lastedMin, setLastedMin] = useState(60);
+  useEffect(() => {
+    if (live) setStale(Date.now() - new Date(workout.startedAt).getTime() > MAX_SESSION_MIN * 60_000);
+  }, [live, workout.startedAt]);
+
   const finish = () =>
     startTransition(async () => {
-      const r = await finishWorkout({ id: workout.id, notes });
+      const r = await finishWorkout({ id: workout.id, notes, ...(stale ? { durationMin: lastedMin } : {}) });
       if (!r.ok) return toast.error(r.error);
       toast.success(`Workout saved — ${r.data.sets} sets, ${fmtVolume(r.data.volumeKg)}${r.data.minutes ? `, ${r.data.minutes} min` : ""}`);
       router.push("/me/health/workouts");
@@ -146,6 +154,23 @@ export default function WorkoutLogger({ data, allExercises }: { data: LoggerData
       <Link href="/me/health/workouts" className="text-muted small d-inline-flex align-items-center gap-1 mb-2">
         <FiArrowLeft /> All workouts
       </Link>
+
+      {stale && (
+        <div className="alert alert-warning d-flex flex-wrap align-items-center gap-2 mb-3" role="status">
+          <span className="me-auto">
+            Open since{" "}
+            {new Date(workout.startedAt).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" })} — probably left running. How long did it last?
+          </span>
+          <label className="visually-hidden" htmlFor="wk-lasted">Minutes</label>
+          <div className="input-group input-group-sm" style={{ width: 130 }}>
+            <input id="wk-lasted" type="number" min={1} max={MAX_SESSION_MIN} className="form-control" value={lastedMin} onChange={(e) => setLastedMin(Math.min(MAX_SESSION_MIN, Math.max(1, Number(e.target.value) || 1)))} />
+            <span className="input-group-text">min</span>
+          </div>
+          <button type="button" className="btn btn-sm btn-success" disabled={isPending || allSets.length === 0} onClick={finish}>
+            Finish with this time
+          </button>
+        </div>
+      )}
 
       <div className="card rounded shadow-sm mb-3">
         <div className="card-body">

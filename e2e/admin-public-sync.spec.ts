@@ -54,8 +54,8 @@ test("a published project appears on the public site, and leaves it when unpubli
   try {
     await publish(page);
     await page.goto("/projects");
-    await expect(page.getByText(title)).toBeVisible();
-    await expect(page.getByRole("navigation").getByRole("link", { name: "Projects" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: title })).toBeVisible();
+    await expect(page.getByRole("navigation").getByRole("link", { name: "Work", exact: true }).first()).toBeVisible();
     const detail = await page.goto(`/projects/${slug}`);
     expect(detail?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
@@ -78,13 +78,16 @@ test("a featured project shows on the home page until unfeatured", async ({ owne
     await page.getByRole("button", { name: "☆ Feature on home page" }).click();
     await expect(page.getByRole("button", { name: "★ Featured on home page" })).toBeVisible(SLOW);
     await page.goto("/");
-    await expect(page.getByText(title)).toBeVisible();
+    // Home fills its three slots featured-first, then newest, so an unfeatured project can still
+    // appear; what must follow the admin flag is whether its card is marked featured.
+    const card = page.locator("[data-case]").filter({ has: page.getByRole("link", { name: title }) });
+    await expect(card).toHaveAttribute("data-featured", "");
 
     await page.goto(editor);
     await page.getByRole("button", { name: "★ Featured on home page" }).click();
     await expect(page.getByRole("button", { name: "☆ Feature on home page" })).toBeVisible(SLOW);
     await page.goto("/");
-    await expect(page.getByText(title)).toHaveCount(0);
+    await expect(page.locator("[data-case][data-featured]").filter({ has: page.getByRole("link", { name: title }) })).toHaveCount(0);
   } finally {
     await deleteFromEditor(page, editor, /Delete project\?/);
   }

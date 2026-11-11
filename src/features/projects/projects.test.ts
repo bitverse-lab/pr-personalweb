@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectPeriod } from "./format";
+import { featuredFirst, projectPeriod } from "./format";
 import { saveProjectSchema, techListSchema } from "./schema";
 
 const uuid = "123e4567-e89b-42d3-a456-426614174000";
@@ -11,6 +11,8 @@ describe("projectPeriod", () => {
     expect(projectPeriod("2023-01-01", "2023-06-01")).toBe("Jan 2023 – Jun 2023");
     expect(projectPeriod("2023-05-01", "2023-05-20")).toBe("May 2023");
     expect(projectPeriod(null, "2023-05-01")).toBe("");
+    expect(projectPeriod("2024-05-01", null, "id")).toBe("Mei 2024 – Sekarang");
+    expect(projectPeriod("2023-08-01", "2023-10-01", "id")).toBe("Agu 2023 – Okt 2023");
   });
 });
 
@@ -46,5 +48,22 @@ describe("saveProjectSchema", () => {
   it("dedupes technologies case-insensitively", () => {
     expect(techListSchema.parse(["React", "react", " Node "])).toEqual(["React", "Node"]);
     expect(techListSchema.safeParse(Array.from({ length: 16 }, (_, i) => `t${i}`)).success).toBe(false);
+  });
+});
+
+describe("project outcome", () => {
+  it("is one optional line of at most 140 characters", () => {
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "7% median error · 40 cooperatives" }).data?.outcome).toBe("7% median error · 40 cooperatives");
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "" }).data?.outcome).toBeNull();
+    expect(saveProjectSchema.safeParse({ ...base, outcome: "x".repeat(141) }).success).toBe(false);
+  });
+});
+
+describe("featuredFirst", () => {
+  it("puts featured projects first and fills up to the limit with the rest, keeping order", () => {
+    const p = (id: string, featured: boolean) => ({ id, featured });
+    const list = [p("a", false), p("b", true), p("c", false), p("d", false)];
+    expect(featuredFirst(list, 3).map((x) => x.id)).toEqual(["b", "a", "c"]);
+    expect(featuredFirst([p("a", false)], 3).map((x) => x.id)).toEqual(["a"]);
   });
 });

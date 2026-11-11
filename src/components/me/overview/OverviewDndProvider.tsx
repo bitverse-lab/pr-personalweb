@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
-import { createEvent } from "@/features/calendar/actions";
+import { createEvent, deleteEvent } from "@/features/calendar/actions";
 import { useToast } from "@/components/shared/ToastProvider";
 
 export default function OverviewDndProvider({ children }: { children: React.ReactNode }) {
@@ -26,9 +26,11 @@ export default function OverviewDndProvider({ children }: { children: React.Reac
         toast.error(result.error);
         return;
       }
-      toast.success(`Scheduled "${dragData.title}"`);
+      const id = (result.data as { id?: string } | null)?.id;
+      // A stray drop is easy; let it be taken back.
+      toast.success(`Scheduled "${dragData.title}" at 9:00`, id ? { action: { label: "Undo", onClick: () => void deleteEvent(id) } } : undefined);
     });
   };
 
-  return <DndContext onDragEnd={handleDragEnd}>{children}</DndContext>;
+  return <DndContext id="overview-dnd" onDragEnd={handleDragEnd}>{children}</DndContext>;
 }

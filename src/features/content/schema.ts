@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trText, translationsInput } from "./translations";
 import { validateDoc } from "./richtext";
 import type { RichDoc } from "@/db/schema/content";
 
@@ -27,14 +28,19 @@ const optionalUrl = z
   .refine((v) => v === "" || /^https?:\/\//i.test(v), "Cover image must be an http(s) URL")
   .nullish();
 
+export const articleTranslations = translationsInput({ title: trText(160), excerpt: trText(400), content: richDocSchema.nullable().optional() });
+
 export const saveArticleSchema = z.object({
   id: z.uuid(),
   title: z.string().trim().max(160, "Title is too long"),
   slug: z.string().trim().max(120),
+  // True while the slug still follows the title: a clash is then resolved by numbering, not refused.
+  slugAuto: z.boolean().optional(),
   excerpt: z.string().trim().max(400, "Excerpt must be 400 characters or fewer").nullish(),
   content: richDocSchema,
   coverUrl: optionalUrl,
   tags: tagListSchema,
+  translations: articleTranslations,
 });
 
 export const articleStatusSchema = z.object({ id: z.uuid(), status: z.enum(["draft", "published", "archived"]) });
@@ -57,6 +63,8 @@ export const restoreArticleSchema = z.object({
   publishedAt: z.string().nullable(),
   updatedAt: z.string(),
   tags: tagListSchema,
+  // snapshots taken before translations existed have no such key
+  translations: articleTranslations.transform((v) => v ?? {}),
 });
 
 // ---- journal ----

@@ -1,7 +1,9 @@
-import { and, asc, desc, eq, ilike, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, lt, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { tasks, subtasks } from "@/db/schema";
-import type { TaskStatus, TaskPriority } from "@/db/schema/productivity";
+import type { TaskStatus, TaskPriority, TaskRecurrence } from "@/db/schema/productivity";
+
+type DbExecutor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 import type { TaskFilters } from "@/features/tasks/schema";
 
 const doneLastOrder = sql`case when ${tasks.status} = 'done' then 1 else 0 end`;
@@ -24,15 +26,33 @@ export const taskRepository = {
     });
   },
 
-  findByIdForUser(id: string, userId: string) {
-    return db.query.tasks.findFirst({ where: and(eq(tasks.id, id), eq(tasks.userId, userId)) });
+  // Tasks due on any day in [from, to] (inclusive "YYYY-MM-DD"), shown on the calendar beside events.
+  findDueBetween(userId: string, from: string, to: string) {
+    return db.query.tasks.findMany({
+      where: and(eq(tasks.userId, userId), gte(tasks.dueDate, from), lte(tasks.dueDate, to)),
+      orderBy: [asc(doneLastOrder), asc(tasks.dueDate), asc(tasks.createdAt)],
+      limit: 200,
+    });
+  },
+
+  findByIdForUser(id: string, userId: string, ex: DbExecutor = db) {
+    return ex.query.tasks.findFirst({ where: and(eq(tasks.id, id), eq(tasks.userId, userId)) });
   },
 
   create(
     userId: string,
-    values: { title: string; description?: string; dueDate?: string; priority?: TaskPriority; tags?: string[] }
+    values: {
+      title: string;
+      description?: string | null;
+      dueDate?: string | null;
+      priority?: TaskPriority | null;
+      recurrence?: TaskRecurrence | null;
+      spawnedFromId?: string | null;
+      tags?: string[];
+    },
+    ex: DbExecutor = db
   ) {
-    return db
+    return ex
       .insert(tasks)
       .values({ userId, ...values })
       .returning()
@@ -47,6 +67,7 @@ export const taskRepository = {
       description: string | null;
       dueDate: string | null;
       priority: TaskPriority | null;
+      recurrence: TaskRecurrence | null;
       tags: string[];
     }>
   ) {
@@ -58,13 +79,32 @@ export const taskRepository = {
       .then((rows) => rows[0] ?? null);
   },
 
-  setStatus(id: string, userId: string, status: TaskStatus, completedAt: Date | null) {
-    return db
+  setStatus(id: string, userId: string, status: TaskStatus, completedAt: Date | null, ex: DbExecutor = db) {
+    return ex
       .update(tasks)
       .set({ status, completedAt, updatedAt: new Date() })
       .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
       .returning()
       .then((rows) => rows[0] ?? null);
+  },
+
+  /** The occurrence a repeating task created when it was ticked off, if any. */
+  findSpawned(userId: string, fromId: string, ex: DbExecutor = db) {
+    return ex.query.tasks.findFirst({ where: and(eq(tasks.userId, userId), eq(tasks.spawnedFromId, fromId)) });
+  },
+
+  /** Takes back the next occurrence when its predecessor is un-ticked, unless it was itself done. */
+  deleteOpenSpawned(userId: string, fromId: string, ex: DbExecutor = db) {
+    return ex.delete(tasks).where(and(eq(tasks.userId, userId), eq(tasks.spawnedFromId, fromId), ne(tasks.status, "done")));
+  },
+
+  copySubtasks(userId: string, fromTaskId: string, toTaskId: string, ex: DbExecutor = db) {
+    return ex.execute(sql`
+      insert into ${subtasks} (user_id, task_id, title, done)
+      select ${userId}, ${toTaskId}, title, false from ${subtasks}
+      where ${subtasks.taskId} = ${fromTaskId} and ${subtasks.userId} = ${userId}
+      order by ${subtasks.createdAt}
+    `);
   },
 
   delete(id: string, userId: string) {
@@ -82,6 +122,7 @@ export const taskRepository = {
       description?: string | null;
       dueDate?: string | null;
       priority?: TaskPriority | null;
+      recurrence?: TaskRecurrence | null;
       tags?: string[];
       status: TaskStatus;
       completedAt?: Date | null;
@@ -108,13 +149,14 @@ export const taskRepository = {
   },
 
   // Daily count of tasks completed since `sinceDate`, for the productivity heatmap/trend chart.
-  getCompletionActivity(userId: string, sinceDate: Date) {
+  // Days are the owner's calendar days (`tz`), not UTC ones: a task ticked off at 6 am in Jakarta belongs to today.
+  getCompletionActivity(userId: string, sinceDate: Date, tz: string) {
     return db.execute<{ day: string; count: number }>(sql`
-      select date(${tasks.completedAt}) as day, count(*)::int as count
+      select to_char(${tasks.completedAt} at time zone ${tz}, 'YYYY-MM-DD') as day, count(*)::int as count
       from ${tasks}
       where ${tasks.userId} = ${userId} and ${tasks.status} = 'done' and ${tasks.completedAt} >= ${sinceDate.toISOString()}
-      group by date(${tasks.completedAt})
-      order by day
+      group by 1
+      order by 1
     `);
   },
 };

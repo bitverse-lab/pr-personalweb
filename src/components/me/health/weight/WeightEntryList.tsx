@@ -10,6 +10,9 @@ import type { WeightEntryDto } from "@/server/services/weight-service";
 
 export default function WeightEntryList({ entries }: { entries: WeightEntryDto[] }) {
   const [target, setTarget] = useState<WeightEntryDto | null>(null);
+  // A daily log grows to hundreds of rows; show the last two weeks and let the rest unfold.
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? entries : entries.slice(0, 14);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
 
@@ -50,7 +53,7 @@ export default function WeightEntryList({ entries }: { entries: WeightEntryDto[]
             </tr>
           </thead>
           <tbody>
-            {entries.map((e) => (
+            {visible.map((e) => (
               <tr key={e.id}>
                 <td>{fmtDate(e.date, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</td>
                 <td className="text-end fw-semibold">{e.weightKg} kg</td>
@@ -66,6 +69,11 @@ export default function WeightEntryList({ entries }: { entries: WeightEntryDto[]
           </tbody>
         </table>
       </div>
+      {entries.length > 14 && (
+        <button type="button" className="btn btn-sm btn-outline-primary border-0 mt-2" aria-expanded={showAll} onClick={() => setShowAll((v) => !v)}>
+          {showAll ? "Show fewer" : `Show all ${entries.length} entries`}
+        </button>
+      )}
       {target && (
         <ConfirmDialog
           title="Delete entry?"

@@ -10,19 +10,15 @@ export default function NotFound() {
     <>
       <PersonalNavbar />
       <main id="main-content" tabIndex={-1}>
-      <section className="bg-half-170 d-table w-100">
+      <section className="page-head page-head--tall">
         <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-7 text-center">
-              <div className="display-1 fw-bold text-primary mb-2" aria-hidden="true">404</div>
-              <h1 className="h4 mb-3">This page could not be found</h1>
-              <p className="text-muted mb-4">The link may be broken, or the page may have been moved or unpublished.</p>
-              <div className="d-flex flex-wrap justify-content-center gap-2">
-                <Link href="/" className="btn btn-primary">Back to home</Link>
-                <Link href="/projects" className="btn btn-outline-primary">See projects</Link>
-                <Link href="/articles" className="btn btn-outline-primary">Read articles</Link>
-              </div>
-            </div>
+          <p className="path-label mb-3" aria-hidden="true">404 · no such page</p>
+          <h1 className="page-head-title">This page could not be found</h1>
+          <p className="page-head-lede">The link may be broken, or the page may have been moved or unpublished.</p>
+          <div className="d-flex flex-wrap gap-2 mt-4">
+            <Link href="/" className="btn btn-primary">Back to home</Link>
+            <Link href="/projects" className="btn btn-outline-primary">See work</Link>
+            <Link href="/articles" className="btn btn-outline-primary">Read writing</Link>
           </div>
         </div>
       </section>

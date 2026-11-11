@@ -35,6 +35,11 @@ test("counts and statuses match the spec", () => {
   expect(seed.contactMessages.filter((m) => m.readAt)).toHaveLength(3);
 });
 
+test("published projects carry a one-line outcome", () => {
+  const seed = buildPublic(OWNER, TODAY, emptyPublicContext(), publicUrl);
+  expect(seed.projects.filter((p) => p.status === "published").every((p) => typeof p.outcome === "string" && p.outcome.length <= 140)).toBe(true);
+});
+
 test("published articles fall within the last 90 days, newest not in the future", () => {
   const seed = buildPublic(OWNER, TODAY, emptyPublicContext(), publicUrl);
   for (const a of seed.articles.filter((x) => x.status === "published")) {

@@ -8,8 +8,10 @@ import { readingMinutes } from "@/features/content/richtext";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
+import TranslationBadge from "@/components/me/TranslationBadge";
 import ArticleStatusBadge from "./ArticleStatusBadge";
 import type { ArticleListItem } from "@/server/services/article-service";
+import AnimatedList from "@/components/shared/AnimatedList";
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -51,20 +53,31 @@ export default function ArticleList({ items, filtered }: { items: ArticleListIte
 
   return (
     <>
-      <ul className="list-unstyled mb-0">
+      <AnimatedList as="ul" className="list-unstyled mb-0">
         {items.map((a) => (
           <li key={a.id} className="d-flex align-items-center gap-2 py-3 border-top">
+            {a.coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={a.coverUrl} alt="" className="art-row-cover d-none d-sm-block" loading="lazy" />
+            ) : (
+              <span className="art-row-cover d-none d-sm-flex align-items-center justify-content-center text-primary" aria-hidden>
+                <FiFileText />
+              </span>
+            )}
             <Link href={`/me/articles/${a.id}`} className="flex-grow-1 text-decoration-none text-dark min-w-0">
               <div className="d-flex flex-wrap align-items-center gap-2">
                 <strong className="text-truncate">{a.title || "Untitled"}</strong>
                 <ArticleStatusBadge status={a.status} />
+                <TranslationBadge translations={a.translations} fields={["title", "excerpt"]} />
               </div>
               {a.excerpt && <div className="text-muted small text-truncate">{a.excerpt}</div>}
               <div className="text-muted small">
                 {a.status === "published" && a.publishedAt ? `Published ${fmt(a.publishedAt)}` : `Edited ${fmt(a.updatedAt)}`}
                 {" · "}
                 {a.wordCount} words · {readingMinutes(a.wordCount)} min read
-                {a.tags.length > 0 && ` · ${a.tags.join(", ")}`}
+                {a.tags.map((t) => (
+                  <span key={t} className="task-tag ms-2">#{t.toLowerCase()}</span>
+                ))}
               </div>
             </Link>
             <div className="text-nowrap">
@@ -88,7 +101,7 @@ export default function ArticleList({ items, filtered }: { items: ArticleListIte
             </div>
           </li>
         ))}
-      </ul>
+      </AnimatedList>
       {target && (
         <ConfirmDialog
           title="Delete article?"

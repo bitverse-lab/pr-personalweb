@@ -120,10 +120,10 @@ export default function BodyPanel({ rows, today }: { rows: MeasurementRow[]; tod
               ) : (
                 <div style={{ width: "100%", height: 260 }} role="img" aria-label={`${metric} over time`}>
                   <ResponsiveContainer>
-                    <LineChart data={series} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                    <LineChart data={series} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                       <CartesianGrid stroke={chart.grid} vertical={false} />
                       <XAxis dataKey="date" tickFormatter={(d) => fmtDate(String(d))} tick={{ fontSize: 11, fill: chart.muted }} axisLine={{ stroke: chart.grid }} tickLine={false} minTickGap={28} />
-                      <YAxis domain={[(min: number) => Math.floor(min - 1), (max: number) => Math.ceil(max + 1)]} tick={{ fontSize: 11, fill: chart.muted }} axisLine={false} tickLine={false} width={44} unit=" cm" />
+                      <YAxis domain={[(min: number) => Math.floor(min - 1), (max: number) => Math.ceil(max + 1)]} tick={{ fontSize: 11, fill: chart.muted }} axisLine={false} tickLine={false} width={56} unit=" cm" />
                       <Tooltip labelFormatter={(d) => fmtDate(String(d), { month: "short", day: "numeric", year: "numeric" })} formatter={(v) => [`${v} cm`]} />
                       <Line dataKey="value" stroke={chart.series1} strokeWidth={2.5} dot={{ r: 3, fill: chart.series1 }} isAnimationActive={false} />
                     </LineChart>

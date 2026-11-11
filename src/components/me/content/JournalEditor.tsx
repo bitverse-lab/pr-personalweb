@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition, useMemo } from "react";
+import { useEffect, useRef, useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { FiArrowLeft, FiChevronLeft, FiChevronRight, FiMessageCircle, FiTrash2 } from "react-icons/fi";
 import type { Editor } from "@tiptap/react";
@@ -17,6 +17,7 @@ import RichEditor from "./RichEditor";
 import TagInput from "./TagInput";
 import type { RichDoc } from "@/db/schema/content";
 import type { JournalEntryDto } from "@/server/services/journal-service";
+import NumberFlow from "@number-flow/react";
 
 const longDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
@@ -45,12 +46,24 @@ export default function JournalEditor({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const payload = useMemo(() => ({ id: entry.id, title, mood, tags, content: doc }), [entry.id, title, mood, tags, doc]);
-  const { status, error, flush } = useAutosave(payload, async (p) => {
+  const { status, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveJournalEntry(p);
     return result.ok ? null : result.error;
   });
 
   const words = useMemo(() => countWords(docToPlainText(doc)), [doc]);
+
+  // Ctrl/Cmd+S saves now instead of opening the browser's "Save page" dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void flush();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flush]);
 
   const insertPrompt = () => {
     const editor = editorRef.current;
@@ -81,12 +94,15 @@ export default function JournalEditor({
 
   return (
     <>
+      <h1 className="visually-hidden">Journal entry for {longDate(entry.date)}</h1>
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <Link href="/me/journal" className="text-muted small d-inline-flex align-items-center gap-1">
           <FiArrowLeft /> Journal
         </Link>
         <div className="d-flex align-items-center gap-3">
-          <SaveIndicator status={status} error={error} />
+          <span title="Ctrl+S saves right away">
+            <SaveIndicator status={status} error={error} savedAt={savedAt} onRetry={() => void flush()} />
+          </span>
           <div className="btn-group btn-group-sm">
             {prev ? (
               <Link href={`/me/journal/${prev.id}`} className="btn btn-outline-primary" aria-label={`Previous entry, ${prev.date}`}>
@@ -123,7 +139,7 @@ export default function JournalEditor({
 
           <RichEditor initial={entry.content} onChange={setDoc} onReady={(e) => (editorRef.current = e)} placeholder="How was your day?" minHeight={380} />
           <p className="text-muted small mt-2 mb-0">
-            {words} words · {readingMinutes(words)} min read
+            <NumberFlow value={words} /> words · {readingMinutes(words)} min read
           </p>
         </div>
 

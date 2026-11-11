@@ -5,8 +5,9 @@ import { requireUserId } from "@/server/auth";
 import { profileRepository } from "@/server/repositories/profile-repository";
 import { mediaRepository } from "@/server/repositories/media-repository";
 import { toMediaDto, type MediaDto } from "@/server/services/media-service";
-import { basicsSchema, educationSchema, experienceSchema, idSchema, linkSchema, photoSchema, reorderSchema, skillSchema, updateSchema } from "./schema";
+import { basicsSchema, educationSchema, experienceSchema, highlightSchema, idSchema, linkSchema, photoSchema, reorderSchema, skillSchema, updateSchema } from "./schema";
 import type { ActionResult } from "@/types/action-result";
+import type { EducationTr, ExperienceTr, HighlightTr, ProfileTr } from "@/features/content/translations";
 
 const invalid = (e: { issues: { message: string }[] }) => ({ ok: false as const, error: e.issues[0]?.message ?? "Invalid input" });
 
@@ -26,13 +27,15 @@ export interface ProfileData {
     roles: string[];
     availableForWork: boolean;
     availabilityNote: string;
+    translations: ProfileTr;
   };
   photo: MediaDto | null;
   aboutPhoto: MediaDto | null;
-  experiences: { id: string; company: string; role: string; location: string | null; startDate: string; endDate: string | null; description: string | null; achievements: string[] }[];
-  educations: { id: string; school: string; degree: string | null; field: string | null; startDate: string | null; endDate: string | null; description: string | null }[];
+  experiences: { id: string; company: string; role: string; location: string | null; startDate: string; endDate: string | null; description: string | null; achievements: string[]; translations: ExperienceTr }[];
+  educations: { id: string; school: string; degree: string | null; field: string | null; startDate: string | null; endDate: string | null; description: string | null; translations: EducationTr }[];
   skills: { id: string; name: string; category: string | null; level: number }[];
   links: { id: string; label: string; url: string }[];
+  highlights: { id: string; metric: string; value: string; note: string | null; translations: HighlightTr }[];
 }
 
 export async function getMyProfile(): Promise<ProfileData> {
@@ -49,13 +52,15 @@ export async function getMyProfile(): Promise<ProfileData> {
       roles: f.profile?.roles ?? [],
       availableForWork: f.profile?.availableForWork ?? false,
       availabilityNote: f.profile?.availabilityNote ?? "",
+      translations: f.profile?.translations ?? {},
     },
     photo: f.photo ? toMediaDto(f.photo) : null,
     aboutPhoto: f.aboutPhoto ? toMediaDto(f.aboutPhoto) : null,
-    experiences: f.experiences.map((e) => ({ id: e.id, company: e.company, role: e.role, location: e.location, startDate: e.startDate, endDate: e.endDate, description: e.description, achievements: e.achievements })),
-    educations: f.educations.map((e) => ({ id: e.id, school: e.school, degree: e.degree, field: e.field, startDate: e.startDate, endDate: e.endDate, description: e.description })),
+    experiences: f.experiences.map((e) => ({ id: e.id, company: e.company, role: e.role, location: e.location, startDate: e.startDate, endDate: e.endDate, description: e.description, achievements: e.achievements, translations: e.translations ?? {} })),
+    educations: f.educations.map((e) => ({ id: e.id, school: e.school, degree: e.degree, field: e.field, startDate: e.startDate, endDate: e.endDate, description: e.description, translations: e.translations ?? {} })),
     skills: f.skills.map((s) => ({ id: s.id, name: s.name, category: s.category, level: s.level })),
     links: f.links.map((l) => ({ id: l.id, label: l.label, url: l.url })),
+    highlights: f.highlights.map((h) => ({ id: h.id, metric: h.metric, value: h.value, note: h.note, translations: h.translations ?? {} })),
   };
 }
 
@@ -96,13 +101,14 @@ export async function setAboutPhoto(input: unknown): Promise<ActionResult<{ ok: 
 
 // ---- generic list CRUD ----
 
-type Kind = "experience" | "education" | "skill" | "link";
+type Kind = "experience" | "education" | "skill" | "link" | "highlight";
 
 const handlers = {
   experience: { schema: experienceSchema, create: profileRepository.createExperience, update: profileRepository.updateExperience, remove: profileRepository.deleteExperience },
   education: { schema: educationSchema, create: profileRepository.createEducation, update: profileRepository.updateEducation, remove: profileRepository.deleteEducation },
   skill: { schema: skillSchema, create: profileRepository.createSkill, update: profileRepository.updateSkill, remove: profileRepository.deleteSkill },
   link: { schema: linkSchema, create: profileRepository.createLink, update: profileRepository.updateLink, remove: profileRepository.deleteLink },
+  highlight: { schema: highlightSchema, create: profileRepository.createHighlight, update: profileRepository.updateHighlight, remove: profileRepository.deleteHighlight },
 } as const;
 
 async function createItem(kind: Kind, input: unknown): Promise<ActionResult<{ id: string }>> {
@@ -148,6 +154,9 @@ export const deleteSkill = async (id: string) => deleteItem("skill", id);
 export const createLink = async (input: unknown) => createItem("link", input);
 export const updateLink = async (input: unknown) => updateItem("link", input);
 export const deleteLink = async (id: string) => deleteItem("link", id);
+export const createHighlight = async (input: unknown) => createItem("highlight", input);
+export const updateHighlight = async (input: unknown) => updateItem("highlight", input);
+export const deleteHighlight = async (id: string) => deleteItem("highlight", id);
 
 export async function reorderItems(input: unknown): Promise<ActionResult<{ ok: true }>> {
   const userId = await requireUserId();
