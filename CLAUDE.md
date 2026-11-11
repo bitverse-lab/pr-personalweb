@@ -16,7 +16,7 @@ Scale: ~24,400 lines, 40 routes, 131 components, 67 unit tests in 8 files.
 
 Next.js 14.2.35 (App Router) · TypeScript · Drizzle ORM 0.45 + postgres-js · Supabase Postgres ·
 Zod 4 · NextAuth v5 beta (Google) · Bootstrap 5 with the purchased **Fronter** template SCSS ·
-Tiptap 2 · Recharts 3 · FullCalendar · dnd-kit · @react-pdf/renderer · Vitest.
+Tiptap 2 · Recharts 3 · FullCalendar · dnd-kit · Vitest.
 
 ## Commands
 
@@ -69,8 +69,8 @@ Layout: `src/db/schema/`, `src/server/repositories/`, `src/server/services/`,
 **Colours are tokens, never hex in `.tsx`.** `_variables.scss` holds the template palette;
 `_me-shell.scss` republishes what React needs as `var(--app-primary)`, `--app-primary-soft`,
 `--app-surface`, `--app-border`, `--app-on-primary-soft`. Chart colours come from
-`src/lib/chart-theme.ts`. Exceptions that genuinely cannot use CSS variables:
-`cv/download/CvDocument.tsx` (react-pdf) and `global-error.tsx` (renders its own `<html>`).
+`src/lib/chart-theme.ts`. The one exception that genuinely cannot use CSS variables:
+`global-error.tsx` (renders its own `<html>`).
 
 ## Design constraint
 

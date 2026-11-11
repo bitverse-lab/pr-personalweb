@@ -4,6 +4,7 @@ export interface MediaReferences {
   profile: number;
   applications: number;
   projects: number;
+  cv: number;
 }
 
 export function mediaReferenceLabels(refs: MediaReferences): string[] {
@@ -12,6 +13,7 @@ export function mediaReferenceLabels(refs: MediaReferences): string[] {
   if (refs.journal) labels.push(`${refs.journal} journal entr${refs.journal === 1 ? "y" : "ies"}`);
   if (refs.projects) labels.push(`${refs.projects} project${refs.projects === 1 ? "" : "s"}`);
   if (refs.profile) labels.push("your profile photo");
+  if (refs.cv) labels.push(`your CV files (Profile & CV)`);
   if (refs.applications) labels.push(`${refs.applications} application${refs.applications === 1 ? "" : "s"}`);
   return labels;
 }

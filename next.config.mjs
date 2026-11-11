@@ -12,10 +12,6 @@ const nextConfig = {
   // The site never uses next/image, so the built-in image optimizer endpoint (/_next/image) is switched off:
   // it is unnecessary attack surface, and Next 14 has published vulnerabilities in it.
   images: { unoptimized: true },
-  experimental: {
-    // react-pdf must run as a plain Node dependency (not bundled) inside the CV download route
-    serverComponentsExternalPackages: ["@react-pdf/renderer"],
-  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

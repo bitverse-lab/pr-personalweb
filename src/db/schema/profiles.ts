@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, date } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, date, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
 import { media } from "./media";
@@ -36,6 +36,22 @@ export const profiles = pgTable("profile", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// The owner's own CV files, one PDF per target role (slugs from features/roles/roles.ts). They replace
+// a generated CV: visitors download them through /cv/download/<role>, never from a public bucket URL.
+export const cvFiles = pgTable(
+  "cv_file",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: userRef(),
+    role: text("role").notNull(),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id, { onDelete: "cascade" }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("cv_file_user_role_idx").on(t.userId, t.role)]
+);
 
 export const socialLinks = pgTable("social_link", {
   id: uuid("id").primaryKey().defaultRandom(),

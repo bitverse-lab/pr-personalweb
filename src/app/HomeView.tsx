@@ -67,7 +67,7 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
         )}
 
         {real ? (
-          <HeroC profile={profile} console={consoleData} />
+          <HeroC profile={profile} console={consoleData} cvHref={role ? `/cv/download/${role.slug}` : undefined} />
         ) : (
           <section className="hero-c" aria-labelledby="hero-title">
             <div className="container">

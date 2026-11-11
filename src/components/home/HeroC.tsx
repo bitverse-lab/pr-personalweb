@@ -15,7 +15,8 @@ import { useDict } from "@/lib/i18n/context";
 const LiveConsole = dynamic(() => import("@/components/home/LiveConsole"), { ssr: false });
 
 /** The home hero: the owner's name, one positioning line, and their CV as a live query. */
-export default function HeroC({ profile, console: data }: { profile: Profile; console: ConsoleData | null }) {
+// cvHref: on /for/<role> the CV for that role (the route falls back to the list on /cv when there is none).
+export default function HeroC({ profile, console: data, cvHref = "/cv/download" }: { profile: Profile; console: ConsoleData | null; cvHref?: string }) {
   const t = useDict().hero;
   const [human, setHuman] = useState(false);
   const [live, setLive] = useState(false);
@@ -51,7 +52,7 @@ export default function HeroC({ profile, console: data }: { profile: Profile; co
             {availability && <p className="hero-c-availability mono-meta">{availability}</p>}
             <div className="hero-c-cta">
               <Link href="#work" className="btn btn-primary">{t.seeWork}</Link>
-              <a href="/cv/download" className="btn btn-outline-dark d-inline-flex align-items-center gap-2">
+              <a href={cvHref} className="btn btn-outline-dark d-inline-flex align-items-center gap-2">
                 <FiDownload aria-hidden /> {t.downloadCv}
               </a>
             </div>

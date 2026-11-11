@@ -1,6 +1,6 @@
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { applicationDocuments, articles, journalEntries, media, profiles, projectMedia, projects } from "@/db/schema";
+import { applicationDocuments, articles, cvFiles, journalEntries, media, profiles, projectMedia, projects } from "@/db/schema";
 import type { MediaBucket, MediaKind, MediaPurpose } from "@/db/schema/media";
 
 export const mediaRepository = {
@@ -67,14 +67,15 @@ export const mediaRepository = {
   // How many places still reference this file (article bodies, covers, journal bodies, profile photos, application documents).
   async references(userId: string, m: { id: string; storageKey: string }) {
     const needle = `%${m.storageKey}%`;
-    const [a, c, j, p, d, pj] = await Promise.all([
+    const [a, c, j, p, d, pj, cv] = await Promise.all([
       db.select({ n: sql<number>`count(*)::int` }).from(articles).where(and(eq(articles.userId, userId), sql`${articles.content}::text like ${needle}`)),
       db.select({ n: sql<number>`count(*)::int` }).from(articles).where(and(eq(articles.userId, userId), sql`${articles.coverUrl} like ${needle}`)),
       db.select({ n: sql<number>`count(*)::int` }).from(journalEntries).where(and(eq(journalEntries.userId, userId), sql`${journalEntries.content}::text like ${needle}`)),
       db.select({ n: sql<number>`count(*)::int` }).from(profiles).where(and(eq(profiles.userId, userId), or(eq(profiles.photoMediaId, m.id), eq(profiles.aboutPhotoMediaId, m.id)))),
       db.select({ n: sql<number>`count(*)::int` }).from(applicationDocuments).where(and(eq(applicationDocuments.userId, userId), eq(applicationDocuments.mediaId, m.id))),
       db.select({ n: sql<number>`count(distinct ${projects.id})::int` }).from(projects).leftJoin(projectMedia, eq(projectMedia.projectId, projects.id)).where(and(eq(projects.userId, userId), or(eq(projects.coverMediaId, m.id), eq(projectMedia.mediaId, m.id), sql`${projects.content}::text like ${needle}`))),
+      db.select({ n: sql<number>`count(*)::int` }).from(cvFiles).where(and(eq(cvFiles.userId, userId), eq(cvFiles.mediaId, m.id))),
     ]);
-    return { articles: (a[0]?.n ?? 0) + (c[0]?.n ?? 0), journal: j[0]?.n ?? 0, profile: p[0]?.n ?? 0, applications: d[0]?.n ?? 0, projects: pj[0]?.n ?? 0 };
+    return { articles: (a[0]?.n ?? 0) + (c[0]?.n ?? 0), journal: j[0]?.n ?? 0, profile: p[0]?.n ?? 0, applications: d[0]?.n ?? 0, projects: pj[0]?.n ?? 0, cv: cv[0]?.n ?? 0 };
   },
 };

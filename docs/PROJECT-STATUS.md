@@ -40,7 +40,7 @@ and real content in both languages (Indonesian is written in `/me` with the EN/I
 ## 3. What is built
 
 **Public site:** `/` (hero, skills, experience, selected projects, latest articles,
-testimonials, CTA), `/about`, `/cv` (plus a generated PDF at `/cv/download`), `/projects` and
+testimonials, CTA), `/about`, `/cv` (plus the owner's uploaded PDFs, one per target role, at `/cv/download/<role>`), `/projects` and
 `/projects/[slug]` with search and technology filters, `/articles` and `/articles/[slug]` with
 table of contents, share buttons, reading progress and previous/next, `/contact`, `/privacy`,
 `/login`, plus `/feed.xml`, `/sitemap.xml`, `/robots.txt` and JSON-LD.
