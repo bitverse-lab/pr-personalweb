@@ -63,3 +63,8 @@ Thumbs.db
 .serena/
 .impeccable/
 .superpowers/
+
+# Proof workflow inputs (scripts/proof/collect.mjs)
+vitest.json
+e2e-list.txt
+build.txt

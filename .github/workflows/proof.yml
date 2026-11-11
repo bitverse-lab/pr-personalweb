@@ -1,0 +1,54 @@
+name: Proof
+
+# Measures the site (unit tests, browser test count, production bundle sizes, last CI/backup runs)
+# and writes the results to the site_metric table, which /proof displays. See docs/PROOF.md.
+# Scheduled workflows only run from the default branch (main).
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "15 1 * * *" # 08:15 in Jakarta, after the nightly backup
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: proof
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Build and tests run without a database, as in CI; only the last step gets the real URL.
+      DATABASE_URL: postgresql://proof:proof@127.0.0.1:1/proof
+      AUTH_SECRET: proof-only-dummy-secret-not-for-authentication
+      AUTH_GOOGLE_ID: proof-client-id
+      AUTH_GOOGLE_SECRET: proof-client-secret
+      OWNER_EMAIL: proof@example.invalid
+      AUTH_URL: http://localhost:3001
+      SITE_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # A failing suite is still a result: it is recorded and shown as failing, not hidden.
+      - name: Unit tests
+        run: pnpm exec vitest run --reporter=json --outputFile=vitest.json || true
+      - name: Count browser tests
+        run: pnpm exec playwright test --list > e2e-list.txt || true
+      - name: Production build
+        run: pnpm build | tee build.txt
+      - name: Write metrics
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt
