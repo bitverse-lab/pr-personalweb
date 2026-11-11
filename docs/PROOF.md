@@ -8,6 +8,7 @@
 | `e2e` | `playwright test --list` (count of browser tests) |
 | `bundle` | route table printed by `next build` |
 | `ci`, `backup`, `reminders` | last completed run of each workflow on `main` (GitHub API) |
+| `deps` | `pnpm outdated --format json`: direct dependencies current, and those a breaking version behind |
 | `commit` | the commit that was measured |
 | database round trip | timed by the server when the page data refreshes (not stored) |
 
@@ -21,7 +22,8 @@ By hand (dev server stopped, because of the build):
 pnpm exec vitest run --reporter=json --outputFile=vitest.json
 pnpm exec playwright test --list > e2e-list.txt
 pnpm build > build.txt
-node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt   # add --dry-run to print only
+pnpm outdated --format json > outdated.json
+node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt --outdated outdated.json   # add --dry-run to print only
 ```
 
 Not yet measured: Lighthouse scores (needs a deployed URL). The repository is private, so the

@@ -35,3 +35,24 @@ export function summarizeVitest(json) {
     files: json.testResults?.length ?? json.numTotalTestSuites ?? 0,
   };
 }
+
+// "Breaking" distance between two versions: the major number, or the minor for 0.x (semver treats
+// every 0.x minor as breaking).
+const line = (v) => {
+  const [major, minor] = String(v).replace(/^[^\d]*/, "").split(".").map(Number);
+  return major === 0 ? `0.${minor}` : String(major);
+};
+
+/** `pnpm outdated --format json` and the number of direct dependencies in package.json. */
+export function summarizeOutdated(json, direct) {
+  const entries = Object.entries(json).filter(([, d]) => d.current && d.latest);
+  const behindMajor = entries.filter(([, d]) => line(d.current) !== line(d.latest)).map(([name]) => name);
+  return {
+    direct,
+    current: direct - entries.length,
+    behind: entries.length,
+    behindMajor: behindMajor.length,
+    majorNames: behindMajor.slice(0, 6),
+    deprecated: entries.filter(([, d]) => d.isDeprecated).map(([name]) => name),
+  };
+}

@@ -19,6 +19,7 @@ export interface ProofMetrics {
   backup?: RunFact;
   reminders?: RunFact;
   commit?: { sha: string };
+  deps?: { direct: number; current: number; behind: number; behindMajor: number; majorNames: string[]; deprecated: string[] };
 }
 export interface Proof {
   metrics: ProofMetrics;

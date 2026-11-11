@@ -93,6 +93,12 @@ export default async function ProofPage() {
                       median of {latency.samples} from this server · slowest {latency.maxMs} ms · {ago(latency.at, now)}
                     </Tile>
                   )}
+                  {m.deps && (
+                    <Tile label="dependencies" value={`${m.deps.current} / ${m.deps.direct} current`} tone={m.deps.deprecated.length ? "bad" : "none"}>
+                      {m.deps.behindMajor ? `${m.deps.behindMajor} a breaking version behind (${m.deps.majorNames.join(", ")}${m.deps.behindMajor > m.deps.majorNames.length ? ", …" : ""})` : "none a breaking version behind"}
+                      {m.deps.deprecated.length ? ` · deprecated: ${m.deps.deprecated.join(", ")}` : ""} · {ago(measuredAt.deps, now)}
+                    </Tile>
+                  )}
                   {m.bundle?.sharedKb != null && (
                     <Tile label="shared javascript" value={`${m.bundle.sharedKb} kB`} tone="none">
                       loaded by every page, before page code · {ago(measuredAt.bundle, now)}

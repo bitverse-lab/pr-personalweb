@@ -1,7 +1,7 @@
 // Gathers the facts shown on /proof and upserts them into site_metric. Run by
 // .github/workflows/proof.yml (and by hand: see docs/PROOF.md).
 //
-//   node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt [--dry-run]
+//   node scripts/proof/collect.mjs --vitest vitest.json --build build.txt --e2e e2e-list.txt --outdated outdated.json [--dry-run]
 //
 // Needs DATABASE_URL (not for --dry-run) and an authenticated `gh` (GH_TOKEN in Actions).
 // A missing input skips that metric: the page then keeps showing the last known value with its age.
@@ -9,7 +9,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { config } from "dotenv";
 import postgres from "postgres";
-import { parseBuildOutput, parsePlaywrightList, summarizeVitest } from "./parse.mjs";
+import { parseBuildOutput, parsePlaywrightList, summarizeOutdated, summarizeVitest } from "./parse.mjs";
 
 if (existsSync(".env.local")) config({ path: ".env.local", quiet: true });
 
@@ -45,6 +45,15 @@ const build = read(arg("--build"));
 if (build) {
   const parsed = parseBuildOutput(build);
   if (parsed.routes.length) put("bundle", parsed);
+}
+
+const outdated = read(arg("--outdated"));
+if (outdated) {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  const direct = Object.keys(pkg.dependencies ?? {}).length + Object.keys(pkg.devDependencies ?? {}).length;
+  // pnpm prints nothing at all when every dependency is current.
+  const runUrl = process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}` : null;
+  put("deps", summarizeOutdated(outdated.trim() ? JSON.parse(outdated) : {}, direct), runUrl);
 }
 
 for (const [key, file] of [["ci", "ci.yml"], ["backup", "backup.yml"], ["reminders", "reminders.yml"]]) {
