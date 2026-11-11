@@ -6,6 +6,10 @@ import { saveBasics, setAboutPhoto, setProfilePhoto, type ProfileData } from "@/
 import TagInput from "@/components/me/content/TagInput";
 import UploadDropzone from "@/components/me/media/UploadDropzone";
 import { useToast } from "@/components/shared/ToastProvider";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
+import { coverage } from "@/features/content/translations";
+
+const ID_FIELDS = ["headline", "summary", "availabilityNote"] as const;
 
 export default function BasicsForm({ data }: { data: ProfileData }) {
   const [f, setF] = useState(data.basics);
@@ -25,6 +29,11 @@ export default function BasicsForm({ data }: { data: ProfileData }) {
   const toast = useToast();
   const displayedAboutPhotoUrl = aboutPhotoOverrideUrl ?? heroPhotoUrl;
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((c) => ({ ...c, [k]: e.target.value }));
+  const [lang, setLang] = useState<EditLang>("en");
+  const setId = (k: (typeof ID_FIELDS)[number]) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setF((c) => ({ ...c, translations: { id: { ...c.translations.id, [k]: e.target.value } } }));
+  const idv = f.translations.id ?? {};
+  const cov = coverage(f.translations, [...ID_FIELDS]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +121,25 @@ export default function BasicsForm({ data }: { data: ProfileData }) {
         <form onSubmit={submit} className="card rounded shadow-sm">
           <div className="card-body">
             <h6 className="mb-3">About you</h6>
+            <LangTabs value={lang} onChange={setLang} done={cov.done} total={cov.total} />
+            {lang === "id" ? (
+              <div className="row g-3">
+                <div className="col-12">
+                  <label className="form-label small mb-1" htmlFor="p-headline-id">Headline (Indonesian)</label>
+                  <input id="p-headline-id" lang="id" className="form-control" maxLength={120} placeholder={f.headline} value={trValue(idv.headline)} onChange={setId("headline")} />
+                </div>
+                <div className="col-12">
+                  <label className="form-label small mb-1" htmlFor="p-summary-id">Summary (Indonesian)</label>
+                  <textarea id="p-summary-id" lang="id" className="form-control" rows={5} maxLength={2000} placeholder={f.summary} value={trValue(idv.summary)} onChange={setId("summary")} />
+                  <div className="form-text">{trValue(idv.summary).length}/2000</div>
+                </div>
+                <div className="col-12">
+                  <label className="form-label small mb-1" htmlFor="p-note-id">Availability note (Indonesian)</label>
+                  <input id="p-note-id" lang="id" className="form-control" maxLength={120} placeholder={f.availabilityNote} value={trValue(idv.availabilityNote)} onChange={setId("availabilityNote")} />
+                </div>
+                <p className="form-text col-12 mb-0">Name, location, email, links and the hero words are the same in both languages.</p>
+              </div>
+            ) : (
             <div className="row g-3">
               <div className="col-md-6">
                 <label className="form-label small mb-1" htmlFor="p-name">Full name</label>
@@ -152,6 +180,7 @@ export default function BasicsForm({ data }: { data: ProfileData }) {
                 <div className="form-text">e.g. “Developer”, “Designer” — they cycle in the animation on your home page.</div>
               </div>
             </div>
+            )}
             <div className="mt-4 d-flex align-items-center gap-3">
               <button type="submit" className="btn btn-primary" disabled={isPending || !f.displayName.trim() || !dirty}>
                 {isPending ? "Saving…" : "Save"}

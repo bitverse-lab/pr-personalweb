@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, ilike, inArray, isNull, notExists, or, sql } from "drizzle-orm";
+import type { ProjectTr } from "@/features/content/translations";
 import { db } from "@/db";
 import { media, projectLinks, projectMedia, projects } from "@/db/schema";
 import type { RichDoc } from "@/db/schema/content";
@@ -21,6 +22,7 @@ export interface ProjectValues {
   content: RichDoc;
   plainText: string;
   coverMediaId: string | null;
+  translations?: ProjectTr;
 }
 
 export const projectRepository = {

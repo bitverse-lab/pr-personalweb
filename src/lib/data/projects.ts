@@ -26,6 +26,7 @@ function toProject(d: ProjectDetail): Project {
     outcome: d.outcome,
     technologies: d.technologies,
     featured: d.featured,
+    tr: { title: d.translations.id?.title, summary: d.translations.id?.summary, outcome: d.translations.id?.outcome },
   };
 }
 

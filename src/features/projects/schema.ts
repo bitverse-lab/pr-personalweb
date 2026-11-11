@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { richDocSchema } from "@/features/content/schema";
+import { trText, translationsInput } from "@/features/content/translations";
+
+export const projectTranslations = translationsInput({ title: trText(120), summary: trText(300), outcome: trText(140), content: richDocSchema.nullable().optional() });
 
 const blankToNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const optText = (max: number) => z.preprocess(blankToNull, z.string().trim().max(max).nullable().optional().transform((v) => v ?? null));
@@ -43,6 +46,7 @@ export const saveProjectSchema = z
     coverMediaId: z.uuid().nullable().optional(),
     gallery: z.array(z.object({ mediaId: z.uuid(), caption: optText(160) })).max(24, "A gallery can have at most 24 images"),
     links: z.array(projectLinkSchema).max(8, "Use at most 8 links"),
+    translations: projectTranslations,
   })
   .refine((v) => !v.startDate || !v.endDate || v.endDate >= v.startDate, { message: "End date must be after the start date", path: ["endDate"] });
 
@@ -79,4 +83,6 @@ export const restoreProjectSchema = z.object({
   updatedAt: z.string(),
   gallery: z.array(restoreGallery).max(24),
   links: z.array(projectLinkSchema).max(8),
+  // snapshots taken before translations existed have no such key
+  translations: projectTranslations.transform((v) => v ?? {}),
 });

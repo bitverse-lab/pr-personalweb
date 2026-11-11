@@ -16,9 +16,11 @@ import { getAdjacentArticles, getArticleBySlug, getArticles, getRelatedArticles 
 import { vt } from "@/lib/view-transition";
 import { dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
+import { localizeArticle, localizeArticlePage } from "@/lib/i18n/content";
 
 export async function articleMetadata(locale: Locale, slug: string): Promise<Metadata> {
-  const article = await getArticleBySlug(slug);
+  const found = await getArticleBySlug(slug);
+  const article = found && localizeArticlePage(found, locale);
   if (!article) return { title: dict(locale).article.notFound };
   const description = article.excerpt || undefined;
   return {
@@ -31,10 +33,11 @@ export async function articleMetadata(locale: Locale, slug: string): Promise<Met
 
 export async function ArticleDetailPage({ locale, slug }: { locale: Locale; slug: string }) {
   const t = dict(locale).writing;
-  const article = await getArticleBySlug(slug);
-  if (!article) notFound();
+  const found = await getArticleBySlug(slug);
+  if (!found) notFound();
+  const article = localizeArticlePage(found, locale);
 
-  const all = await getArticles();
+  const all = (await getArticles()).map((a) => localizeArticle(a, locale));
   const related = getRelatedArticles(all, article, 2);
   const { older, newer } = getAdjacentArticles(all, article.slug);
   const headings = extractHeadings(article.detail.content);

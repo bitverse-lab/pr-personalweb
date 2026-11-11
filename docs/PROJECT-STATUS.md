@@ -203,7 +203,13 @@ Built in brief order, each on its own stacked branch and PR:
   the switch leads to `/id` from them. Interface text lives in `src/lib/i18n/dict.ts` (TypeScript
   fails if a key is missing in Indonesian). Shared page bodies are in `src/app/_views/`; the page
   files under `/` and `/id` only pick the locale. hreflang alternates on both, both in the sitemap.
-  Part 2 adds Indonesian content fields edited in `/me`.
+- **Bilingual EN/ID, part 2** (content): profile basics, experience, education, highlights,
+  projects and articles have an Indonesian version in one `translations` jsonb column per table
+  (`{ "id": { … } }`, `src/features/content/translations.ts`). The /me forms have an
+  English | Bahasa Indonesia switch with a "done/total" count; project and article lists show an
+  "ID" badge. Public read models carry both languages and `src/lib/i18n/content.ts` /
+  `localizeProfile` pick per field, falling back to English. Dates and periods are localized.
+  A form that does not send `translations` leaves them untouched.
 - Dropped by the owner (11 November 2026): idea 3 (ML demos) and idea 5 (postmortem).
 
 ## 6. Open issues

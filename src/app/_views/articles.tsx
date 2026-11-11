@@ -10,6 +10,7 @@ import { getArticles, type Article } from "@/lib/data/articles";
 import { vt } from "@/lib/view-transition";
 import { dict, type Dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
+import { localizeArticle } from "@/lib/i18n/content";
 
 export function articlesMetadata(locale: Locale): Metadata {
   const t = dict(locale).meta;
@@ -47,7 +48,7 @@ async function ArticlesContent({ searchParams, locale }: ArticlesPageProps) {
   const t = dict(locale).writing;
   const base = localize(locale, "/articles");
   const { q = "", tag = "" } = await searchParams;
-  const all = await getArticles();
+  const all = (await getArticles()).map((a) => localizeArticle(a, locale));
 
   const needle = q.trim().toLowerCase();
   const articles = all.filter(

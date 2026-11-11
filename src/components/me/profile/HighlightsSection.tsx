@@ -8,6 +8,7 @@ import DialogShell from "@/components/shared/DialogShell";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, moveItem } from "./shared";
+import { trValue } from "@/components/me/LangTabs";
 
 type Highlight = ProfileData["highlights"][number];
 
@@ -15,6 +16,8 @@ function HighlightDialog({ item, onClose }: { item?: Highlight; onClose: () => v
   const [metric, setMetric] = useState(item?.metric ?? "");
   const [value, setValue] = useState(item?.value ?? "");
   const [note, setNote] = useState(item?.note ?? "");
+  // One short field: the Indonesian sits right under the English instead of behind a tab.
+  const [noteId, setNoteId] = useState(trValue(item?.translations.id?.note));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
@@ -23,7 +26,7 @@ function HighlightDialog({ item, onClose }: { item?: Highlight; onClose: () => v
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const data = { metric, value, note };
+      const data = { metric, value, note, translations: { id: { note: noteId } } };
       const result = item ? await updateHighlight({ id: item.id, data }) : await createHighlight(data);
       if (!result.ok) return setError(result.error);
       toast.success(item ? "Highlight updated" : "Highlight added");
@@ -47,6 +50,11 @@ function HighlightDialog({ item, onClose }: { item?: Highlight; onClose: () => v
         <div className="mb-3">
           <label className="form-label small mb-1" htmlFor="h-note">What it means (opt.)</label>
           <input id="h-note" className="form-control" maxLength={140} placeholder="Summa Cum Laude, Telkom University" value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        <div className="mb-3">
+          <label className="form-label small mb-1" htmlFor="h-note-id">What it means, in Indonesian (opt.)</label>
+          <input id="h-note-id" lang="id" className="form-control" maxLength={140} placeholder={note} value={noteId} onChange={(e) => setNoteId(e.target.value)} aria-describedby="h-note-id-help" />
+          <div id="h-note-id-help" className="form-text">Shown on the Indonesian CV (/id/cv). Empty shows the English.</div>
         </div>
         <div className="d-flex justify-content-end gap-2">
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
@@ -87,7 +95,7 @@ export default function HighlightsSection({ items }: { items: Highlight[] }) {
       const r = await deleteHighlight(it.id);
       setDeleting(null);
       if (!r.ok) return toast.error(r.error);
-      toast.success("Highlight deleted", { action: { label: "Undo", onClick: () => void createHighlight({ metric: it.metric, value: it.value, note: it.note ?? "" }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) } });
+      toast.success("Highlight deleted", { action: { label: "Undo", onClick: () => void createHighlight({ metric: it.metric, value: it.value, note: it.note ?? "", translations: it.translations }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) } });
     });
   };
 

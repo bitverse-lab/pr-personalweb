@@ -1,7 +1,8 @@
-import { boolean, integer, pgTable, text, timestamp, uuid, date } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, date } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
 import { media } from "./media";
+import type { EducationTr, ExperienceTr, HighlightTr, ProfileTr } from "@/features/content/translations";
 
 const userRef = () =>
   text("user_id")
@@ -30,6 +31,8 @@ export const profiles = pgTable("profile", {
   availabilityNote: text("availability_note"),
   photoMediaId: uuid("photo_media_id").references(() => media.id, { onDelete: "set null" }),
   aboutPhotoMediaId: uuid("about_photo_media_id").references(() => media.id, { onDelete: "set null" }),
+  // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+  translations: jsonb("translations").$type<ProfileTr>().notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -56,6 +59,8 @@ export const experiences = pgTable("experience", {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
+  // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+  translations: jsonb("translations").$type<ExperienceTr>().notNull().default(sql`'{}'::jsonb`),
   position: integer("position").notNull().default(0),
 });
 
@@ -68,6 +73,8 @@ export const educations = pgTable("education", {
   startDate: date("start_date", { mode: "string" }),
   endDate: date("end_date", { mode: "string" }),
   description: text("description"),
+  // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+  translations: jsonb("translations").$type<EducationTr>().notNull().default(sql`'{}'::jsonb`),
   position: integer("position").notNull().default(0),
 });
 
@@ -78,6 +85,8 @@ export const profileHighlights = pgTable("profile_highlight", {
   metric: text("metric").notNull(),
   value: text("value").notNull(),
   note: text("note"),
+  // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+  translations: jsonb("translations").$type<HighlightTr>().notNull().default(sql`'{}'::jsonb`),
   position: integer("position").notNull().default(0),
 });
 

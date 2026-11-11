@@ -6,12 +6,12 @@ import PersonalNavbar from "@/components/layout/PersonalNavbar";
 import SmallFooter from "@/components/layout/SmallFooter";
 import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
 import { skillsByLayer } from "@/features/projects/layers";
-import { getProfile } from "@/lib/data/profile";
+import { getProfile, localizeProfile } from "@/lib/data/profile";
 import { dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
 
 export async function cvMetadata(locale: Locale): Promise<Metadata> {
-  const profile = await getProfile();
+  const profile = localizeProfile(await getProfile(), locale);
   const alternates = { canonical: localize(locale, "/cv"), languages: languages("/cv") };
   return profile.isPlaceholder ? { title: "CV", alternates } : { title: "CV", description: profile.headline || undefined, alternates };
 }
@@ -21,7 +21,7 @@ const bare = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "")
 // The CV is one sheet: it reads on screen and prints cleanly (the site chrome is hidden in print).
 export async function CvPage({ locale }: { locale: Locale }) {
   const t = dict(locale).cv;
-  const profile = await getProfile();
+  const profile = localizeProfile(await getProfile(), locale);
   const real = !profile.isPlaceholder;
   const contact = [
     profile.location && { key: "location", value: profile.location },

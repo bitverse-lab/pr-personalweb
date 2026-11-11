@@ -1,4 +1,5 @@
 import { and, desc, eq, ilike, inArray, isNull, ne, notExists, or, sql } from "drizzle-orm";
+import type { ArticleTr } from "@/features/content/translations";
 import { db } from "@/db";
 import { articles, articleTags, tags, users } from "@/db/schema";
 import type { ArticleStatus, RichDoc } from "@/db/schema/content";
@@ -16,6 +17,8 @@ const listColumns = {
   publishedAt: articles.publishedAt,
   createdAt: articles.createdAt,
   updatedAt: articles.updatedAt,
+  // Indonesian title and excerpt only: lists never carry a body, in either language.
+  translations: sql<ArticleTr>`${articles.translations} #- '{id,content}'`,
 };
 
 export interface ArticleValues {
@@ -28,6 +31,7 @@ export interface ArticleValues {
   coverUrl: string | null;
   status: ArticleStatus;
   publishedAt: Date | null;
+  translations?: ArticleTr;
 }
 
 export const articleRepository = {

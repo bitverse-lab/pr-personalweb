@@ -8,12 +8,12 @@ import ExperienceTimeline from "@/components/shared/ExperienceTimeline";
 import JsonLd from "@/components/shared/JsonLd";
 import SocialIcon from "@/components/shared/SocialIcon";
 import { currentRole, skillsByLayer } from "@/features/projects/layers";
-import { getProfile } from "@/lib/data/profile";
+import { getProfile, localizeProfile } from "@/lib/data/profile";
 import { dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
 
 export async function aboutMetadata(locale: Locale): Promise<Metadata> {
-  const profile = await getProfile();
+  const profile = localizeProfile(await getProfile(), locale);
   const title = dict(locale).meta.aboutTitle;
   const alternates = { canonical: localize(locale, "/about"), languages: languages("/about") };
   return profile.isPlaceholder ? { title, alternates } : { title, description: profile.headline || undefined, alternates };
@@ -21,7 +21,7 @@ export async function aboutMetadata(locale: Locale): Promise<Metadata> {
 
 export async function AboutPage({ locale }: { locale: Locale }) {
   const t = dict(locale).about;
-  const profile = await getProfile();
+  const profile = localizeProfile(await getProfile(), locale);
   const real = !profile.isPlaceholder;
   const links = profile.links.filter((l) => /^https?:\/\//i.test(l.url));
   const now = currentRole(profile.experience);

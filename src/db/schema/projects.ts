@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { boolean, date, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { ProjectTr } from "@/features/content/translations";
 import { users } from "./auth";
 import { media } from "./media";
 import type { ArticleStatus, RichDoc } from "./content";
@@ -36,6 +37,8 @@ export const projects = pgTable(
     // Case study body (problem, approach, architecture, results…) as Tiptap JSON, same model as articles.
     content: jsonb("content").$type<RichDoc>().notNull().default(sql`'{"type":"doc","content":[]}'::jsonb`),
     plainText: text("plain_text").notNull().default(""),
+    // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+    translations: jsonb("translations").$type<ProjectTr>().notNull().default(sql`'{}'::jsonb`),
     coverMediaId: uuid("cover_media_id").references(() => media.id, { onDelete: "set null" }),
     status: text("status").$type<ProjectStatus>().notNull().default("draft"),
     featured: boolean("featured").notNull().default(false),

@@ -5,7 +5,9 @@ import { Fragment, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FiArchive, FiArrowLeft, FiExternalLink, FiGlobe, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { deleteProject, restoreProject, saveProject, setProjectFeatured, setProjectStatus } from "@/features/projects/actions";
-import { docToPlainText, slugify } from "@/features/content/richtext";
+import { EMPTY_DOC, docToPlainText, slugify } from "@/features/content/richtext";
+import { coverage, pickDoc, pickText } from "@/features/content/translations";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
 import { projectPeriod } from "@/features/projects/format";
 import { useAutosave } from "@/hooks/useAutosave";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -53,9 +55,17 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
   const [status, setStatus] = useState(project.status);
   const [featured, setFeatured] = useState(project.featured);
   const [preview, setPreview] = useState(false);
+  // Indonesian versions (shown on /id; empty fields fall back to the English).
+  const [lang, setLang] = useState<EditLang>("en");
+  const [idTitle, setIdTitle] = useState(trValue(project.translations.id?.title));
+  const [idSummary, setIdSummary] = useState(trValue(project.translations.id?.summary));
+  const [idOutcome, setIdOutcome] = useState(trValue(project.translations.id?.outcome));
+  const [idDoc, setIdDoc] = useState<RichDoc>(project.translations.id?.content ?? EMPTY_DOC);
+  const idCoverage = coverage({ id: { title: idTitle, summary: idSummary, outcome: idOutcome, content: idDoc } }, ["title", "summary", "outcome", "content"]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const period = useMemo(() => projectPeriod(monthToDate(start) || null, monthToDate(end) || null), [start, end]);
-  const hasStory = useMemo(() => docToPlainText(doc).trim().length > 0, [doc]);
+  const shownDoc = pickDoc(lang, doc, idDoc);
+  const hasStory = useMemo(() => docToPlainText(shownDoc).trim().length > 0, [shownDoc]);
 
   const payload = useMemo(
     () => ({
@@ -80,8 +90,9 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
         .filter((l) => l.label.trim() && l.url.trim())
         // "github.com/me/x" is what people type; without a scheme the whole project used to stop saving.
         .map((l) => ({ label: l.label, url: /^https?:\/\//i.test(l.url.trim()) ? l.url.trim() : `https://${l.url.trim()}` })),
+      translations: { id: { title: idTitle, summary: idSummary, outcome: idOutcome, content: idDoc } },
     }),
-    [project.id, title, slug, slugTouched, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links]
+    [project.id, title, slug, slugTouched, summary, outcome, category, client, role, location, start, end, technologies, doc, coverMediaId, gallery, links, idTitle, idSummary, idOutcome, idDoc]
   );
   const { status: saveStatus, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveProject(p);
@@ -174,8 +185,8 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
             <article className="card rounded shadow-sm">
               <div className="card-body">
                 <header className="text-center mb-4">
-                  <h2 className="h3 mb-3">{title || "Untitled project"}</h2>
-                  {summary.trim() && <p className="text-muted mx-auto mb-2" style={{ maxWidth: 640 }}>{summary}</p>}
+                  <h2 className="h3 mb-3">{pickText(lang, title, idTitle) || "Untitled project"}</h2>
+                  {pickText(lang, summary, idSummary).trim() && <p className="text-muted mx-auto mb-2" style={{ maxWidth: 640 }}>{pickText(lang, summary, idSummary)}</p>}
                   {period && <p className="text-muted small mb-0">{period}</p>}
                 </header>
                 <div className="row">
@@ -194,7 +205,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                     {hasStory ? (
                       <section className="mt-4 pt-2">
                         <h3 className="h5 mb-3">About this project</h3>
-                        <RichTextRenderer doc={doc} />
+                        <RichTextRenderer doc={shownDoc} />
                       </section>
                     ) : (
                       <p className="text-muted">No case study content yet.</p>
@@ -245,6 +256,29 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
           ) : null}
           {/* Kept mounted while previewing: unmounting it lost the case study and its undo history. */}
           <div className={preview ? "d-none" : undefined}>
+              <LangTabs value={lang} onChange={setLang} done={idCoverage.done} total={idCoverage.total} />
+              {/* Both languages stay mounted, like the preview: unmounting an editor loses its undo history. */}
+              <div className={lang === "id" ? undefined : "d-none"} lang="id">
+                <input className="form-control form-control-lg fw-semibold mb-3" placeholder={title || "Project title"} aria-label="Title in Indonesian" maxLength={120} value={idTitle} onChange={(e) => setIdTitle(e.target.value)} />
+                <div className="card rounded shadow-sm mb-3">
+                  <div className="card-body">
+                    <label className="form-label small mb-1" htmlFor="p-summary-id">Short summary (Indonesian)</label>
+                    <textarea id="p-summary-id" className="form-control" rows={2} maxLength={300} placeholder={summary} value={idSummary} onChange={(e) => setIdSummary(e.target.value)} />
+                    <div className="form-text">{idSummary.length}/300</div>
+                    <label className="form-label small mb-1 mt-3" htmlFor="p-outcome-id">Outcome (Indonesian)</label>
+                    <input id="p-outcome-id" className="form-control form-control-sm" maxLength={140} placeholder={outcome} value={idOutcome} onChange={(e) => setIdOutcome(e.target.value)} />
+                  </div>
+                </div>
+                <div className="card rounded shadow-sm mb-3">
+                  <div className="card-body">
+                    <h6 className="mb-2">Case study (Indonesian)</h6>
+                    <p className="text-muted small">Leave it empty to show the English case study on /id.</p>
+                    <RichEditor initial={project.translations.id?.content ?? EMPTY_DOC} onChange={setIdDoc} placeholder="Apa masalahnya, dan bagaimana Anda menyelesaikannya?" minHeight={320} />
+                  </div>
+                </div>
+                <p className="text-muted small">Images, links, dates and technologies are the same in both languages.</p>
+              </div>
+              <div className={lang === "en" ? undefined : "d-none"}>
               <input className="form-control form-control-lg fw-semibold mb-3" placeholder="Project title" aria-label="Project title" maxLength={120} value={title} onChange={(e) => onTitle(e.target.value)} />
 
               <div className="card rounded shadow-sm mb-3">
@@ -268,6 +302,7 @@ export default function ProjectEditor({ project, categorySuggestions, techSugges
                   <h6 className="mb-3">Images</h6>
                   <GalleryEditor items={gallery} coverMediaId={coverMediaId} onChange={setGallery} onCoverChange={setCoverMediaId} />
                 </div>
+              </div>
               </div>
           </div>
         </div>

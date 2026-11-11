@@ -8,6 +8,8 @@ import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
 import { MoveButtons, fmtMonth, monthToDate, monthValue, moveItem } from "./shared";
 import DialogShell from "@/components/shared/DialogShell";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
+import { coverage } from "@/features/content/translations";
 
 type Education = ProfileData["educations"][number];
 
@@ -19,7 +21,12 @@ function EducationDialog({ item, onClose }: { item?: Education; onClose: () => v
     start: monthValue(item?.startDate ?? null),
     end: monthValue(item?.endDate ?? null),
     description: item?.description ?? "",
+    idDegree: trValue(item?.translations.id?.degree),
+    idField: trValue(item?.translations.id?.field),
+    idDescription: trValue(item?.translations.id?.description),
   });
+  const [lang, setLang] = useState<EditLang>("en");
+  const cov = coverage({ id: { degree: f.idDegree, field: f.idField, description: f.idDescription } }, ["degree", "field", "description"]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const toast = useToast();
@@ -28,7 +35,7 @@ function EducationDialog({ item, onClose }: { item?: Education; onClose: () => v
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const data = { school: f.school, degree: f.degree, field: f.field, startDate: monthToDate(f.start), endDate: monthToDate(f.end), description: f.description };
+    const data = { school: f.school, degree: f.degree, field: f.field, startDate: monthToDate(f.start), endDate: monthToDate(f.end), description: f.description, translations: { id: { degree: f.idDegree, field: f.idField, description: f.idDescription } } };
     startTransition(async () => {
       const result = item ? await updateEducation({ id: item.id, data }) : await createEducation(data);
       if (!result.ok) return setError(result.error);
@@ -41,6 +48,14 @@ function EducationDialog({ item, onClose }: { item?: Education; onClose: () => v
     <DialogShell title={item ? "Edit education" : "Add education"} onClose={onClose} maxWidth={520}>
       <form onSubmit={submit}>
         {error && <div className="alert alert-danger py-2 small">{error}</div>}
+        <LangTabs value={lang} onChange={setLang} done={cov.done} total={cov.total} />
+        {lang === "id" ? (
+          <div className="row g-2">
+            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-degree-id">Degree (Indonesian)</label><input id="e-degree-id" lang="id" className="form-control" maxLength={100} placeholder={f.degree} value={f.idDegree} onChange={set("idDegree")} /></div>
+            <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-field-id">Field of study (Indonesian)</label><input id="e-field-id" lang="id" className="form-control" maxLength={100} placeholder={f.field} value={f.idField} onChange={set("idField")} /></div>
+            <div className="col-12"><label className="form-label small mb-1" htmlFor="e-desc-id">Notes (Indonesian)</label><textarea id="e-desc-id" lang="id" className="form-control" rows={3} maxLength={600} placeholder={f.description} value={f.idDescription} onChange={set("idDescription")} /></div>
+          </div>
+        ) : (
         <div className="row g-2">
           <div className="col-12"><label className="form-label small mb-1" htmlFor="e-school">School</label><input id="e-school" className="form-control" maxLength={120} value={f.school} onChange={set("school")} required /></div>
           <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-degree">Degree</label><input id="e-degree" className="form-control" maxLength={100} value={f.degree} onChange={set("degree")} /></div>
@@ -49,6 +64,7 @@ function EducationDialog({ item, onClose }: { item?: Education; onClose: () => v
           <div className="col-md-6"><label className="form-label small mb-1" htmlFor="e-end">End (or expected)</label><input id="e-end" type="month" className="form-control" value={f.end} onChange={set("end")} /></div>
           <div className="col-12"><label className="form-label small mb-1" htmlFor="e-desc">Notes</label><textarea id="e-desc" className="form-control" rows={3} maxLength={600} value={f.description} onChange={set("description")} /></div>
         </div>
+        )}
         <div className="d-flex justify-content-end gap-2 mt-3">
           <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClose} disabled={isPending}>Cancel</button>
           <button type="submit" className="btn btn-primary btn-sm" disabled={isPending}>Save</button>
@@ -89,7 +105,7 @@ export default function EducationSection({ items }: { items: Education[] }) {
       setDeleting(null);
       if (!r.ok) return toast.error(r.error);
       toast.success("Education deleted", {
-        action: { label: "Undo", onClick: () => void createEducation({ school: it.school, degree: it.degree ?? "", field: it.field ?? "", startDate: it.startDate ?? "", endDate: it.endDate ?? "", description: it.description ?? "" }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) },
+        action: { label: "Undo", onClick: () => void createEducation({ school: it.school, degree: it.degree ?? "", field: it.field ?? "", startDate: it.startDate ?? "", endDate: it.endDate ?? "", description: it.description ?? "", translations: it.translations }).then((x) => (x.ok ? toast.success("Restored") : toast.error(x.error))) },
       });
     });
   };

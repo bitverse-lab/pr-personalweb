@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { users } from "./auth";
+import type { ArticleTr } from "@/features/content/translations";
 
 export type ArticleStatus = "draft" | "published" | "archived";
 
@@ -23,6 +24,8 @@ export const articles = pgTable(
     content: jsonb("content").$type<RichDoc>().notNull().default(sql`'{"type":"doc","content":[]}'::jsonb`),
     // derived from content on every save; used for search, word count and reading time
     plainText: text("plain_text").notNull().default(""),
+    // Indonesian version of the text fields; English stays in the columns above (features/content/translations.ts).
+    translations: jsonb("translations").$type<ArticleTr>().notNull().default(sql`'{}'::jsonb`),
     wordCount: integer("word_count").notNull().default(0),
     coverUrl: text("cover_url"),
     status: text("status").$type<ArticleStatus>().notNull().default("draft"),

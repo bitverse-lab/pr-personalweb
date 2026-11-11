@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { educations, experiences, media, profileHighlights, profiles, skills, socialLinks } from "@/db/schema";
+import type { EducationTr, ExperienceTr, HighlightTr, ProfileTr } from "@/features/content/translations";
 
 export interface BasicsValues {
   displayName: string | null;
@@ -12,6 +13,7 @@ export interface BasicsValues {
   roles: string[];
   availableForWork: boolean;
   availabilityNote: string | null;
+  translations?: ProfileTr;
 }
 
 export interface ExperienceValues {
@@ -22,6 +24,7 @@ export interface ExperienceValues {
   endDate: string | null;
   description: string | null;
   achievements: string[];
+  translations?: ExperienceTr;
 }
 
 export interface EducationValues {
@@ -31,6 +34,7 @@ export interface EducationValues {
   startDate: string | null;
   endDate: string | null;
   description: string | null;
+  translations?: EducationTr;
 }
 
 export interface SkillValues {
@@ -43,6 +47,7 @@ export interface HighlightValues {
   metric: string;
   value: string;
   note: string | null;
+  translations?: HighlightTr;
 }
 
 export interface LinkValues {

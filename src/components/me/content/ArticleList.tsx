@@ -8,6 +8,7 @@ import { readingMinutes } from "@/features/content/richtext";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { useToast } from "@/components/shared/ToastProvider";
+import TranslationBadge from "@/components/me/TranslationBadge";
 import ArticleStatusBadge from "./ArticleStatusBadge";
 import type { ArticleListItem } from "@/server/services/article-service";
 import AnimatedList from "@/components/shared/AnimatedList";
@@ -67,6 +68,7 @@ export default function ArticleList({ items, filtered }: { items: ArticleListIte
               <div className="d-flex flex-wrap align-items-center gap-2">
                 <strong className="text-truncate">{a.title || "Untitled"}</strong>
                 <ArticleStatusBadge status={a.status} />
+                <TranslationBadge translations={a.translations} fields={["title", "excerpt"]} />
               </div>
               {a.excerpt && <div className="text-muted small text-truncate">{a.excerpt}</div>}
               <div className="text-muted small">

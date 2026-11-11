@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trText, translationsInput } from "@/features/content/translations";
 
 const blankToNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const optText = (max: number) => z.preprocess(blankToNull, z.string().trim().max(max).nullable().optional().transform((v) => v ?? null));
@@ -18,6 +19,7 @@ export const basicsSchema = z.object({
     .default([]),
   availableForWork: z.boolean().default(false),
   availabilityNote: optText(120),
+  translations: translationsInput({ headline: trText(120), summary: trText(2000), availabilityNote: trText(120) }),
 });
 
 export const experienceSchema = z
@@ -29,6 +31,7 @@ export const experienceSchema = z
     endDate: optDate,
     description: optText(1000),
     achievements: z.array(z.string().trim().min(1).max(200)).max(10).default([]),
+    translations: translationsInput({ role: trText(100), description: trText(1000), achievements: z.array(z.string().trim().min(1).max(200)).max(10).optional() }),
   })
   .refine((v) => !v.endDate || v.endDate >= v.startDate, { message: "End date must be after the start date", path: ["endDate"] });
 
@@ -40,6 +43,7 @@ export const educationSchema = z
     startDate: optDate,
     endDate: optDate,
     description: optText(600),
+    translations: translationsInput({ degree: trText(100), field: trText(100), description: trText(600) }),
   })
   .refine((v) => !v.startDate || !v.endDate || v.endDate >= v.startDate, { message: "End date must be after the start date", path: ["endDate"] });
 
@@ -54,6 +58,7 @@ export const highlightSchema = z.object({
   metric: z.string().trim().min(1, "Key is required").max(40).regex(/^[a-z0-9_]+$/, "Use lower-case letters, digits and underscores, e.g. gpa or ip_rights"),
   value: z.string().trim().min(1, "Value is required").max(60),
   note: optText(140),
+  translations: translationsInput({ note: trText(140) }),
 });
 
 export const linkSchema = z.object({

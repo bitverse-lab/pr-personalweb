@@ -13,6 +13,8 @@ import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import { useToast } from "@/components/shared/ToastProvider";
 import ArticleStatusBadge from "./ArticleStatusBadge";
 import RichEditor from "./RichEditor";
+import LangTabs, { trValue, type EditLang } from "@/components/me/LangTabs";
+import { coverage, pickDoc, pickText } from "@/features/content/translations";
 import TagInput from "./TagInput";
 import type { RichDoc } from "@/db/schema/content";
 import type { ArticleDetail } from "@/server/services/article-service";
@@ -77,6 +79,12 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
   const [doc, setDoc] = useState<RichDoc>(article.content);
   const [status, setStatus] = useState(article.status);
   const [preview, setPreview] = useState(false);
+  // Indonesian version (shown on /id; empty fields fall back to the English).
+  const [lang, setLang] = useState<EditLang>("en");
+  const [idTitle, setIdTitle] = useState(trValue(article.translations.id?.title));
+  const [idExcerpt, setIdExcerpt] = useState(trValue(article.translations.id?.excerpt));
+  const [idDoc, setIdDoc] = useState<RichDoc>(article.translations.id?.content ?? { type: "doc", content: [] });
+  const idCoverage = coverage({ id: { title: idTitle, excerpt: idExcerpt, content: idDoc } }, ["title", "excerpt", "content"]);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // A half-typed cover URL must not block saving the article: keep sending the last valid one.
@@ -86,9 +94,9 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
   if (coverValid) lastValidCover.current = cover;
 
   const payload = useMemo(
-    () => ({ id: article.id, title, slug, slugAuto: !slugTouched, excerpt, coverUrl: lastValidCover.current, tags, content: doc }),
+    () => ({ id: article.id, title, slug, slugAuto: !slugTouched, excerpt, coverUrl: lastValidCover.current, tags, content: doc, translations: { id: { title: idTitle, excerpt: idExcerpt, content: idDoc } } }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- lastValidCover follows `cover`
-    [article.id, title, slug, slugTouched, excerpt, cover, tags, doc]
+    [article.id, title, slug, slugTouched, excerpt, cover, tags, doc, idTitle, idExcerpt, idDoc]
   );
   const { status: saveStatus, error, flush, savedAt } = useAutosave(payload, async (p) => {
     const result = await saveArticle(p);
@@ -185,14 +193,14 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
                   {" · "}
                   {readingMinutes(words)} min read
                 </p>
-                <h1 className="article-title mb-3">{title.trim() || "Untitled"}</h1>
-                {excerpt.trim() && <p className="lead text-muted">{excerpt}</p>}
+                <h1 className="article-title mb-3">{pickText(lang, title, idTitle).trim() || "Untitled"}</h1>
+                {pickText(lang, excerpt, idExcerpt).trim() && <p className="lead text-muted">{pickText(lang, excerpt, idExcerpt)}</p>}
                 {cover && coverValid && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={cover} alt="" className="img-fluid rounded my-4 w-100" />
                 )}
                 <div className="reading-col mx-0">
-                  {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={doc} />}
+                  {words === 0 ? <p className="text-muted">Nothing to preview yet.</p> : <RichTextRenderer doc={pickDoc(lang, doc, idDoc)} />}
                 </div>
                 {tags.length > 0 && (
                   <div className="d-flex flex-wrap gap-2 mt-4">
@@ -204,18 +212,32 @@ export default function ArticleEditor({ article, tagSuggestions }: { article: Ar
               </div>
             </article>
           ) : (
-            <input
-              className="form-control form-control-lg fw-semibold mb-3 art-title-input"
-              placeholder="Article title"
-              aria-label="Article title"
-              maxLength={160}
-              value={title}
-              onChange={(e) => onTitle(e.target.value)}
-            />
+            <>
+              <LangTabs value={lang} onChange={setLang} done={idCoverage.done} total={idCoverage.total} />
+              {lang === "en" ? (
+                <input
+                  className="form-control form-control-lg fw-semibold mb-3 art-title-input"
+                  placeholder="Article title"
+                  aria-label="Article title"
+                  maxLength={160}
+                  value={title}
+                  onChange={(e) => onTitle(e.target.value)}
+                />
+              ) : (
+                <>
+                  <input lang="id" className="form-control form-control-lg fw-semibold mb-3 art-title-input" placeholder={title || "Judul artikel"} aria-label="Title in Indonesian" maxLength={160} value={idTitle} onChange={(e) => setIdTitle(e.target.value)} />
+                  <label className="form-label small mb-1" htmlFor="article-excerpt-id">Excerpt (Indonesian)</label>
+                  <textarea id="article-excerpt-id" lang="id" className="form-control mb-3" rows={2} maxLength={400} placeholder={excerpt} value={idExcerpt} onChange={(e) => setIdExcerpt(e.target.value)} />
+                </>
+              )}
+            </>
           )}
-          {/* Kept mounted while previewing: unmounting it lost the editor's content and undo history. */}
-          <div className={preview ? "d-none" : undefined}>
+          {/* Kept mounted while previewing and while the other language is shown: unmounting an editor lost its content and undo history. */}
+          <div className={preview || lang !== "en" ? "d-none" : undefined}>
             <RichEditor initial={article.content} onChange={setDoc} placeholder="Tell your story…" minHeight={420} />
+          </div>
+          <div className={preview || lang !== "id" ? "d-none" : undefined} lang="id">
+            <RichEditor initial={article.translations.id?.content ?? { type: "doc", content: [] }} onChange={setIdDoc} placeholder="Leave empty to show the English article on /id…" minHeight={420} />
           </div>
           <p className="text-muted small mt-2 mb-0">
             <NumberFlow value={words} /> words · {readingMinutes(words)} min read

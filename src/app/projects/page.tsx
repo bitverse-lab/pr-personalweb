@@ -4,5 +4,5 @@ export const revalidate = 300;
 export const metadata = projectsMetadata("en");
 
 export default function Projects() {
-  return <ProjectsPage />;
+  return <ProjectsPage locale="en" />;
 }

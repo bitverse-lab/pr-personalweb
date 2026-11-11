@@ -15,9 +15,11 @@ import { docToPlainText } from "@/features/content/richtext";
 import { layersOf } from "@/features/projects/layers";
 import { dict } from "@/lib/i18n/dict";
 import { languages, localize, type Locale } from "@/lib/i18n/locale";
+import { localizeProject, localizeProjectPage } from "@/lib/i18n/content";
 
 export async function projectMetadata(locale: Locale, slug: string): Promise<Metadata> {
-  const project = await getProjectBySlug(slug);
+  const found = await getProjectBySlug(slug);
+  const project = found && localizeProjectPage(found, locale);
   if (!project) return { title: dict(locale).project.notFound };
   const description = project.summary || undefined;
   return {
@@ -31,9 +33,10 @@ export async function projectMetadata(locale: Locale, slug: string): Promise<Met
 // Deliberately not wrapped in publicRead (CLAUDE.md): null means "no such project" → 404; an outage must error.
 export async function ProjectDetailPage({ locale, slug }: { locale: Locale; slug: string }) {
   const t = dict(locale).project;
-  const project = await getProjectBySlug(slug);
-  if (!project) notFound();
-  const [profile, all] = await Promise.all([getProfile(), getProjects()]);
+  const found = await getProjectBySlug(slug);
+  if (!found) notFound();
+  const project = localizeProjectPage(found, locale);
+  const [profile, all] = await Promise.all([getProfile(), getProjects().then((list) => list.map((p) => localizeProject(p, locale)))]);
   const { prev, next } = getAdjacentProjects(all, project.slug);
   const { detail } = project;
   const hasStory = docToPlainText(detail.content).length > 0;

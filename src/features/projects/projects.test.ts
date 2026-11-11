@@ -11,6 +11,8 @@ describe("projectPeriod", () => {
     expect(projectPeriod("2023-01-01", "2023-06-01")).toBe("Jan 2023 – Jun 2023");
     expect(projectPeriod("2023-05-01", "2023-05-20")).toBe("May 2023");
     expect(projectPeriod(null, "2023-05-01")).toBe("");
+    expect(projectPeriod("2024-05-01", null, "id")).toBe("Mei 2024 – Sekarang");
+    expect(projectPeriod("2023-08-01", "2023-10-01", "id")).toBe("Agu 2023 – Okt 2023");
   });
 });
 

@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { articleRepository, type ArticleValues } from "@/server/repositories/article-repository";
 import { EMPTY_DOC, countWords, docToPlainText, slugify, validateDoc } from "@/features/content/richtext";
 import type { ArticleStatus, RichDoc } from "@/db/schema/content";
+import type { ArticleTr } from "@/features/content/translations";
 
 export interface ArticleListItem {
   id: string;
@@ -14,6 +15,8 @@ export interface ArticleListItem {
   publishedAt: string | null;
   updatedAt: string;
   tags: string[];
+  /** Indonesian title and excerpt (and, on a detail, the body); empty fields fall back to English. */
+  translations: ArticleTr;
 }
 
 export interface ArticleDetail extends ArticleListItem {
@@ -28,6 +31,7 @@ export interface ArticleSaveInput {
   content: RichDoc;
   coverUrl?: string | null;
   tags: string[];
+  translations?: ArticleTr;
 }
 
 type Row = {
@@ -40,6 +44,7 @@ type Row = {
   wordCount: number;
   publishedAt: Date | null;
   updatedAt: Date;
+  translations?: ArticleTr | null;
 };
 
 const toItem = (r: Row, tags: string[]): ArticleListItem => ({
@@ -53,6 +58,7 @@ const toItem = (r: Row, tags: string[]): ArticleListItem => ({
   publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
   updatedAt: r.updatedAt.toISOString(),
   tags,
+  translations: r.translations ?? {},
 });
 
 export type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -107,7 +113,7 @@ export const articleService = {
     id: string,
     input: ArticleSaveInput
   ): Promise<ServiceResult<{ updatedAt: string; slug: string; slugError: string | null; wasLive: boolean; previousSlug: string }>> {
-    const problem = validateDoc(input.content);
+    const problem = validateDoc(input.content) ?? (input.translations?.id?.content ? validateDoc(input.translations.id.content) : null);
     if (problem) return { ok: false, error: problem };
     const current = await articleRepository.findById(userId, id);
     if (!current) return { ok: false, error: "Article not found" };
@@ -134,6 +140,8 @@ export const articleService = {
           plainText,
           wordCount: countWords(plainText),
           coverUrl: input.coverUrl || null,
+          // undefined leaves the stored translations as they are
+          translations: input.translations,
         },
         tx
       );
@@ -171,7 +179,7 @@ export const articleService = {
   },
 
   async restore(userId: string, snap: ArticleDetail) {
-    const problem = validateDoc(snap.content);
+    const problem = validateDoc(snap.content) ?? (snap.translations?.id?.content ? validateDoc(snap.translations.id.content) : null);
     if (problem) return null;
     const slug = await uniqueSlug(userId, slugify(snap.slug));
     const plainText = docToPlainText(snap.content);
@@ -186,6 +194,7 @@ export const articleService = {
         coverUrl: snap.coverUrl,
         status: snap.status,
         publishedAt: snap.publishedAt ? new Date(snap.publishedAt) : null,
+        translations: snap.translations,
       };
       const row = await articleRepository.insert(userId, values, tx);
       await articleRepository.setTags(userId, row.id, snap.tags, tx);
