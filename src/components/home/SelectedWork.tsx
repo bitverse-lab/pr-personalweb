@@ -38,7 +38,7 @@ function Pipeline({ layers, used, tools, label }: { layers: string[]; used: stri
  * One featured case study large, the rest smaller — never a uniform grid. Each card carries its
  * derived layers (data-layers) so the hero console can light the projects that use a layer.
  */
-export default function SelectedWork({ projects, skills, title, query, children, locale = "en" }: { projects: Project[]; skills: LayerSkill[]; title?: string; query?: { sql: string; ms: number }; children?: React.ReactNode; locale?: Locale }) {
+export default function SelectedWork({ projects, skills, title, query, children, locale = "en", moreHref }: { projects: Project[]; skills: LayerSkill[]; title?: string; query?: { sql: string; ms: number }; children?: React.ReactNode; locale?: Locale; moreHref?: string }) {
   if (projects.length === 0) return null;
   const t = dict(locale).work;
   const stack = allLayers(skills);
@@ -79,6 +79,11 @@ export default function SelectedWork({ projects, skills, title, query, children,
             );
           })}
         </div>
+        {moreHref && (
+          <Link href={moreHref} className="writing-all d-inline-block mt-4">
+            {t.viewAll} <span className="link-arrow" aria-hidden="true">→</span>
+          </Link>
+        )}
       </div>
     </section>
   );

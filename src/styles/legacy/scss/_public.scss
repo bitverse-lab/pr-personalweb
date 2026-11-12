@@ -423,6 +423,17 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         color: $console-dim;
         white-space: nowrap;
     }
+    // Project titles are long: let them wrap so the outcome column keeps its width, and cap the outcome at three lines.
+    td[data-col="key"]:has(.qc-link) {
+        white-space: normal;
+        width: 40%;
+    }
+    .qc-clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
     .qc-value {
         color: $white;
         font-weight: 600;

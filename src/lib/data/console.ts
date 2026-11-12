@@ -1,6 +1,9 @@
 import { unstable_cache } from "next/cache";
+import { pickText, type HighlightTr, type ProjectTr } from "@/features/content/translations";
 import { layersOf } from "@/features/projects/layers";
 import { buildTimeline, type Timeline } from "@/features/projects/timeline";
+import { dict } from "@/lib/i18n/dict";
+import type { Locale } from "@/lib/i18n/locale";
 import { SITE_REVALIDATE_SECONDS, SITE_TAG, publicRead } from "@/lib/data/site-cache";
 import { articleRepository } from "@/server/repositories/article-repository";
 import { profileRepository } from "@/server/repositories/profile-repository";
@@ -37,17 +40,19 @@ export interface ConsoleData {
 }
 
 export interface ConsoleInput {
-  highlights: { metric: string; value: string; note: string | null }[];
+  highlights: { metric: string; value: string; note: string | null; translations?: HighlightTr }[];
   available: boolean;
   availabilityNote: string;
+  availabilityNoteId?: string | null;
   skills: { name: string; category: string | null }[];
-  projects: { title: string; slug: string; outcome: string | null; summary: string | null; technologies: string[]; featured: boolean }[];
+  projects: { title: string; slug: string; outcome: string | null; summary: string | null; technologies: string[]; featured: boolean; translations?: ProjectTr }[];
 }
 
-export function buildConsoleTables(input: ConsoleInput): ConsoleTable[] {
-  const status: ConsoleRow = input.available
-    ? { key: "status", value: "open", note: input.availabilityNote || "Available for full-time roles" }
-    : { key: "status", value: "not looking", note: input.availabilityNote || "Not looking right now" };
+/** The SQL and the column keys stay as written (they are the query); the words around them follow the page language. */
+export function buildConsoleTables(input: ConsoleInput, locale: Locale = "en"): ConsoleTable[] {
+  const t = dict(locale).console;
+  const note = pickText(locale, input.availabilityNote, input.availabilityNoteId);
+  const status: ConsoleRow = input.available ? { key: "status", value: "open", note: note || t.open } : { key: "status", value: "not looking", note: note || t.notLooking };
 
   const groups = new Map<string, string[]>();
   for (const s of input.skills) {
@@ -62,25 +67,27 @@ export function buildConsoleTables(input: ConsoleInput): ConsoleTable[] {
     {
       name: "profile.sql",
       sql: "SELECT metric, value, note\nFROM   profile_highlight\nORDER BY position;",
-      plain: "My strongest credentials, in plain words.",
-      columns: ["metric", "value", "what it means"],
-      rows: [...input.highlights.map((h) => ({ key: h.metric, value: h.value, note: h.note ?? "" })), status],
+      plain: t.plainProfile,
+      columns: ["metric", "value", t.meaning],
+      rows: [...input.highlights.map((h) => ({ key: h.metric, value: h.value, note: pickText(locale, h.note ?? "", h.translations?.id?.note) })), status],
     },
     {
       name: "stack.sql",
       sql: "SELECT layer, tools\nFROM   skill\nGROUP BY layer;",
-      plain: "The tools I use, grouped by what they are for. Point at one to see the projects that use it.",
-      columns: ["layer", "tools", "used for"],
+      plain: t.plainStack,
+      columns: ["layer", "tools", t.usedFor],
       rows: Array.from(groups, ([layer, names]) => ({ key: layer, value: names[0], note: names.join(", ") })),
     },
     {
       name: "projects.sql",
       sql: "SELECT title, layers, outcome\nFROM   project\nWHERE  published\nORDER BY featured DESC;",
-      plain: "Projects I have shipped. Choose one to read the case study.",
+      plain: t.plainProjects,
       columns: ["title", "layers", "outcome"],
       rows: ordered.map((p) => {
         const layers = layersOf(p.technologies, input.skills);
-        return { key: p.title, value: `${layers.length} layer${layers.length === 1 ? "" : "s"}`, note: p.outcome || p.summary || "", layers, slug: p.slug };
+        const tr = p.translations?.id;
+        const outcome = pickText(locale, p.outcome, tr?.outcome) || pickText(locale, p.summary, tr?.summary) || "";
+        return { key: pickText(locale, p.title, tr?.title), value: dict(locale).work.layers(layers.length), note: outcome, layers, slug: p.slug };
       }),
     },
   ];
@@ -96,7 +103,7 @@ function siteHost(): string {
 }
 
 const loadConsole = unstable_cache(
-  async (): Promise<ConsoleData | null> => {
+  async (locale: Locale): Promise<ConsoleData | null> => {
     const started = performance.now();
     const owner = await articleRepository.owner();
     if (!owner) return null;
@@ -110,9 +117,10 @@ const loadConsole = unstable_cache(
         highlights: full.highlights,
         available: full.profile?.availableForWork ?? false,
         availabilityNote: full.profile?.availabilityNote ?? "",
+        availabilityNoteId: full.profile?.translations?.id?.availabilityNote,
         skills: full.skills.map((s) => ({ name: s.name, category: s.category })),
         projects: published,
-      }),
+      }, locale),
       timeline: buildTimeline({
         skills: full.skills.map((s) => s.name),
         projects: published.map((p) => ({ slug: p.slug, technologies: p.technologies, startDate: p.startDate })),
@@ -121,12 +129,12 @@ const loadConsole = unstable_cache(
       }),
     };
   },
-  // Bump when the shape changes (v3: the timeline, keyed by the owner's spelling).
-  ["public-console", "v3"],
+  // Bump when the shape changes (v4: one entry per language; the locale argument is part of the key).
+  ["public-console", "v4"],
   { tags: [SITE_TAG], revalidate: SITE_REVALIDATE_SECONDS },
 );
 
 /** Null when the database is unreachable (or there is no owner yet): the home page renders without the console. */
-export function getConsoleData(): Promise<ConsoleData | null> {
-  return publicRead("the hero console", loadConsole, null);
+export function getConsoleData(locale: Locale = "en"): Promise<ConsoleData | null> {
+  return publicRead("the hero console", () => loadConsole(locale), null);
 }

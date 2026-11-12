@@ -56,6 +56,21 @@ test("projects.sql puts featured work first, with derived layers and the outcome
   expect(rows[1].note).toBe("IndoBERT behind FastAPI");
 });
 
+test("on /id the words follow the language and fall back to English; the SQL does not change", () => {
+  const id = buildConsoleTables(
+    {
+      ...input,
+      highlights: [{ metric: "gpa", value: "3.92 /4.00", note: "Summa Cum Laude", translations: { id: { note: "Lulus dengan pujian" } } }],
+      projects: [{ ...input.projects[1], translations: { id: { title: "Hasil Panen", outcome: null } } }],
+    },
+    "id",
+  );
+  const [profile, , projects] = id;
+  expect(profile.rows.map((r) => r.note)).toEqual(["Lulus dengan pujian", "Terbuka untuk posisi penuh waktu"]);
+  expect(projects.rows[0]).toMatchObject({ key: "Hasil Panen", value: "2 lapisan", note: "7% median error" });
+  expect(id.map((t) => t.sql)).toEqual(buildConsoleTables(input).map((t) => t.sql));
+});
+
 test("an owner with nothing yet gets empty tables, never invented rows", () => {
   const empty = buildConsoleTables({ highlights: [], available: false, availabilityNote: "", skills: [], projects: [] });
   expect(empty.find((t) => t.name === "stack.sql")!.rows).toEqual([]);

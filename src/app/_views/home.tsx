@@ -19,6 +19,6 @@ async function timed<T>(read: Promise<T>): Promise<{ data: T; ms: number }> {
 }
 
 export async function HomePage({ locale }: { locale: Locale }) {
-  const [profile, work, articles, testimonials, consoleData] = await Promise.all([getProfile(), timed(getFeaturedProjects(3)), getArticles(), getPublishedTestimonials(6), getConsoleData()]);
+  const [profile, work, articles, testimonials, consoleData] = await Promise.all([getProfile(), timed(getFeaturedProjects(3)), getArticles(), getPublishedTestimonials(6), getConsoleData(locale)]);
   return <HomeView profile={localizeProfile(profile, locale)} projects={work.data.map((p) => localizeProject(p, locale))} workMs={work.ms} articles={articles.slice(0, 3).map((a) => localizeArticle(a, locale))} testimonials={testimonials} console={consoleData} locale={locale} />;
 }
