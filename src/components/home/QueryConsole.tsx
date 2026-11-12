@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ConsoleData, ConsoleRow } from "@/lib/data/console";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import { useDict } from "@/lib/i18n/context";
+import { useDict, useLocalize } from "@/lib/i18n/context";
 import { CLOUD_FOCUS_EVENT, type CloudFocus } from "@/components/home/EmbeddingCloud";
 
 // Hero C v3: the owner's CV as the result of real, read-only queries over this site's database.
@@ -54,6 +55,8 @@ function highlightCase(slug: string | null) {
 
 export default function QueryConsole({ data, human }: { data: ConsoleData; human: boolean }) {
   const tx = useDict().console;
+  const router = useRouter();
+  const localize = useLocalize();
   const reduce = usePrefersReducedMotion();
   const [tab, setTab] = useState(0);
   const [phase, setPhase] = useState<"idle" | "typing" | "executing" | "done">("done");
@@ -138,8 +141,10 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
 
   // Motion 5 — a project row becomes its case study (View Transitions where supported).
   const openCase = (row: ConsoleRow, el: HTMLElement) => {
-    const card = row.slug ? document.getElementById(`case-${row.slug}`) : null;
-    if (!card) return;
+    if (!row.slug) return;
+    const card = document.getElementById(`case-${row.slug}`);
+    // Selected work shows only a few projects: the rest open their own page.
+    if (!card) return router.push(localize(`/projects/${row.slug}`));
     const heading = card.querySelector<HTMLElement>("h3");
     const focusCard = () => {
       card.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
@@ -259,7 +264,7 @@ export default function QueryConsole({ data, human }: { data: ConsoleData; human
               >
                 <td data-col="key">{isProjects ? <button type="button" className="qc-link" data-slug={row.slug} onClick={(e) => openCase(row, e.currentTarget.closest("tr")!)}>{row.key}</button> : row.key}</td>
                 <td className="qc-value">{row.value}</td>
-                <td className="qc-note">{row.note}</td>
+                <td className="qc-note">{isProjects ? <span className="qc-clamp">{row.note}</span> : row.note}</td>
               </tr>
             ))}
           </tbody>

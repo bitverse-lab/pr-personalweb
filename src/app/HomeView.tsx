@@ -81,6 +81,7 @@ export default function HomeView({ profile, projects, workMs, articles, testimon
           projects={projects.slice(0, 3)}
           skills={skills}
           locale={locale}
+          moreHref={localize(locale, "/projects")}
           query={{
             sql: role
               ? `SELECT title, layers, outcome FROM project WHERE published ORDER BY role_fit('${role.layers.join("', '")}') DESC, featured DESC LIMIT 3;`
