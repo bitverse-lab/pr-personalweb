@@ -2316,3 +2316,59 @@ a.path-label:focus-visible,
         transform: scale(0.98);
     }
 }
+
+// ============================================================ project gallery
+// First image large but capped, so a tall phone screenshot never fills more than a screen;
+// the rest scroll sideways under it. `contain` keeps whole screenshots readable.
+.gallery-main,
+.gallery-thumb {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--pub-soft);
+    border-radius: 8px;
+    cursor: zoom-in;
+}
+.gallery-main img {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+.gallery-strip {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px; // room for the scrollbar under the thumbnails
+    li {
+        flex: 0 0 auto;
+        width: clamp(140px, 28%, 220px);
+        scroll-snap-align: start;
+    }
+}
+.gallery-thumb {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--pub-line);
+    transition: border-color 0.2s;
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+@media (hover: hover) {
+    .gallery-thumb:hover {
+        border-color: rgba($primary, 0.5);
+    }
+}
+.gallery-full img {
+    display: block;
+    max-width: 100%;
+    max-height: 75vh;
+    margin: 0 auto;
+    object-fit: contain;
+}
