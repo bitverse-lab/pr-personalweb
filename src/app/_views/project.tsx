@@ -8,6 +8,7 @@ import SmallFooter from "@/components/layout/SmallFooter";
 import RichTextRenderer from "@/components/shared/RichTextRenderer";
 import JsonLd from "@/components/shared/JsonLd";
 import PrevNext from "@/components/shared/PrevNext";
+import ProjectGallery from "@/components/projects/ProjectGallery";
 import { siteUrl } from "@/lib/site";
 import { getProfile } from "@/lib/data/profile";
 import { getAdjacentProjects, getProjectBySlug, getProjects } from "@/lib/data/projects";
@@ -92,13 +93,7 @@ export async function ProjectDetailPage({ locale, slug }: { locale: Locale; slug
             <div className="project-layout">
               <div className="project-main">
                 {project.gallery.length > 0 ? (
-                  project.gallery.map((image, index) => (
-                    <figure className={index > 0 ? "mt-4 mb-0" : "mb-0"} key={image.url} style={index === coverIndex ? vt("cover", project.slug) : undefined}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="img-fluid rounded" alt={image.caption || t.image(project.name, index + 1)} />
-                      {image.caption && <figcaption className="mono-meta mt-2">{image.caption}</figcaption>}
-                    </figure>
-                  ))
+                  <ProjectGallery images={project.gallery} name={project.name} vtIndex={coverIndex} vtStyle={vt("cover", project.slug)} />
                 ) : (
                   <CoverBlock src={project.image} title={project.name} vtStyle={vt("cover", project.slug)} />
                 )}
