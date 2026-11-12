@@ -247,7 +247,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     background: #c9d0e2;
     position: relative;
     cursor: pointer;
-    transition: background-color 0.2s $ease-out;
+    transition: background-color 0.2s $ease-out, box-shadow 0.2s;
     &::after {
         content: "";
         position: absolute;
@@ -347,7 +347,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     background: $success;
     color: #06302a;
     cursor: pointer;
-    transition: transform 0.12s;
+    transition: transform 0.12s, filter 0.2s, box-shadow 0.2s;
     &:active {
         transform: scale(0.94);
     }
@@ -663,7 +663,7 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid var(--pub-line);
     border-radius: 12px;
     overflow: hidden;
-    transition: opacity 0.25s $ease-out, filter 0.25s $ease-out, border-color 0.2s, box-shadow 0.25s $ease-out;
+    transition: opacity 0.25s $ease-out, filter 0.25s $ease-out, border-color 0.2s, box-shadow 0.25s $ease-out, transform 0.25s $ease-out;
     &:hover {
         border-color: rgba($primary, 0.5);
     }
@@ -1057,12 +1057,6 @@ $xp-rail: $xp-when + $xp-gap * 0.5; // centre of the gap
 }
 a.layer-chip {
     text-decoration: none;
-    &:hover {
-        background: mix($surface-soft, $primary, 85%);
-    }
-}
-a.layer-chip.layer-chip--active:hover {
-    background: $primary;
 }
 
 // ============================================================ article detail
@@ -2239,4 +2233,86 @@ h3.mono-meta {
 // On the narrowest phones a long name beside the theme switch and the menu button wrapped the header.
 @media (max-width: 400px) {
     #topnav .logo .h5 { font-size: 15px !important; }
+}
+
+// ============================================================ hover language
+// One reaction per kind of thing, so a visitor learns once what is clickable: cards lift,
+// text links grow an underline, chips get a ring, console controls brighten. Hover-only
+// devices get hover; keyboard focus gets the same cue; movement respects reduced motion.
+.cv-contact a,
+.cv-item-title a,
+a.path-label,
+.writing-all,
+.hero-c-match {
+    // Underline drawn as a background: the template forces `text-decoration: none !important` on every link.
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.25s $ease-out, color 0.2s;
+}
+.hero-c-match {
+    width: fit-content; // `d-block` would stretch the underline across the column
+}
+.cv-contact a:focus-visible,
+.cv-item-title a:focus-visible,
+a.path-label:focus-visible,
+.writing-all:focus-visible,
+.hero-c-match:focus-visible {
+    background-size: 100% 1px;
+}
+.cv-item-title a:focus-visible {
+    color: var(--pub-accent);
+}
+.layer-chip:not(.layer-chip--active):not([aria-pressed="true"]):focus-visible {
+    box-shadow: inset 0 0 0 1px currentColor;
+}
+.logo,
+.logo-footer {
+    transition: opacity 0.2s;
+}
+
+@media (hover: hover) {
+    .cv-contact a:hover,
+    .cv-item-title a:hover,
+    a.path-label:hover,
+    .writing-all:hover,
+    .hero-c-match:hover {
+        background-size: 100% 1px;
+    }
+    .cv-item-title a:hover {
+        color: var(--pub-accent);
+    }
+    .layer-chip:not(.layer-chip--active):not([aria-pressed="true"]):hover {
+        box-shadow: inset 0 0 0 1px currentColor;
+    }
+    .case:hover {
+        box-shadow: $shadow-lg;
+    }
+    .logo:hover,
+    .logo-footer:hover {
+        opacity: 0.75;
+    }
+    footer .text-foot:hover {
+        color: $white;
+    }
+    .qc-tab:not([aria-selected="true"]):not([aria-pressed="true"]):hover {
+        color: $console-text;
+        border-bottom-color: $console-line;
+    }
+    .qc-run:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 0 0 3px rgba($success, 0.25);
+    }
+    .hero-c-switch:hover {
+        box-shadow: 0 0 0 3px rgba($primary, 0.18);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) {
+        .case:hover {
+            transform: translateY(-3px);
+        }
+    }
+    .btn:active {
+        transform: scale(0.98);
+    }
 }
