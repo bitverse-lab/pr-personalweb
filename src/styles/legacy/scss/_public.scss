@@ -2372,3 +2372,18 @@ a.path-label:focus-visible,
     margin: 0 auto;
     object-fit: contain;
 }
+// The workspace dialog panel is hard white; the public pages theme it with their own tokens.
+.me-dialog-panel.gallery-dialog {
+    background: var(--pub-surface);
+    color: var(--pub-ink);
+    border: 1px solid var(--pub-line);
+    h2 { color: var(--pub-ink); }
+    .text-muted { color: var(--pub-meta) !important; }
+}
+:root[data-theme="dark"] .gallery-dialog .btn-close {
+    filter: invert(1) grayscale(1) brightness(1.6);
+}
+.gallery-strip {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pub-line) transparent;
+}
